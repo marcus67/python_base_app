@@ -1,0 +1,49 @@
+# -*- mode: Conf; -*-
+
+#    Copyright (C) 2019  Marcus Rickert
+#
+#    See https://github.com/marcus67/python_base_app
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+##################################################################################
+# Please, beware that this file has been generated! Do not make any changes here #
+# but only to python_base_app/templates/coveragerc.template!                     #
+##################################################################################
+
+[run]
+branch = True
+source = {% for package_name in python_packages %}{{ package_name[0] }}/{{ package_name[2] }}
+         {% endfor %}
+omit = {% for package_name in python_packages %}{{ package_name[0] }}/{{ package_name[2] }}/setup.py
+       {{ package_name[0] }}/{{ package_name[2] }}/__init__.py
+       {{ package_name[0] }}/{{ package_name[2] }}/{{ var.setup.test_dir }}/__init__.py
+       {% endfor %}
+
+[report]
+precision = 1
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if __name__ == .__main__.:
+
+ignore_errors = True

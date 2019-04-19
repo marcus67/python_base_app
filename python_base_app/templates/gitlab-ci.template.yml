@@ -1,0 +1,56 @@
+#    Copyright (C) 2019  Marcus Rickert
+#
+#    See https://github.com/marcus67/python_base_app
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+##################################################################################
+# Please, beware that this file has been generated! Do not make any changes here #
+# but only to python_base_app/templates/gitlab-ci.template.yml!                  #
+##################################################################################
+
+stages:
+- build
+- install_and_check
+
+make_debian_package:
+  image: {{ var.setup.docker_image_make_package }}
+  stage: build
+  script:
+  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+  artifacts:
+    paths:
+    - {{ var.setup.debian_build_dir }}/*.deb
+  variables:
+    # Activate automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+
+check_installation:
+  image: {{ var.setup.docker_image_test }}
+  stage: install_and_check
+  script:
+  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}{% if var.setup.run_test_suite %}
+  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --run-dir=/tmp {% endif %}{% if var.setup.require_teardown %}
+  after_script:
+  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}{% endif %}
+  artifacts:
+    when: always
+    paths:
+    - /var/log/{{ var.setup.name }}/*.log*
+    - ./htmlcov/*
+  variables:
+    # Suppress automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+
