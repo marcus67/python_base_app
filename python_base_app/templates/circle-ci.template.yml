@@ -22,9 +22,6 @@
 ##################################################################################
 
 version: 2.1
-orbs:
-  # See https://circleci.com/blog/making-code-coverage-easy-to-see-with-the-codecov-orb/
-  codecov: codecov/codecov@1.0.2
 jobs:
   build:
     #working_directory: ~
@@ -46,7 +43,7 @@ jobs:
   {%- if var.setup.publish_debian_package %}
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }} --run-dir=/tmp
   {%- endif %}
+      - run: pip3 install codecov
+      - run: codecov
       - store_artifacts:
           path: /tmp/htmlcov
-      - codecov/upload:
-          file: /tmp/htmlcov/index.html
