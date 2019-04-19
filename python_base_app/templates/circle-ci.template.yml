@@ -29,6 +29,9 @@ jobs:
       - image: {{ var.setup.docker_image_test }}
     steps:
       - checkout
+      # See https://circleci.com/docs/2.0/configuration-reference/#checkout
+      - run: git submodule sync
+      - run: git submodule update --init
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
   {%- if var.setup.run_test_suite %}
