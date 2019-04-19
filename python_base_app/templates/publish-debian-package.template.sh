@@ -58,7 +58,9 @@ if [ "${PUBLISH_PUBLIC_KEY}" != "" ] ; then
         echo "${PUBLISH_PUBLIC_KEY}" >> ~/.ssh/known_hosts
     fi
     set -e
+else
+    SCP_OPTIONS="-oStrictHostKeyChecking=no"
 fi
 
 export SSHPASS=${PUBLISH_PASSWORD}
-sshpass -ve  scp ${SOURCE_FILE} ${PUBLISH_USER}@${DEST_FILE}
+sshpass -ve scp ${SCP_OPTIONS} ${SOURCE_FILE} ${PUBLISH_USER}@${DEST_FILE}
