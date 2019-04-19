@@ -36,7 +36,7 @@ MODULE_NAME = "base_ci_toolbox"
 
 STAGE_BUILD_PACKAGE = "BUILD"
 STAGE_INSTALL = "INSTALL"
-STAGE_PUBLISH_PACKAGE = "PUBLISH"
+STAGE_PUBLISH_PACKAGE = "PUBLISH-PACKAGE"
 STAGE_TEST = "TEST"
 STAGE_TEARDOWN = "TEARDOWN"
 STAGE_PREPARE = "PREPARE"
@@ -76,6 +76,7 @@ default_setup = {
     "ci_stage_install": STAGE_INSTALL,
     "ci_stage_test": STAGE_TEST,
     "ci_stage_teardown": STAGE_TEARDOWN,
+    "ci_stage_publish_package": STAGE_PUBLISH_PACKAGE,
     "require_teardown": False,
     "bin_dir": "bin",
     "test_dir": "test",
@@ -104,7 +105,8 @@ default_setup = {
     "debian_package_architecture": "amd64",
     "debian_dependencies": [],
     "install_requires": [],
-    "contributing_setups": []
+    "contributing_setups": [],
+    "publish_debian_package": False
 }
 
 logger = None
