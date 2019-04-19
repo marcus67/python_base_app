@@ -43,3 +43,5 @@ jobs:
   {%- if var.setup.publish_debian_package %}
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }} --run-dir=/tmp
   {%- endif %}
+      - store_artifacts:
+          path: htmlcov
