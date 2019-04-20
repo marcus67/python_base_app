@@ -39,10 +39,19 @@ SUDOERS_DIR=${ROOT_DIR}/{{ var.setup.rel_sudoers_dir }}
 mkdir -p ${TMP_DIR}
 mkdir -p ${ETC_DIR}
 
+
+
 {% for package in python_packages %}
 # Build PIP package {{ package[1] }}...
 pushd . > /dev/null
 cd {{ package[0] }}
+
+{% for file_mapping in package[3].setup.debian_extra_files %}
+TARGET_DIRECTORY=${ROOT_DIR}/$(dirname {{ file_mapping[1] }} )
+mkdir -p ${TARGET_DIRECTORY}
+echo "Deploying extra file '{{ file_mapping[0] }}' to '${ROOT_DIR}/{{ file_mapping[1] }}'..."
+cp -f {{ file_mapping[0] }} ${ROOT_DIR}/{{ file_mapping[1] }}
+{%- endfor %}
 
 {% if package[3].setup.git_metadata_file %}
 echo "GIT_BRANCH=\"$(git rev-parse --abbrev-ref HEAD)\"" > {{ package[3].setup.git_metadata_file }}

@@ -38,12 +38,11 @@ jobs:
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
   {%- if var.setup.run_test_suite %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --run-dir=/tmp
+      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
   {%- endif %}
   {%- if var.setup.publish_debian_package %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }} --run-dir=/tmp
+      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
   {%- endif %}
-      - run: pip3 install codecov
-      - run: codecov
+      - run: pwd && ls -la && codecov
       - store_artifacts:
-          path: /tmp/htmlcov
+          path: htmlcov

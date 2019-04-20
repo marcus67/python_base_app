@@ -46,8 +46,7 @@ setup_params = {
 
     # additional setup configuration used by CI stages
     "id" : "python-base-app",
-    "revision" : "1"
-
+    "revision" : "1",
 }
 
 if __name__ == '__main__':

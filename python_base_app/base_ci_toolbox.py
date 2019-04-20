@@ -104,6 +104,7 @@ default_setup = {
     "debian_package_priority": "optional",
     "debian_package_architecture": "amd64",
     "debian_dependencies": [],
+    "debian_extra_files" : [],
     "install_requires": [],
     "contributing_setups": [],
     "publish_debian_package": False
