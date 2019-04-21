@@ -25,6 +25,7 @@ import os.path
 import stat
 import subprocess
 import sys
+import collections
 
 import jinja2
 
@@ -67,6 +68,14 @@ PUBLISH_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'publish-debian-package.template.sh'
 
 TEST_APP_SCRIPT_FILE_PATH = '{bin_dir}/test-app.sh'
 TEST_APP_SCRIPT_TEMPLATE = 'test-app.template.sh'
+
+VarStatus = collections.namedtuple("VarInfo", "source_name description target_name")
+
+PREDEFINED_ENV_VARIABLES = [
+    VarStatus('CIRCLE_BRANCH', "Circle CI Git branch name", "GIT_BRANCH"),
+]
+
+predefined_env_variables = None
 
 default_setup = {
     "docker_image_make_package": "accso/docker-python-app:latest",
@@ -121,26 +130,48 @@ def get_python_package_name(p_var):
     return "{name}-{version}.tar.gz".format(**(p_var["setup"]))
 
 
+def get_predefined_environment_variables():
+    global logger
+    global predefined_env_variables
+
+    if predefined_env_variables is None:
+        predefined_env_variables = {}
+
+        for var_info in PREDEFINED_ENV_VARIABLES:
+            value = os.getenv(var_info.source_name)
+
+            if value is not None:
+                msg = "{description} ({name}) found in environment with value '{value}' "
+                logger.info(msg.format(name=var_info.source_name, description=var_info.description, value=value))
+
+                predefined_env_variables[var_info.target_name] = value
+
+    return predefined_env_variables
+
+def expand_vars(p_vars):
+
+    while True:
+        change_done = False
+
+        for (key, value) in p_vars.items():
+            if isinstance(value, str):
+                new_value = value.format(**p_vars)
+
+                if new_value != value:
+                    change_done = True
+                    p_vars[key] = new_value
+
+        if not change_done:
+            break
+
 def get_vars(p_setup_params):
     setup = copy.copy(default_setup)
     setup.update(p_setup_params)
 
     setup["module_name"] = setup["name"].replace("-", "_")
+    setup.update(get_predefined_environment_variables())
 
-    while True:
-
-        change_done = False
-
-        for (key, value) in setup.items():
-            if isinstance(value, str):
-                new_value = value.format(**setup)
-
-                if new_value != value:
-                    change_done = True
-                    setup[key] = new_value
-
-        if not change_done:
-            break
+    expand_vars(setup)
 
     return {"setup": setup}
 
@@ -491,7 +522,12 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
     fmt = "<<<<< START script {filename} ..."
     logger.info(fmt.format(filename=script_filename))
 
-    popen = subprocess.Popen(script_filename, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    extended_env = os.environ.copy()
+    extended_env.update(get_predefined_environment_variables())
+
+    expand_vars(extended_env)
+
+    popen = subprocess.Popen(script_filename, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=extended_env)
     stdout, stderr = popen.communicate()
     exit_code = popen.returncode
     msg = "[STDOUT] {line}"
