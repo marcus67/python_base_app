@@ -57,7 +57,7 @@ class Daemon(object):
         self.use_gevent = use_gevent
         self.use_eventlet = use_eventlet
 
-        self._logger = log_handling.getLogger(self.__class__.__name__)
+        self._logger = log_handling.get_logger(self.__class__.__name__)
 
     def log(self, *args):
 
