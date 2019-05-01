@@ -33,8 +33,8 @@ setup_params = {
         'pytest',
         'requests', 
         'python-dateutil',
-        'flask==0.12.1',
-        'flask-wtf==0.12',
+        'flask',
+        'flask-wtf',
         'jinja2',
         'flask-blueprint'
     ],
@@ -46,7 +46,7 @@ setup_params = {
 
     # additional setup configuration used by CI stages
     "id" : "python-base-app",
-    "revision" : "1",
+    "revision" : "2",
 }
 
 if __name__ == '__main__':
