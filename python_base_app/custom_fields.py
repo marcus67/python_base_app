@@ -22,8 +22,14 @@ import wtforms.widgets
 
 from python_base_app import tools
 
+class BaseCustomField(wtforms.Field):
 
-class DurationField(wtforms.Field):
+    extra_css_classes = ""
+
+    pass
+
+
+class DurationField(BaseCustomField):
     widget = wtforms.widgets.TextInput()
 
     def __init__(self, *args, **largs):
@@ -57,7 +63,7 @@ class DurationField(wtforms.Field):
             self.invalid_data = None
 
 
-class TimeField(wtforms.Field):
+class TimeField(BaseCustomField):
     widget = wtforms.widgets.TextInput()
 
     def __init__(self, *args, **largs):
@@ -89,3 +95,30 @@ class TimeField(wtforms.Field):
         else:
             self.data = None
             self.invalid_data = None
+
+class BooleanField(BaseCustomField):
+
+    widget = wtforms.widgets.CheckboxInput()
+
+    extra_css_classes = "move-left"
+
+    def __init__(self, *args, **largs):
+
+        super().__init__(*args, **largs)
+
+    def _value(self):
+
+
+        return  self.data is not None and self.data
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+
+            try:
+                self.data = 1 if valuelist[0] else 0
+
+            except Exception as e:
+                raise wtforms.validators.ValidationError(message=str(e))
+
+        else:
+            self.data = None
