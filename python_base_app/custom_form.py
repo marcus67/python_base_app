@@ -21,7 +21,7 @@
 import flask_wtf
 
 
-class ModelForm(flask_wtf.Form):
+class ModelForm(flask_wtf.FlaskForm):
 
     def load_from_model(self, p_model):
 
