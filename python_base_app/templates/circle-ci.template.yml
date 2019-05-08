@@ -43,6 +43,7 @@ jobs:
       - run: codecov
       - store_artifacts:
           path: htmlcov
+      - store_artifacts:
           path: {{ var.setup.debian_build_dir}}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
 
   deploy:
