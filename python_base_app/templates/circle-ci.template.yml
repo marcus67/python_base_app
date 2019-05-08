@@ -21,7 +21,7 @@
 # but only to python_base_app/templates/gitlab-ci.template.yml!                  #
 ##################################################################################
 
-version: 2.1
+version: 2.0
 jobs:
   build:
     #working_directory: ~
