@@ -43,6 +43,7 @@ jobs:
       - run: codecov
       - store_artifacts:
           path: htmlcov
+          path: {{ var.setup.debian_build_dir}}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
 
   deploy:
     docker:
@@ -52,8 +53,6 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
-      - store_artifacts:
-          path: {{ var.setup.debian_build_dir}}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
 
 workflows:
     version: 2
