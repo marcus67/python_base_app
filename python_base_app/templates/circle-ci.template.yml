@@ -61,3 +61,11 @@ jobs:
         - {{ branch }}
   {%- endfor %}
   {%- endif %}
+
+  workflows:
+      version: 2.0
+      build_and_deploy:
+        jobs:
+          - build
+          - deploy
+          -
