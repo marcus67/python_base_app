@@ -40,9 +40,24 @@ jobs:
   {%- if var.setup.run_test_suite %}
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
   {%- endif %}
-  {%- if var.setup.publish_debian_package %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
-  {%- endif %}
       - run: codecov
       - store_artifacts:
           path: htmlcov
+
+  deploy:
+    docker:
+      - image: {{ var.setup.docker_image_test }}
+    steps:
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+  {%- if var.setup.publish_debian_package|length > 0 %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
+      - store_artifacts:
+          path: {{ var.setup.debian_build_dir}}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
+    branches:
+      - only:
+  {%- for branch in var.setup.publish_debian_package %}
+        - {{ branch }}
+  {%- endfor %}
+  {%- endif %}

@@ -116,7 +116,7 @@ default_setup = {
     "debian_extra_files" : [],
     "install_requires": [],
     "contributing_setups": [],
-    "publish_debian_package": False
+    "publish_debian_package": []
 }
 
 logger = None
