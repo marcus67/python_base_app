@@ -130,7 +130,6 @@ class ConfigModel(object):
         else:
             self.__dict__[p_option_name] = p_value
 
-
     def post_process(self):
 
         pass
@@ -189,7 +188,7 @@ class Configuration(ConfigModel):
 
             else:
                 raise ConfigurationException("Invalid Boolean value '%s' in setting '%s' of section '%s'" % (
-                p_option_value, p_option, p_section_name))
+                    p_option_value, p_option, p_section_name))
 
         elif option_type == 'int':
             try:
