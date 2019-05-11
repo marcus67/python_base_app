@@ -131,6 +131,11 @@ class ConfigModel(object):
             self.__dict__[p_option_name] = p_value
 
 
+    def post_process(self):
+
+        pass
+
+
 class Configuration(ConfigModel):
 
     def __init__(self):
