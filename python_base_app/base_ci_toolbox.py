@@ -45,6 +45,9 @@ STAGE_PREPARE = "PREPARE"
 GITLAB_CI_FILE = '.gitlab-ci.yml'
 GITLAB_CI_TEMPLATE = 'gitlab-ci.template.yml'
 
+GIT_PY_FILE_PATH = '{module_name}/git.py'
+GIT_PY_TEMPLATE = 'git.template.py'
+
 CIRCLE_CI_FILE = '.circleci/config.yml'
 CIRCLE_CI_TEMPLATE = 'circle-ci.template.yml'
 
@@ -270,6 +273,29 @@ def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env):
 
     fmt = "Wrote CI configuration to file '{filename}'"
     logger.info(fmt.format(filename=gitlab_ci_filename))
+
+
+def generate_git_python_file(p_main_setup_module, p_template_env):
+    global logger
+
+    fmt = "Generate git.py Python file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.setup_params))
+
+    template = p_template_env.get_template(GIT_PY_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+
+    output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.setup_params))
+
+    output_file_path = GIT_PY_FILE_PATH.format(**(var["setup"]))
+
+    git_py_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+
+    with open(git_py_filename, "w") as f:
+        f.write(output_text)
+
+    fmt = "Wrote git.py Python file '{filename}'"
+    logger.info(fmt.format(filename=git_py_filename))
 
 
 def generate_circle_ci_configuration(p_main_setup_module, p_template_env):
@@ -623,6 +649,7 @@ def main(p_main_module_dir):
         elif arguments.execute_stage == STAGE_PREPARE:
             generate_gitlab_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_circle_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
+            generate_git_python_file(p_main_setup_module=main_setup_module, p_template_env=template_env)
 
         else:
             msg = "No stage selected -> nothing to do!"
