@@ -1,8 +1,8 @@
 engines:
- duplication:
-   enabled: true
-   exclude_paths:
-     - {{ var.setup.module_name }}/test/**
+  duplication:
+    enabled: true
+    exclude_paths:
+      - {{ var.setup.module_name }}/test/**
 
 exclude_paths:
   - '{{ var.setup.module_name }}/templates/**'
