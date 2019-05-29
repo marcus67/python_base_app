@@ -54,6 +54,9 @@ CIRCLE_CI_TEMPLATE = 'circle-ci.template.yml'
 PYCOVERAGE_FILE_PATH = '.coveragerc'
 PYCOVERAGE_TEMPLATE = 'coveragerc.template'
 
+CODACY_FILE_PATH = '.codacy.yml'
+CODACY_TEMPLATE = 'codacy.template.yml'
+
 DEBIAN_CONTROL_FILE_PATH = '{debian_build_dir}/DEBIAN/control'
 DEBIAN_CONTROL_TEMPLATE = 'debian_control.template.conf'
 
@@ -256,69 +259,60 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
     return python_packages
 
 
-def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env):
+
+def generate_standard_file(p_main_setup_module, p_template_env, p_file_description,
+                           p_output_filename, p_template_name, p_create_directory=False):
     global logger
 
-    fmt = "Generate GitLab CI configuration for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    fmt = "Generate {file_description} for version {version} of app '{name}'"
+    logger.info(fmt.format(file_description=p_file_description, **p_main_setup_module.setup_params), )
 
-    template = p_template_env.get_template(GITLAB_CI_TEMPLATE)
-
-    output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.setup_params))
-
-    gitlab_ci_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), GITLAB_CI_FILE)
-
-    with open(gitlab_ci_filename, "w") as f:
-        f.write(output_text)
-
-    fmt = "Wrote CI configuration to file '{filename}'"
-    logger.info(fmt.format(filename=gitlab_ci_filename))
-
-
-def generate_git_python_file(p_main_setup_module, p_template_env):
-    global logger
-
-    fmt = "Generate git.py Python file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
-
-    template = p_template_env.get_template(GIT_PY_TEMPLATE)
+    template = p_template_env.get_template(p_template_name)
 
     var = get_vars(p_setup_params=p_main_setup_module.setup_params)
 
     output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.setup_params))
 
-    output_file_path = GIT_PY_FILE_PATH.format(**(var["setup"]))
+    output_file_path = p_output_filename.format(**(var["setup"]))
 
-    git_py_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
 
-    with open(git_py_filename, "w") as f:
+    if p_create_directory:
+        directory = os.path.dirname(filename)
+        os.makedirs(directory, exist_ok=True)
+
+    with open(filename, "w") as f:
         f.write(output_text)
 
-    fmt = "Wrote git.py Python file '{filename}'"
-    logger.info(fmt.format(filename=git_py_filename))
+    fmt = "Wrote {file_description} file '{filename}'"
+    logger.info(fmt.format(filename=filename, file_description=p_file_description))
+
+def generate_git_python_file(p_main_setup_module, p_template_env):
+
+    generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
+                           p_file_description="git.py",
+                           p_output_filename=GIT_PY_FILE_PATH, p_template_name=GIT_PY_TEMPLATE)
 
 
 def generate_circle_ci_configuration(p_main_setup_module, p_template_env):
-    global logger
 
-    fmt = "Generate Circle CI configuration for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
+                           p_file_description="Circle CI configuration",
+                           p_output_filename=CIRCLE_CI_FILE, p_template_name=CIRCLE_CI_TEMPLATE,
+                           p_create_directory=True)
 
-    template = p_template_env.get_template(CIRCLE_CI_TEMPLATE)
 
-    output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.setup_params))
+def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env):
 
-    gitlab_ci_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), CIRCLE_CI_FILE)
+    generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
+                           p_file_description="GitLab CI configuration",
+                           p_output_filename=GITLAB_CI_FILE, p_template_name=GITLAB_CI_TEMPLATE)
 
-    directory = os.path.dirname(gitlab_ci_filename)
+def generate_codacy_configuration(p_main_setup_module, p_template_env):
 
-    os.makedirs(directory, exist_ok=True)
-
-    with open(gitlab_ci_filename, "w") as f:
-        f.write(output_text)
-
-    fmt = "Wrote Circle CI configuration to file '{filename}'"
-    logger.info(fmt.format(filename=gitlab_ci_filename))
+    generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
+                           p_file_description="Codacy configuration",
+                           p_output_filename=CODACY_FILE_PATH, p_template_name=CODACY_TEMPLATE)
 
 
 def generate_debian_control(p_main_setup_module, p_template_env):
@@ -649,6 +643,7 @@ def main(p_main_module_dir):
         elif arguments.execute_stage == STAGE_PREPARE:
             generate_gitlab_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_circle_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
+            generate_codacy_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_git_python_file(p_main_setup_module=main_setup_module, p_template_env=template_env)
 
         else:
