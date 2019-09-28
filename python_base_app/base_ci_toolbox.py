@@ -112,6 +112,7 @@ default_setup = {
     "deploy_systemd_service": False,
     "deploy_sudoers_file": False,
     "version": "0.1",
+    "target_alembic_version": None,
     "debian_build_dir": "debian",
     "debian_package_name": "{name}",
     "debian_package_revision": "1",

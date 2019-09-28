@@ -30,6 +30,7 @@ setup_params = {
     "url" : "https://github.com/marcus67/python_base_app",
     
     "install_requires" : [
+        'alembic',
         'pytest',
         'requests', 
         'python-dateutil',

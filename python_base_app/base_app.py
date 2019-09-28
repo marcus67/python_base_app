@@ -40,6 +40,8 @@ DEFAULT_SPOOL_BASE_DIR = "/var/spool"
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
 DEFAULT_TASK_INTERVAL = 10  # seconds
+DEFAULT_MAXIMUM_TIMER_SLACK = 1 # second
+DEFAULT_MINIMUM_DOWNTIME_DURATION = 60 # seconds
 
 
 class BaseAppConfigModel(configuration.ConfigModel):
@@ -50,6 +52,8 @@ class BaseAppConfigModel(configuration.ConfigModel):
         self.debug_mode = DEFAULT_DEBUG_MODE
         self.log_level = configuration.NONE_STRING
         self.spool_dir = configuration.NONE_STRING
+        self.minimum_downtime_duration = DEFAULT_MINIMUM_DOWNTIME_DURATION
+        self.maximum_timer_slack = DEFAULT_MAXIMUM_TIMER_SLACK
 
 
 class RecurringTask(object):
@@ -78,6 +82,12 @@ class RecurringTask(object):
             self.next_execution = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.interval)
 
 
+    def adapt_to_delay(self, p_delay):
+
+        if self.next_execution is not None:
+            self.next_execution = self.next_execution + p_delay
+
+
 class BaseApp(daemon.Daemon):
 
     def __init__(self, p_app_name, p_pid_file, p_arguments, p_dir_name):
@@ -90,9 +100,17 @@ class BaseApp(daemon.Daemon):
         self._logger = log_handling.get_logger(self.__class__.__name__)
         self._config = None
         self._recurring_tasks = []
+        self._downtime = 0
 
         # Only temporary until the app has been initialized completely!
         self._app_config = BaseAppConfigModel()
+
+    @property
+    def down_time(self):
+        return self._downtime
+
+    def reset_down_time(self):
+        self._downtime = 0
 
     def add_recurring_task(self, p_recurring_task):
 
@@ -151,6 +169,14 @@ class BaseApp(daemon.Daemon):
 
         pass
 
+    def adapt_active_recurring_tasks(self, p_delay):
+
+        for task in self._recurring_tasks:
+            task.adapt_to_delay(p_delay=p_delay)
+
+        self._recurring_tasks = heapq.heapify(self._recurring_tasks)
+
+
     def event_queue(self):
 
         done = False
@@ -194,6 +220,14 @@ class BaseApp(daemon.Daemon):
                     fmt = "Woken by signal"
                     self._logger.debug(fmt)
 
+                    now = datetime.datetime.utcnow()
+                    overslept_in_seconds = (now - next_execution).total_seconds()
+
+                    if overslept_in_seconds > self._app_config.maximum_timer_slack:
+                        fmt = "Overslept by {seconds} seconds -> adding to downtime timer"
+                        self._logger.info(fmt.format(seconds=overslept_in_seconds))
+                        self._downtime += overslept_in_seconds
+
                 if len(self._recurring_tasks) > 0:
 
                     task_executed = True
@@ -215,6 +249,14 @@ class BaseApp(daemon.Daemon):
                             task.handler_method()
                             fmt = "Executing task {task} {secs:.3f} [s] behind schedule... *** END ***"
                             self._logger.debug(fmt.format(task=task.name, secs=delay))
+
+                            if delay > self._app_config.minimum_downtime_duration:
+                                fmt = "Delay of {seconds_delay} seconds is larger then minimum downtime duration of "\
+                                      "{downtime_duration} seconds -> adding to downtime timer"
+                                self._logger.info(fmt.format(seconds_delay=delay,
+                                                             downtime_duration=self._app_config.minimum_downtime_duration))
+                                self._downtime += delay
+                                self.adapt_active_recurring_tasks(p_delay=delay)
 
                         else:
                             task_executed = False
