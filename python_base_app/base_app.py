@@ -40,8 +40,8 @@ DEFAULT_SPOOL_BASE_DIR = "/var/spool"
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
 DEFAULT_TASK_INTERVAL = 10  # seconds
-DEFAULT_MAXIMUM_TIMER_SLACK = 1 # second
-DEFAULT_MINIMUM_DOWNTIME_DURATION = 60 # seconds
+DEFAULT_MAXIMUM_TIMER_SLACK = 1  # second
+DEFAULT_MINIMUM_DOWNTIME_DURATION = 10  # seconds
 
 
 class BaseAppConfigModel(configuration.ConfigModel):
@@ -66,9 +66,30 @@ class RecurringTask(object):
         self.next_execution = None
         self.fixed_schedule = p_fixed_schedule
 
+    def __lt__(self, p_other):
+        return self.next_execution < p_other
+
+    def __gt__(self, p_other):
+        return self.next_execution > p_other
+
+    def __sub__(self, p_other):
+        if isinstance(p_other, RecurringTask):
+            return self.next_execution - p_other.next_execution
+
+        else:
+            return self.next_execution - p_other
+
+    def __rsub__(self, p_other):
+        if isinstance(p_other, RecurringTask):
+            return p_other.next_execution - self.next_execution
+
+        else:
+            return p_other - self.next_execution
+
     def get_heap_entry(self):
 
-        return (self.next_execution, self)
+        # return (self, self)
+        return self
 
     def compute_next_execution_time(self):
 
@@ -81,11 +102,10 @@ class RecurringTask(object):
         else:
             self.next_execution = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.interval)
 
-
     def adapt_to_delay(self, p_delay):
 
         if self.next_execution is not None:
-            self.next_execution = self.next_execution + p_delay
+            self.next_execution = self.next_execution + datetime.timedelta(seconds=p_delay)
 
 
 class BaseApp(daemon.Daemon):
@@ -171,11 +191,12 @@ class BaseApp(daemon.Daemon):
 
     def adapt_active_recurring_tasks(self, p_delay):
 
+        # for (_next_execution, task) in self._recurring_tasks:
+        #    task.adapt_to_delay(p_delay=p_delay)
         for task in self._recurring_tasks:
             task.adapt_to_delay(p_delay=p_delay)
 
-        self._recurring_tasks = heapq.heapify(self._recurring_tasks)
-
+        heapq.heapify(self._recurring_tasks)
 
     def event_queue(self):
 
@@ -185,14 +206,14 @@ class BaseApp(daemon.Daemon):
         while not done:
 
             try:
-
                 now = datetime.datetime.utcnow()
 
                 if len(self._recurring_tasks) > 0:
-                    (next_execution, task) = self._recurring_tasks[0]
-                    wait_in_seconds = (next_execution - now).total_seconds()
+                    task = self._recurring_tasks[0]
+                    wait_in_seconds = (task - now).total_seconds()
 
                 else:
+                    task = None
                     wait_in_seconds = ETERNITY
 
                 if wait_in_seconds > 0:
@@ -220,28 +241,27 @@ class BaseApp(daemon.Daemon):
                     fmt = "Woken by signal"
                     self._logger.debug(fmt)
 
-                    now = datetime.datetime.utcnow()
-                    overslept_in_seconds = (now - next_execution).total_seconds()
+                    if task is not None:
+                        now = datetime.datetime.utcnow()
+                        overslept_in_seconds = (now - task).total_seconds()
 
-                    if overslept_in_seconds > self._app_config.maximum_timer_slack:
-                        fmt = "Overslept by {seconds} seconds -> adding to downtime timer"
-                        self._logger.info(fmt.format(seconds=overslept_in_seconds))
-                        self._downtime += overslept_in_seconds
+                        if overslept_in_seconds > self._app_config.maximum_timer_slack:
+                            self.track_downtime(p_downtime=overslept_in_seconds)
 
                 if len(self._recurring_tasks) > 0:
 
                     task_executed = True
 
                     while task_executed:
-                        (next_execution, task) = self._recurring_tasks[0]
+                        task = self._recurring_tasks[0]
 
                         now = datetime.datetime.utcnow()
 
-                        if now > next_execution:
+                        if now > task:
 
-                            delay = (now - next_execution).total_seconds()
+                            delay = (now - task).total_seconds()
 
-                            (next_execution, task) = heapq.heappop(self._recurring_tasks)
+                            task = heapq.heappop(self._recurring_tasks)
                             self.add_recurring_task(p_recurring_task=task)
 
                             fmt = "Executing task {task} {secs:.3f} [s] behind schedule... *** START ***"
@@ -251,15 +271,14 @@ class BaseApp(daemon.Daemon):
                             self._logger.debug(fmt.format(task=task.name, secs=delay))
 
                             if delay > self._app_config.minimum_downtime_duration:
-                                fmt = "Delay of {seconds_delay} seconds is larger then minimum downtime duration of "\
-                                      "{downtime_duration} seconds -> adding to downtime timer"
-                                self._logger.info(fmt.format(seconds_delay=delay,
-                                                             downtime_duration=self._app_config.minimum_downtime_duration))
-                                self._downtime += delay
-                                self.adapt_active_recurring_tasks(p_delay=delay)
+                                self.track_downtime(p_downtime=delay)
 
                         else:
                             task_executed = False
+
+                    if self._downtime > 0:
+                        self.handle_downtime(p_downtime=int(self._downtime))
+                        self.reset_down_time()
 
 
             except exceptions.SignalHangUp:
@@ -279,6 +298,19 @@ class BaseApp(daemon.Daemon):
 
             if self._arguments.single_run:
                 done = True
+
+    def track_downtime(self, p_downtime):
+
+        fmt = "Detected delay of {seconds} seconds -> adding to downtime timer"
+        self._logger.info(fmt.format(seconds=p_downtime))
+
+        self._downtime += p_downtime
+        self.adapt_active_recurring_tasks(p_delay=p_downtime)
+
+    def handle_downtime(self, p_downtime):
+
+        fmt = "Accumulated downtime of {seconds} seconds ignored."
+        self._logger.warning(fmt.format(seconds=p_downtime))
 
     def stop_services(self):
 
