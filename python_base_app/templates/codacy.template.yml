@@ -3,6 +3,7 @@ engines:
     enabled: true
     exclude_paths:
       - {{ var.setup.module_name }}/test/**
+      - alembic/versions/**
 
 exclude_paths:
   - '{{ var.setup.module_name }}/templates/**'
