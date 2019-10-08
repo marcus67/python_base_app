@@ -40,8 +40,8 @@ DEFAULT_SPOOL_BASE_DIR = "/var/spool"
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
 DEFAULT_TASK_INTERVAL = 10  # seconds
-DEFAULT_MAXIMUM_TIMER_SLACK = 1  # second
-DEFAULT_MINIMUM_DOWNTIME_DURATION = 10  # seconds
+DEFAULT_MAXIMUM_TIMER_SLACK = 5  # second
+DEFAULT_MINIMUM_DOWNTIME_DURATION = 20  # seconds
 
 
 class BaseAppConfigModel(configuration.ConfigModel):
@@ -295,6 +295,7 @@ class BaseApp(daemon.Daemon):
 
                 fmt = "Exception %s in event queue" % str(e)
                 self._logger.error(fmt)
+                tools.log_stack_trace(p_logger=self._logger)
 
             if self._arguments.single_run:
                 done = True
@@ -326,10 +327,12 @@ class BaseApp(daemon.Daemon):
             fmt = "Error %s in basic_init()" % str(e)
             self._logger.error(fmt)
 
-            if self._app_config.debug_mode:
-                fmt = "Propagating exception due to debug_mode=True"
-                self._logger.warn(fmt)
-                raise e
+            # if self._app_config.debug_mode:
+            #     fmt = "Propagating exception due to debug_mode=True"
+            #     self._logger.warn(fmt)
+            #     raise e
+
+            raise e
 
     def run(self):
 
@@ -360,9 +363,8 @@ class BaseApp(daemon.Daemon):
                 fmt = "Exception '%s' while stopping services" % str(e)
                 self._logger.error(fmt)
 
-        if previous_exception is not None and self._app_config.debug_mode:
-            fmt = "Propagating exception due to debug_mode=True"
-            self._logger.warn(fmt)
+
+        if previous_exception is not None:
             raise previous_exception
 
         fmt = "Terminating app '%s'" % self._app_name
