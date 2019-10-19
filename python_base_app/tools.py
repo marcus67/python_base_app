@@ -55,6 +55,7 @@ EMPTY_DURATION = "-"
 EMPTY_TIME = "-"
 
 PLATFORM_NAME_WINDOWS = 'windows'
+PLATFORM_NAME_MAC_OS = "darwin"
 
 
 def int_to_string(p_integer):
@@ -68,6 +69,8 @@ def int_to_string(p_integer):
 def is_windows():
     return platform.system().lower() == PLATFORM_NAME_WINDOWS
 
+def is_mac_os():
+    return platform.system().lower() == PLATFORM_NAME_MAC_OS
 
 def get_current_time():
     return datetime.datetime.now()
