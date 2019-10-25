@@ -63,6 +63,7 @@ class ConfigurationSectionHandler(object, metaclass=abc.ABCMeta):
 
 
 NONE_TYPE_PREFIX = "_TYPE_"
+NONE_ARRAY_TYPE_PREFIX = "_ARRAY_TYPE_"
 
 
 class SimpleConfigurationSectionHandler(ConfigurationSectionHandler):
@@ -87,43 +88,73 @@ class ConfigModel(object):
 
     def get_option_type(self, p_option_name):
 
-        p_effective_name = NONE_TYPE_PREFIX + p_option_name
+        p_effective_name = NONE_ARRAY_TYPE_PREFIX + p_option_name
 
         value = self.__dict__.get(p_effective_name)
 
         if value is not None:
-            return value.__name__
+            return "list_" + value.__name__
 
         else:
-            return type(self.__dict__[p_option_name]).__name__
+            p_effective_name = NONE_TYPE_PREFIX + p_option_name
+
+            value = self.__dict__.get(p_effective_name)
+
+            if value is not None:
+                return value.__name__
+
+            else:
+                value = self.__dict__[p_option_name]
+
+                if isinstance(value, list):
+                    if len(value) == 0:
+                        fmt = "Option '{option}' defines empty array without type"
+                        raise ConfigurationException(fmt.format(option=p_option_name))
+
+                    return "list_" + type(value[0]).__name__
+
+                else:
+                    return type(value).__name__
 
     def has_option(self, p_option_name):
 
         p_effective_name = NONE_TYPE_PREFIX + p_option_name
+        p_effective_name_list = NONE_ARRAY_TYPE_PREFIX + p_option_name
 
-        return p_option_name in self.__dict__ or p_effective_name in self.__dict__
+        return p_option_name in self.__dict__ or p_effective_name in self.__dict__ or p_effective_name_list in self.__dict__
 
     def __getattr__(self, p_option_name):
 
-        p_effective_name = NONE_TYPE_PREFIX + p_option_name
+        # Note: __getattr__ is ONLY called if the builtin mechanism did not find the attribute, that is
+        # for all existing attributes the method WILL NEVER BE CALLED!
 
+        p_effective_name = NONE_TYPE_PREFIX + p_option_name
         value = self.__dict__.get(p_effective_name)
 
         if value is not None:
             return None
 
         else:
-            value = self.__dict__.get(p_option_name)
+            p_effective_name = NONE_ARRAY_TYPE_PREFIX + p_option_name
+            value = self.__dict__.get(p_effective_name)
 
             if value is not None:
-                return value
+                return []
 
             else:
                 raise AttributeError
 
     def __setattr__(self, p_option_name, p_value):
 
-        if isinstance(p_value, type):
+        if isinstance(p_value, list):
+            if len(p_value) == 1 and isinstance(p_value[0], type):
+                p_effective_name = NONE_ARRAY_TYPE_PREFIX + p_option_name
+                self.__dict__[p_effective_name] = p_value[0]
+
+            else:
+                self.__dict__[p_option_name] = p_value
+
+        elif isinstance(p_value, type):
             p_effective_name = NONE_TYPE_PREFIX + p_option_name
             self.__dict__[p_effective_name] = p_value
 
@@ -168,38 +199,53 @@ class Configuration(ConfigModel):
     def set_config_value(self, p_section_name, p_option, p_option_value):
 
         section = self._sections.get(p_section_name)
+        append_to_list = False
 
         if section is None:
             raise ConfigurationException("Invalid section name '%s'" % p_section_name)
+
+        if p_option.endswith("+"):
+            append_to_list = True
+            p_option = p_option[0:-1].rstrip()
 
         if not section.has_option(p_option_name=p_option):
             raise ConfigurationException(
                 "Configuration file contains invalid setting '%s' in section '%s'" % (p_option, p_section_name))
 
         option_type = section.get_option_type(p_option_name=p_option)
-
         upper_value = p_option_value.upper()
-        if option_type == 'bool':
+
+        if 'bool' in option_type:
             if upper_value in VALID_BOOLEAN_TRUE_VALUES:
-                setattr(section, p_option, True)
+                value = True
 
             elif upper_value in VALID_BOOLEAN_FALSE_VALUES:
-                setattr(section, p_option, False)
+                value = False
 
             else:
                 raise ConfigurationException("Invalid Boolean value '%s' in setting '%s' of section '%s'" % (
                     p_option_value, p_option, p_section_name))
 
-        elif option_type == 'int':
+        elif 'int' in option_type:
             try:
-                intValue = int(p_option_value)
-                setattr(section, p_option, intValue)
+                value = int(p_option_value)
 
             except Exception as e:
                 raise ConfigurationException("Invalid numerical value '%s' in setting '%s' of section '%s': %s" % (
                     p_option_value, p_option, p_section_name, str(e)))
+
         else:
-            setattr(section, p_option, p_option_value)
+            value = p_option_value
+
+        if 'list' in option_type:
+            if append_to_list:
+                getattr(section, p_option).append(value)
+
+            else:
+                setattr(section, p_option, [value])
+
+        else:
+            setattr(section, p_option, value)
 
     def _scan_section(self, p_section_name):
 
@@ -244,7 +290,7 @@ class Configuration(ConfigModel):
             fmt = "Reading configuration file from '%s'" % p_filename
             self._logger.info(fmt)
 
-            self.config = configparser.ConfigParser()
+            self.config = configparser.ConfigParser(strict=False)
             self.config.optionxform = str  # make options case sensitive
 
             try:
