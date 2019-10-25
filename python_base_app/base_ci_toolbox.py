@@ -36,6 +36,7 @@ from python_base_app import log_handling
 MODULE_NAME = "base_ci_toolbox"
 
 STAGE_BUILD_PACKAGE = "BUILD"
+STAGE_BUILD_DOCKER_IMAGES = "BUILD_DOCKER_IMAGE"
 STAGE_INSTALL = "INSTALL"
 STAGE_PUBLISH_PACKAGE = "PUBLISH-PACKAGE"
 STAGE_TEST = "TEST"
@@ -65,6 +66,9 @@ DEBIAN_POSTINST_TEMPLATE = 'debian_postinst.template.sh'
 
 MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/make-debian-package.sh'
 MAKE_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'make-debian-package.template.sh'
+
+BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH = '{bin_dir}/build-docker-images.sh'
+BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE = 'build-docker-images.template.sh'
 
 INSTALL_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/install-debian-package.sh'
 INSTALL_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'install-debian-package.template.sh'
@@ -123,7 +127,10 @@ default_setup = {
     "debian_extra_files" : [],
     "install_requires": [],
     "contributing_setups": [],
-    "publish_debian_package": []
+    "publish_debian_package": [],
+    "docker_hub_user" : "[DOCKER_HUB_USER_NOT_SET]",
+    "docker_context_dir" : "docker",
+    "docker_contexts": []
 }
 
 logger = None
@@ -437,6 +444,37 @@ def generate_make_debian_package(p_main_setup_module, p_template_env, p_argument
              stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
 
+def generate_build_docker_image_script(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate build_docker_image.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.setup_params))
+
+    template = p_template_env.get_template(BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+
+    output_file_path = BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    build_docker_image_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+
+    os.makedirs(os.path.dirname(build_docker_image_script_filename), mode=0o777, exist_ok=True)
+
+    with open(build_docker_image_script_filename, "w") as f:
+        f.write(output_text)
+
+    fmt = "Wrote build_docker_image.sh script file to '{filename}'"
+    logger.info(fmt.format(filename=build_docker_image_script_filename))
+
+    os.chmod(build_docker_image_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
 def generate_install_debian_package_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
@@ -574,6 +612,10 @@ def execute_make_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH)
 
+def execute_build_docker_image_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH)
+
 
 def execute_install_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
@@ -592,7 +634,7 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--execute-stage', dest='execute_stage', default=None,
                         help='execute CI stage',
-                        choices=[STAGE_BUILD_PACKAGE, STAGE_PUBLISH_PACKAGE, STAGE_INSTALL,
+                        choices=[STAGE_BUILD_PACKAGE, STAGE_BUILD_DOCKER_IMAGES, STAGE_PUBLISH_PACKAGE, STAGE_INSTALL,
                                  STAGE_TEST, STAGE_TEARDOWN, STAGE_PREPARE])
     parser.add_argument('--run-dir', dest='run_dir', default=None)
     parser.add_argument('--use-dev-dir', dest='use_dev_dir', default=None)
@@ -628,6 +670,11 @@ def main(p_main_module_dir):
             generate_publish_debian_package_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                                    p_arguments=arguments)
             execute_publish_debian_package_script(p_main_setup_module=main_setup_module)
+
+        elif arguments.execute_stage == STAGE_BUILD_DOCKER_IMAGES:
+            generate_build_docker_image_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                               p_arguments=arguments)
+            execute_build_docker_image_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_INSTALL:
             generate_install_debian_package_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
