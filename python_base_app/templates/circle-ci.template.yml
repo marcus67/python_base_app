@@ -87,7 +87,7 @@ workflows:
   {%- for branch in var.setup.publish_debian_package %}
                   - {{ branch }}
   {%- endfor %}
-        - docker
+        - docker:
             requires:
               - build
   {%- endif %}
