@@ -130,6 +130,8 @@ default_setup = {
     "install_requires": [],
     "contributing_setups": [],
     "publish_debian_package": [],
+    "publish_docker_images": [],
+    "publish_latest_docker_image": "",
     "docker_registry" : "docker.io",
     "docker_registry_user" : "[DOCKER_REGISTRY_USER_NOT_SET]",
     "docker_context_dir" : "docker",
