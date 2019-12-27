@@ -29,6 +29,6 @@ BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 
 DEBIAN_PACKAGE_BASE_NAME={{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}
 
-dpkg -i {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb
+dpkg -i {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb || true
 
 apt-get install -f
