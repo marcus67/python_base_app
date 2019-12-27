@@ -57,6 +57,9 @@ EMPTY_TIME = "-"
 PLATFORM_NAME_WINDOWS = 'windows'
 PLATFORM_NAME_MAC_OS = "darwin"
 
+PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS")
+PROTECTED_PASSWORD_VALUE = "[HIDDEN]"
+
 
 def int_to_string(p_integer):
     if p_integer is None:
@@ -69,8 +72,10 @@ def int_to_string(p_integer):
 def is_windows():
     return platform.system().lower() == PLATFORM_NAME_WINDOWS
 
+
 def is_mac_os():
     return platform.system().lower() == PLATFORM_NAME_MAC_OS
+
 
 def get_current_time():
     return datetime.datetime.now()
@@ -130,6 +135,22 @@ def get_duration_as_string(p_seconds, p_include_seconds=True):
 
         else:
             return FORMAT_DURATION % (hours, minutes)
+
+
+def is_protected_name(p_name):
+    for pattern in PASSWORD_PATTERNS:
+        if pattern in p_name.upper():
+            return True
+
+    return False
+
+
+def protect_password_value(p_name, p_value):
+    if is_protected_name(p_name=p_name):
+        return PROTECTED_PASSWORD_VALUE
+
+    else:
+        return p_value
 
 
 def get_safe_attribute_name(p_string):
@@ -235,12 +256,13 @@ class ObjectEncoder(json.JSONEncoder):
 def anonymize_args(p_args):
     new_args = []
     hide = False
+
     for arg in p_args:
-        if "PASSWORD" in arg.upper() or "KENNWORT" in arg.upper():
+        if is_protected_name(arg):
             new_args.append(arg)
             hide = True
         elif hide:
-            new_args.append("[HIDDEN]")
+            new_args.append(PROTECTED_PASSWORD_VALUE)
             hide = False
         else:
             new_args.append(arg)
@@ -252,7 +274,9 @@ def anonymize_url(p_url):
     components = urllib.parse.urlparse(p_url)
 
     if components.password is not None:
-        net_location = "%s:[HIDDEN]@%s" % (components.username, components.hostname)
+        fmt = "{username}:{protected_value}@{hostname}"
+        net_location = fmt.format(username=components.username, protected_value=PROTECTED_PASSWORD_VALUE,
+                                  hostname=components.hostname)
     else:
         net_location = components.netloc
 

@@ -36,7 +36,7 @@ from python_base_app import log_handling
 MODULE_NAME = "base_ci_toolbox"
 
 STAGE_BUILD_PACKAGE = "BUILD"
-STAGE_BUILD_DOCKER_IMAGES = "BUILD_DOCKER_IMAGE"
+STAGE_BUILD_DOCKER_IMAGES = "BUILD_DOCKER_IMAGES"
 STAGE_INSTALL = "INSTALL"
 STAGE_PUBLISH_PACKAGE = "PUBLISH-PACKAGE"
 STAGE_TEST = "TEST"
@@ -90,8 +90,10 @@ predefined_env_variables = None
 default_setup = {
     "docker_image_make_package": "accso/docker-python-app:latest",
     "docker_image_test": "accso/docker-python-app:latest",
+    "docker_image_docker": "accso/docker-docker:latest",
     "ci_toolbox_script": "ci_toolbox.py",
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
+    "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
     "ci_stage_test": STAGE_TEST,
     "ci_stage_teardown": STAGE_TEARDOWN,
@@ -128,7 +130,8 @@ default_setup = {
     "install_requires": [],
     "contributing_setups": [],
     "publish_debian_package": [],
-    "docker_hub_user" : "[DOCKER_HUB_USER_NOT_SET]",
+    "docker_registry" : "docker.io",
+    "docker_registry_user" : "[DOCKER_REGISTRY_USER_NOT_SET]",
     "docker_context_dir" : "docker",
     "docker_contexts": []
 }

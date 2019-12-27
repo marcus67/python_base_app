@@ -23,12 +23,16 @@ import configparser
 import re
 
 from python_base_app import log_handling
+from python_base_app import tools
 
 REGEX_CMDLINE_PARAMETER = re.compile("([-a-zA-Z_0-9]+)\.([a-zA-Z_0-9]+)=(.*)")
+REGEX_ENV_PARAMETER = re.compile("([a-zA-Z_0-9]+)__([a-zA-Z_0-9]+)")
 
 NONE_BOOLEAN = type(True)
 NONE_INTEGER = type(1)
 NONE_STRING = type("X")
+
+OPTION_ARRAY_PATTERN = re.compile("([^[]*)\[([0-9]+)\]")
 
 VALID_BOOLEAN_TRUE_VALUES = ['1', 'TRUE', 'T', 'YES', 'WAHR', 'JA', 'J']
 VALID_BOOLEAN_FALSE_VALUES = ['0', 'FALSE', 'F', 'NO', 'FALSCH', 'NEIN', 'N']
@@ -59,7 +63,7 @@ class ConfigurationSectionHandler(object, metaclass=abc.ABCMeta):
 
     def scan(self, p_section):
         self._configuration.add_section(p_section=p_section)
-        self._configuration._scan_section(p_section_name=p_section.section_name)
+        self._configuration.scan_section(p_section_name=p_section.section_name)
 
 
 NONE_TYPE_PREFIX = "_TYPE_"
@@ -121,7 +125,8 @@ class ConfigModel(object):
         p_effective_name = NONE_TYPE_PREFIX + p_option_name
         p_effective_name_list = NONE_ARRAY_TYPE_PREFIX + p_option_name
 
-        return p_option_name in self.__dict__ or p_effective_name in self.__dict__ or p_effective_name_list in self.__dict__
+        return p_option_name in self.__dict__ or \
+               p_effective_name in self.__dict__ or p_effective_name_list in self.__dict__
 
     def __getattr__(self, p_option_name):
 
@@ -191,7 +196,7 @@ class Configuration(ConfigModel):
 
     def __getitem__(self, p_key):
 
-        if not p_key in self._sections:
+        if p_key not in self._sections:
             raise ConfigurationException("No section '%s' configured in class %s" % (p_key, self.__class__.__name__))
 
         return self._sections[p_key]
@@ -204,9 +209,12 @@ class Configuration(ConfigModel):
         if section is None:
             raise ConfigurationException("Invalid section name '%s'" % p_section_name)
 
-        if p_option.endswith("+"):
-            append_to_list = True
-            p_option = p_option[0:-1].rstrip()
+        match = OPTION_ARRAY_PATTERN.match(p_option)
+
+        if match is not None:
+            if int(match.group(2)) > 0:
+                append_to_list = True
+            p_option = match.group(1)
 
         if not section.has_option(p_option_name=p_option):
             raise ConfigurationException(
@@ -247,7 +255,7 @@ class Configuration(ConfigModel):
         else:
             setattr(section, p_option, value)
 
-    def _scan_section(self, p_section_name):
+    def scan_section(self, p_section_name):
 
         section = self._sections.get(p_section_name)
 
@@ -296,10 +304,12 @@ class Configuration(ConfigModel):
             try:
                 filesRead = self.config.read([p_filename], encoding="UTF-8")
                 if len(filesRead) != 1:
-                    errorMessage = "Error while reading configuration file '%s' (file probably does not exist)" % p_filename
+                    fmt = "Error while reading configuration file '{filename}' (file probably does not exist)"
+                    errorMessage = fmt.format(filename=p_filename)
 
             except Exception as e:
-                errorMessage = "Exception '%s' while reading configuration file '%s'" % (str(e), p_filename)
+                fmt = "Exception '{msg}' while reading configuration file '{filename}'"
+                errorMessage = fmt.format(msg=str(e), filename=p_filename)
 
         if p_config_string is not None:
 
@@ -308,18 +318,18 @@ class Configuration(ConfigModel):
                 self.config.read_string(p_config_string)
 
             except Exception as e:
-                errorMessage = "Exception '%s' while reading setting" % (str(e))
+                fmt = "Exception '{msg}' while reading setting"
+                errorMessage = fmt.format(msg=str(e))
 
         if errorMessage is not None:
             raise ConfigurationException(errorMessage)
 
         for section_name in self.config.sections():
-
             if section_name in self._sections:
 
                 new_section = self._sections[section_name]
                 setattr(self, section_name, new_section)
-                self._scan_section(section_name)
+                self.scan_section(section_name)
 
             else:
 
@@ -331,17 +341,14 @@ class Configuration(ConfigModel):
 
         for par in p_parameters:
             result = REGEX_CMDLINE_PARAMETER.match(par)
+
             if result:
 
                 section_name = result.group(1)
                 option_name = result.group(2)
                 value = result.group(3)
 
-                if "PASSW" in option_name.upper() or "KENNW" in option_name.upper():
-                    protected_value = "[hidden]"
-
-                else:
-                    protected_value = value
+                protected_value = tools.protect_password_value(p_name=option_name, p_value=value)
 
                 fmt = "Command line setting: set '[%s]%s' to value '%s'" % (
                     section_name, option_name, protected_value)
@@ -355,3 +362,22 @@ class Configuration(ConfigModel):
             else:
                 fmt = "Incorrectly formatted command line setting: %s" % par
                 self._logger.warning(fmt)
+
+    def read_environment_parameters(self, p_environment_dict):
+
+        for (name, value) in dict(p_environment_dict).items():
+            result = REGEX_ENV_PARAMETER.match(name)
+
+            if result:
+                section_name = result.group(1)
+                option_name = result.group(2)
+
+                protected_value = tools.protect_password_value(p_name=option_name, p_value=value)
+
+                fmt = "Environment setting: set '[{section_name}]{option_name}' to value '{value}'"
+                self._logger.info(fmt.format(section_name=section_name, option_name=option_name, value=protected_value))
+
+                self.set_config_value(
+                    p_section_name=section_name,
+                    p_option=option_name,
+                    p_option_value=value)

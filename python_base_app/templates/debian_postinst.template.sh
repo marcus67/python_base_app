@@ -30,6 +30,8 @@ SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
 SYSTEMD_DIR=/{{ var.setup.rel_systemd_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
 
+PIP3=/usr/local/bin/pip3
+
 {% if var.setup.create_group %}
 if grep -q '{{ var.setup.group }}:' /etc/group ; then
     echo "Group '{{ var.setup.group }}' already exists."
@@ -84,16 +86,14 @@ chmod -R og-rwx ${ETC_DIR}
 chmod -R og-rwx ${LOG_DIR}
 chmod -R og-rwx ${SPOOL_DIR}
 
-echo "Bring up pip3 to the latest version..."
-pip3 install --upgrade pip
-
-pip3 install wheel
+${PIP3} --version
+${PIP3} install wheel
 echo "Installing PIP packages "
 {% for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
 {% endfor %}
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
-pip3 install --upgrade --force-reinstall {% for package_name in python_packages %}\
+${PIP3} install --upgrade --force-reinstall {% for package_name in python_packages %}\
      ${TMP_DIR}/{{ package_name[1] }}{% endfor %}
 
 {% for package_name in python_packages %}
