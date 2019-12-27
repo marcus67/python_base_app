@@ -61,6 +61,17 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
 
+  docker:
+    docker:
+      - image: {{ var.setup.docker_image_docker }}
+    steps:
+      - checkout
+      - attach_workspace:
+          at: {{ var.setup.debian_build_dir}}
+      - run: git submodule sync
+      - run: git submodule update --init
+      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }}
+
 workflows:
     version: 2
     build_and_deploy:
@@ -76,4 +87,7 @@ workflows:
   {%- for branch in var.setup.publish_debian_package %}
                   - {{ branch }}
   {%- endfor %}
+        - docker
+            requires:
+              - build
   {%- endif %}
