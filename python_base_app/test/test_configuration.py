@@ -26,6 +26,7 @@ from python_base_app.test import base_test
 
 SECTION_NAME = "MySection"
 INT_VALUE = 123
+NEW_INT_VALUE = 456
 STRING_VALUE = "Hello"
 BOOLEAN_VALUE = True
 
@@ -52,7 +53,7 @@ class SomeTestConfigModel(configuration.ConfigModel):
 
 class TestConfiguration(base_test.BaseTestCase):
 
-    def xtest_configuration_int(self):
+    def test_configuration_int(self):
 
         model = SomeTestConfigModel()
 
@@ -62,7 +63,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertEqual(model.get_option_type("int"), "int")
         self.assertEqual(model.int, INT_VALUE)
 
-    def xtest_configuration_boolean(self):
+    def test_configuration_boolean(self):
 
         model = SomeTestConfigModel()
 
@@ -72,7 +73,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertEqual(model.get_option_type("bool"), "bool")
         self.assertEqual(model.bool, BOOLEAN_VALUE)
 
-    def xtest_configuration_unknown_option(self):
+    def test_configuration_unknown_option(self):
 
         model = SomeTestConfigModel()
         exception = None
@@ -86,7 +87,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertIsInstance(exception, AttributeError)
         
         
-    def xtest_valid_int_array(self):
+    def test_valid_int_array(self):
         
         model = SomeTestConfigModel()
 
@@ -95,7 +96,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertEqual(1, model.int_array[0])
         self.assertEqual(2, model.int_array[1])
 
-    def xtest_valid_empty_int_array(self):
+    def test_valid_empty_int_array(self):
 
         model = SomeTestConfigModel()
 
@@ -104,7 +105,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertIsNotNone(attr)
         self.assertEqual(0, len(attr))
 
-    def xtest_valid_string_array(self):
+    def test_valid_string_array(self):
 
         model = SomeTestConfigModel()
 
@@ -114,14 +115,14 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertEqual("in", model.string_array[1])
         self.assertEqual("there", model.string_array[2])
 
-    def xtest_valid_empty_string_array(self):
+    def test_valid_empty_string_array(self):
 
         model = SomeTestConfigModel()
 
         self.assertIsNotNone(model.empty_string_array)
         self.assertEqual(0, len(model.empty_string_array))
 
-    def xtest_invalid_int(self):
+    def test_invalid_int(self):
 
         model = SomeTestConfigModel()
 
@@ -138,7 +139,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertIsInstance(exception, configuration.ConfigurationException)
         self.assertIn("Invalid numerical value", str(exception))
 
-    def xtest_invalid_none_int(self):
+    def test_invalid_none_int(self):
 
         model = SomeTestConfigModel()
 
@@ -155,7 +156,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertIsInstance(exception, configuration.ConfigurationException)
         self.assertIn("Invalid numerical value", str(exception))
 
-    def xtest_invalid_boolean(self):
+    def test_invalid_boolean(self):
 
         model = SomeTestConfigModel()
 
@@ -172,7 +173,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertIsInstance(exception, configuration.ConfigurationException)
         self.assertIn("Invalid Boolean value", str(exception))
 
-    def xtest_invalid_none_boolean(self):
+    def test_invalid_none_boolean(self):
 
         model = SomeTestConfigModel()
 
@@ -189,7 +190,7 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertIsInstance(exception, configuration.ConfigurationException)
         self.assertIn("Invalid Boolean value", str(exception))
 
-    def xtest_valid_boolean_values(self):
+    def test_valid_boolean_values(self):
 
         model = SomeTestConfigModel()
 
@@ -221,6 +222,55 @@ class TestConfiguration(base_test.BaseTestCase):
         self.assertEqual(model.int_array[0], 1)
         self.assertEqual(model.int_array[1], 2)
         self.assertEqual(model.int_array[2], 3)
+
+        self.assertEqual(len(model.empty_int_array), 3)
+        self.assertEqual(model.empty_int_array[0], 4)
+        self.assertEqual(model.empty_int_array[1], 5)
+        self.assertEqual(model.empty_int_array[2], 6)
+
+        self.assertEqual(len(model.string_array), 4)
+        self.assertEqual(model.string_array[0], "somebody")
+        self.assertEqual(model.string_array[1], "in")
+        self.assertEqual(model.string_array[2], "there")
+        self.assertEqual(model.string_array[3], "?")
+
+        self.assertEqual(len(model.empty_string_array), 3)
+        self.assertEqual(model.empty_string_array[0], "one")
+        self.assertEqual(model.empty_string_array[1], "two")
+        self.assertEqual(model.empty_string_array[2], "three")
+
+
+    def test_override_by_command_line_options(self):
+
+        config = configuration.Configuration()
+        model = SomeTestConfigModel()
+        config.add_section(p_section=model)
+
+        self.assertEqual(model.int, INT_VALUE)
+
+        parameters = [
+            "{section}.int={value}".format(section=SECTION_NAME, value=NEW_INT_VALUE)
+        ]
+
+        config.read_command_line_parameters(parameters)
+
+        self.assertEqual(model.int, NEW_INT_VALUE)
+
+    def test_override_by_environment(self):
+
+        config = configuration.Configuration()
+        model = SomeTestConfigModel()
+        config.add_section(p_section=model)
+
+        self.assertEqual(model.int, INT_VALUE)
+
+        environment = {
+            "{section}__int".format(section=SECTION_NAME): str(NEW_INT_VALUE)
+        }
+
+        config.read_environment_parameters(p_environment_dict=environment)
+
+        self.assertEqual(model.int, NEW_INT_VALUE)
 
 
 if __name__ == '__main__':

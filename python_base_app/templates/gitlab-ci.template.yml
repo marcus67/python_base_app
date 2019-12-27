@@ -24,6 +24,9 @@
 stages:
 - build
 - install_and_check
+{% if var.setup.docker_contexts|length > 0 -%}
+- docker
+{% endif %}
 
 make_debian_package:
   image: {{ var.setup.docker_image_make_package }}
@@ -54,3 +57,13 @@ check_installation:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
+{% if var.setup.docker_contexts|length > 0 -%}
+build_docker_images:
+  image: {{ var.setup.docker_image_docker }}
+  stage: docker
+  script:
+  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }} --use-dev-dir=.
+  variables:
+    # Activate automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{% endif %}

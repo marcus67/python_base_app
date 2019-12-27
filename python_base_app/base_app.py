@@ -147,6 +147,7 @@ class BaseApp(daemon.Daemon):
         for afile in self._arguments.configurations:
             p_configuration.read_config_file(afile)
 
+        p_configuration.read_environment_parameters(p_environment_dict=os.environ)
         p_configuration.read_command_line_parameters(p_parameters=self._arguments.cmd_line_options)
 
         if self._app_config.log_level is not None:
