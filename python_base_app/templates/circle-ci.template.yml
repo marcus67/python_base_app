@@ -70,6 +70,8 @@ jobs:
           at: {{ var.setup.debian_build_dir}}
       - run: git submodule sync
       - run: git submodule update --init
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }}
 
 workflows:
