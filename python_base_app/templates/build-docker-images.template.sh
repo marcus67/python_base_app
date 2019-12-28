@@ -12,7 +12,13 @@ ASSETS_DIR=${CONTEXT_DIR}/assets
 REVISION={{ var.setup.GIT_BRANCH }}-{{ var.setup.debian_package_revision }}
 
 if [ -d ${CONTEXT_DIR} ]; then
-    cp -a ${DEBIAN_PACKAGE_NAME} ${ASSETS_DIR}/{{ var.setup.debian_package_name }}.deb
+    if [ -f ${DEBIAN_PACKAGE_NAME} ] ; then
+        echo "Copy Debian package ${DEBIAN_PACKAGE_NAME} into the container assets..."
+        cp -a ${DEBIAN_PACKAGE_NAME} ${ASSETS_DIR}/{{ var.setup.debian_package_name }}.deb
+    else
+        echo "ERROR: cannot find Debian package ${DEBIAN_PACKAGE_NAME}!"
+        exit 1
+    fi
 fi
 
 docker build -t {{ var.setup.docker_registry_user }}/{{ context }}:${REVISION} \
@@ -35,7 +41,7 @@ if [ "${DOCKER_REGISTRY_PASSWORD}" == "" ] ; then
     echo "No docker registry password set in DOCKER_REGISTRY_PASSWORD -> no upload of images"
 else
     echo "Logging into {{ var.setup.docker_registry}} as {{ var.setup.docker_registry_user }}..."
-    docker login {{ var.setup.docker_registry}} --username  {{ var.setup.docker_registry_user }} --password ${DOCKER_REGISTRY_PASSWORD}
+    echo docker ${DOCKER_REGISTRY_PASSWORD} | login {{ var.setup.docker_registry}} --username  {{ var.setup.docker_registry_user }} --password-stdin
     {% for (context, upload) in var.setup.docker_contexts -%}
     {% if upload -%}
     echo "Uploading docker image in context directory '{{ context }}'..."
