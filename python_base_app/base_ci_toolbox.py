@@ -708,4 +708,8 @@ def main(p_main_module_dir):
         logger.error(fmt.format(script_name=e.script_name, exit_code=e.exit_code))
         return 1
 
+    except Exception as e:
+        fmt = "General exception {msg}"
+        logger.error(fmt.format(fmt=str(e)))
+
     return 0
