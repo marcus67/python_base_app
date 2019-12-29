@@ -73,6 +73,7 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: false
       - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }}
+      - run: ./bin/build-docker-images.sh
 
 workflows:
     version: 2
