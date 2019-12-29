@@ -452,7 +452,7 @@ def generate_make_debian_package(p_main_setup_module, p_template_env, p_argument
 def generate_build_docker_image_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
-    fmt = "Generate build_docker_image.sh script file for version {version} of app '{name}'"
+    fmt = "Generate build_docker_images.sh script file for version {version} of app '{name}'"
     logger.info(fmt.format(**p_main_setup_module.setup_params))
 
     template = p_template_env.get_template(BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE)
