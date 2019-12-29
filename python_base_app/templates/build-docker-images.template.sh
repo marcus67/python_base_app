@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+set -e
+
 SCRIPT_DIR=$(dirname $0)
 BASE_DIR=$(realpath ${SCRIPT_DIR}/..)
 
