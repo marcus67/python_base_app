@@ -591,20 +591,31 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
 
     expand_vars(extended_env)
 
-    popen = subprocess.Popen(script_filename, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=extended_env)
-    stdout, stderr = popen.communicate()
-    exit_code = popen.returncode
-    msg = "[STDOUT] {line}"
+    try:
+        popen = subprocess.Popen(script_filename, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=extended_env)
 
-    for line in stdout.decode("utf-8").split("\n"):
-        if line != '':
-            logger.info(msg.format(line=line))
+        stdout, stderr = popen.communicate()
+        exit_code = popen.returncode
+        msg = "[STDOUT] {line}"
 
-    msg = "[STDERR] {line}"
+        for line in stdout.decode("utf-8").split("\n"):
+            if line != '':
+                logger.info(msg.format(line=line))
 
-    for line in stderr.decode("utf-8").split("\n"):
-        if line != '':
-            logger.error(msg.format(line=line))
+        msg = "[STDERR] {line}"
+
+        for line in stderr.decode("utf-8").split("\n"):
+            if line != '':
+                logger.error(msg.format(line=line))
+
+    except subprocess.CalledProcessError as e:
+        exit_code = e.returncode
+        fmt = "Exception CalledProcessError in subprocess! stdout='{stdout}' stderr='{stderr}'"
+        logger.error(fmt.format(stdout=e.output, stderr=e.stderr))
+
+    except Exception as e:
+        exit_code = -1
+        logger.error("General exception in subprocess!")
 
     msg = ">>>>> END script {filename} ..."
     logger.info(msg.format(filename=script_filename))
@@ -648,6 +659,8 @@ def get_parser():
 
 def main(p_main_module_dir):
     global logger
+
+    exit_code = 0
 
     try:
         log_handling.start_logging()
@@ -706,10 +719,14 @@ def main(p_main_module_dir):
     except exceptions.ScriptExecutionError as e:
         fmt = "Execution of script {script_name} failed with exit code {exit_code}"
         logger.error(fmt.format(script_name=e.script_name, exit_code=e.exit_code))
-        return 1
+        exit_code = 1
 
     except Exception as e:
         fmt = "General exception {msg}"
-        logger.error(fmt.format(fmt=str(e)))
+        logger.error(fmt.format(msg=str(e)))
+        exit_code = 2
 
-    return 0
+    fmt = "Exiting with code {exit_code}"
+    logger.info(fmt.format(exit_code=exit_code))
+
+    return exit_code
