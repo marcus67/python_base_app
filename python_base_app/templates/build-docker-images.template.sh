@@ -41,7 +41,8 @@ if [ "${DOCKER_REGISTRY_PASSWORD}" == "" ] ; then
     echo "No docker registry password set in DOCKER_REGISTRY_PASSWORD -> no upload of images"
 else
     echo "Logging into {{ var.setup.docker_registry}} as {{ var.setup.docker_registry_user }}..."
-    echo docker ${DOCKER_REGISTRY_PASSWORD} | login {{ var.setup.docker_registry}} --username  {{ var.setup.docker_registry_user }} --password-stdin
+    echo ${DOCKER_REGISTRY_PASSWORD} | \
+         docker login {{ var.setup.docker_registry}} --username  {{ var.setup.docker_registry_user }} --password-stdin
     {% for (context, upload) in var.setup.docker_contexts -%}
     {% if upload -%}
     echo "Uploading docker image in context directory '{{ context }}'..."
