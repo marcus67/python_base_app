@@ -55,6 +55,9 @@ class BaseAppConfigModel(configuration.ConfigModel):
         self.minimum_downtime_duration = DEFAULT_MINIMUM_DOWNTIME_DURATION
         self.maximum_timer_slack = DEFAULT_MAXIMUM_TIMER_SLACK
 
+    def is_active(self):
+        return True
+
 
 class RecurringTask(object):
 
@@ -137,7 +140,8 @@ class BaseApp(daemon.Daemon):
         p_recurring_task.compute_next_execution_time()
         heapq.heappush(self._recurring_tasks, p_recurring_task.get_heap_entry())
 
-    def configuration_factory(self):
+    @staticmethod
+    def configuration_factory():
         return configuration.Configuration()
 
     def load_configuration(self, p_configuration):
@@ -202,10 +206,8 @@ class BaseApp(daemon.Daemon):
     def event_queue(self):
 
         done = False
-        last_run = None
 
         while not done:
-
             try:
                 now = datetime.datetime.utcnow()
 
@@ -219,7 +221,6 @@ class BaseApp(daemon.Daemon):
 
                 if wait_in_seconds > 0:
                     try:
-
                         fmt = "Sleeping for {seconds} seconds (or until next signal)"
                         self._logger.debug(fmt.format(seconds=wait_in_seconds))
 
@@ -230,7 +231,6 @@ class BaseApp(daemon.Daemon):
                         raise e
 
                     except Exception as e:
-
                         if self._app_config.debug_mode:
                             fmt = "Propagating exception due to debug_mode=True"
                             self._logger.warn(fmt)
@@ -250,16 +250,13 @@ class BaseApp(daemon.Daemon):
                             self.track_downtime(p_downtime=overslept_in_seconds)
 
                 if len(self._recurring_tasks) > 0:
-
                     task_executed = True
 
                     while task_executed:
                         task = self._recurring_tasks[0]
-
                         now = datetime.datetime.utcnow()
 
                         if now > task:
-
                             delay = (now - task).total_seconds()
 
                             task = heapq.heappop(self._recurring_tasks)
@@ -280,7 +277,6 @@ class BaseApp(daemon.Daemon):
                     if self._downtime > 0:
                         self.handle_downtime(p_downtime=int(self._downtime))
                         self.reset_down_time()
-
 
             except exceptions.SignalHangUp:
                 fmt = "Event queue interrupted by signal"
@@ -337,8 +333,6 @@ class BaseApp(daemon.Daemon):
 
     def run(self):
 
-        global process_result
-
         previous_exception = None
 
         fmt = "Starting app '%s'" % self._app_name
@@ -364,7 +358,6 @@ class BaseApp(daemon.Daemon):
                 fmt = "Exception '%s' while stopping services" % str(e)
                 self._logger.error(fmt)
 
-
         if previous_exception is not None:
             raise previous_exception
 
@@ -382,7 +375,8 @@ def get_argument_parser(p_app_name):
     parser.add_argument('--config', nargs='*', dest='configurations', default=[],
                         help='file names of the configuration files')
     parser.add_argument('--option', nargs='*', dest='cmd_line_options', default=[],
-                        help='Additional configuration settings formatted as SECTION.OPTION=VALUE (overriding settings in configuration files)')
+                        help='Additional configuration settings formatted as '
+                             'SECTION.OPTION=VALUE (overriding settings in configuration files)')
     parser.add_argument('--pidfile', dest='pid_file',
                         help='name of the PID file', default='/var/run/%s/%s.pid' % (p_app_name, p_app_name))
     parser.add_argument('--logdir', dest='log_dir', default=None,
@@ -474,7 +468,6 @@ def main(p_app_name, p_app_class, p_argument_parser):
     except exceptions.InstallationException as e:
         logger.error(str(e))
         process_result = 2
-
 
     except Exception as e:
 

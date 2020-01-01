@@ -25,14 +25,14 @@ import re
 from python_base_app import log_handling
 from python_base_app import tools
 
-REGEX_CMDLINE_PARAMETER = re.compile("([-a-zA-Z_0-9]+)\.([a-zA-Z_0-9]+)=(.*)")
+REGEX_CMDLINE_PARAMETER = re.compile(r"([-a-zA-Z_0-9]+)\.([a-zA-Z_0-9]+)=(.*)")
 REGEX_ENV_PARAMETER = re.compile("([a-zA-Z_0-9]+)__([a-zA-Z_0-9]+)")
 
 NONE_BOOLEAN = type(True)
 NONE_INTEGER = type(1)
 NONE_STRING = type("X")
 
-OPTION_ARRAY_PATTERN = re.compile("([^[]*)\[([0-9]+)\]")
+OPTION_ARRAY_PATTERN = re.compile(r"([^[]*)\[([0-9]+)\]")
 
 VALID_BOOLEAN_TRUE_VALUES = ['1', 'TRUE', 'T', 'YES', 'WAHR', 'JA', 'J']
 VALID_BOOLEAN_FALSE_VALUES = ['0', 'FALSE', 'F', 'NO', 'FALSCH', 'NEIN', 'N']
