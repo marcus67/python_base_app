@@ -30,7 +30,14 @@ SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
 SYSTEMD_DIR=/{{ var.setup.rel_systemd_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
 
-PIP3=/usr/local/bin/pip3
+if [ -x /usr/local/bin/pip3 ] ; then
+    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself. We had had better
+    # take this one
+    PIP3=/usr/local/bin/pip3
+else
+    # Otherwise take the one that has been installed by the Debian package...
+    PIP3=/usr/bin/pip3
+fi
 
 {% if var.setup.create_group %}
 if grep -q '{{ var.setup.group }}:' /etc/group ; then
@@ -87,7 +94,7 @@ chmod -R og-rwx ${LOG_DIR}
 chmod -R og-rwx ${SPOOL_DIR}
 
 ${PIP3} --version
-${PIP3} install wheel
+${PIP3} install wheel setuptools
 echo "Installing PIP packages "
 {% for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
