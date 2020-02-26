@@ -31,4 +31,5 @@ DEBIAN_PACKAGE_BASE_NAME={{ var.setup.debian_package_name }}_{{ var.setup.versio
 
 dpkg -i {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb || true
 
+apt-get update
 apt-get install -f -y --no-install-recommends
