@@ -36,13 +36,18 @@ class ScriptExecutionError(Exception):
 
 class ArtifactNotFoundException(Exception):
 
-    def __init__(self, p_artifact_path, p_error_code):
+    def __init__(self, p_artifact_path, p_error_code, p_result_document=None):
         self._artifact_path = p_artifact_path
         self._error_code = p_error_code
+        self._result_document = p_result_document
 
     def __str__(self):
         return "ArtifactNotFoundException with error code '%s' while accessing artifact '%s'" % (
             str(self._error_code), self._artifact_path)
+
+    @property
+    def result_document(self):
+        return self._result_document
 
 
 class ArtifactBlockedException(Exception):

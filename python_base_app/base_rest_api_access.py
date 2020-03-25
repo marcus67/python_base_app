@@ -135,9 +135,10 @@ class BaseRestAPIAccess(object):
 
         elif error_code == 404:
 
-            fmt = "Artifact '%s' already exists" % p_artifact_path
+            fmt = "Artifact '%s' not found" % p_artifact_path
             self._logger.error(fmt)
-            raise exceptions.ArtifactNotFoundException(p_artifact_path=p_artifact_path, p_error_code=error_code)
+            raise exceptions.ArtifactNotFoundException(p_artifact_path=p_artifact_path, p_error_code=error_code,
+                                                       p_result_document=p_result_document)
 
         elif error_code == 500 or error_code == 423:
 
@@ -173,7 +174,9 @@ class BaseRestAPIAccess(object):
     def execute_api_call(self, p_url, p_requires_authorization=False,
                          p_requires_admin=False,
                          p_mime_type=None,
-                         p_method="GET", p_data=None,
+                         p_method="GET",
+                         p_data=None,
+                         p_parameters=None,
                          p_jsonify=False):
 
         result = None
@@ -197,7 +200,7 @@ class BaseRestAPIAccess(object):
             self._logger.debug(fmt)
 
             if p_method == "GET":
-                r = requests.get(p_url, auth=auth, stream=False, headers=headers)
+                r = requests.get(p_url, auth=auth, stream=False, headers=headers, params=p_parameters)
 
             elif p_method == "PUT":
                 r = requests.put(p_url, auth=auth, data=p_data, headers=headers)
@@ -230,7 +233,7 @@ class BaseRestAPIAccess(object):
         except Exception as e:
 
             self._handle_runtime_exception(
-                p_status_code=r.status_code if r else None,
+                p_status_code=r.status_code if r is not None else None,
                 p_exception=e,
                 p_artifact_path=tools.anonymize_url(p_url),
                 p_key=tools.anonymize_url(p_url),

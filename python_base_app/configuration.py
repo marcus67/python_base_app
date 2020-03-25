@@ -147,7 +147,8 @@ class ConfigModel(object):
                 return []
 
             else:
-                raise AttributeError
+                fmt = "unknown option name '{name}'"
+                raise AttributeError(fmt.format(name=p_option_name))
 
     def __setattr__(self, p_option_name, p_value):
 

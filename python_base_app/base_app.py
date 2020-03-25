@@ -203,11 +203,14 @@ class BaseApp(daemon.Daemon):
 
         heapq.heapify(self._recurring_tasks)
 
+    def stop_event_queue(self):
+        self._done = True
+
     def event_queue(self):
 
-        done = False
+        self._done = False
 
-        while not done:
+        while not self._done:
             try:
                 now = datetime.datetime.utcnow()
 
@@ -282,7 +285,7 @@ class BaseApp(daemon.Daemon):
                 fmt = "Event queue interrupted by signal"
                 self._logger.info(fmt)
 
-                done = True
+                self._done = True
 
             except Exception as e:
                 if self._app_config.debug_mode:
@@ -295,7 +298,7 @@ class BaseApp(daemon.Daemon):
                 tools.log_stack_trace(p_logger=self._logger)
 
             if self._arguments.single_run:
-                done = True
+                self._done = True
 
     def track_downtime(self, p_downtime):
 
@@ -321,8 +324,8 @@ class BaseApp(daemon.Daemon):
             self.prepare_services(p_full_startup=p_full_startup)
 
         except Exception as e:
-            fmt = "Error %s in basic_init()" % str(e)
-            self._logger.error(fmt)
+            fmt = "Error '{msg}' in basic_init()"
+            self._logger.error(fmt.format(msg=str(e)))
 
             # if self._app_config.debug_mode:
             #     fmt = "Propagating exception due to debug_mode=True"
