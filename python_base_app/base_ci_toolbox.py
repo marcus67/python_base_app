@@ -119,6 +119,7 @@ default_setup = {
     "deploy_sudoers_file": False,
     "version": "0.1",
     "target_alembic_version": None,
+    "build_debian_package": True,
     "debian_build_dir": "debian",
     "debian_package_name": "{name}",
     "debian_package_revision": "1",
@@ -204,7 +205,7 @@ def load_setup_module(p_dir, p_module_name):
 
 
 def load_contributing_setup_modules(p_main_setup_module):
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     contrib_setup_modules = []
 
@@ -240,7 +241,7 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
             * the vars of the package
     """
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     if p_arguments.use_dev_dir is not None:
         contrib_dir = os.path.join(p_arguments.use_dev_dir, var["setup"]["contrib_dir"])
@@ -256,7 +257,7 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
     if p_include_contrib_packages:
         for contributing_setup_module in contributing_setup_modules:
-            contrib_var = get_vars(p_setup_params=contributing_setup_module.setup_params)
+            contrib_var = get_vars(p_setup_params=contributing_setup_module.extended_setup_params)
             module_name = contrib_var["setup"]["module_name"]
 
             if p_arguments.use_dev_dir is not None:
@@ -278,13 +279,13 @@ def generate_standard_file(p_main_setup_module, p_template_env, p_file_descripti
     global logger
 
     fmt = "Generate {file_description} for version {version} of app '{name}'"
-    logger.info(fmt.format(file_description=p_file_description, **p_main_setup_module.setup_params), )
+    logger.info(fmt.format(file_description=p_file_description, **p_main_setup_module.extended_setup_params), )
 
     template = p_template_env.get_template(p_template_name)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
-    output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.setup_params))
+    output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.extended_setup_params))
 
     output_file_path = p_output_filename.format(**(var["setup"]))
 
@@ -332,11 +333,11 @@ def generate_debian_control(p_main_setup_module, p_template_env):
     global logger
 
     fmt = "Generate Debian control file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(DEBIAN_CONTROL_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(var=var, depends=var["setup"]["install_requires"])
 
@@ -357,11 +358,11 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
     fmt = "Generate Debian post installation file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(DEBIAN_POSTINST_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(
         var=var,
@@ -389,11 +390,11 @@ def generate_pycoveragerc(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
     fmt = "Generate pycoverage configuration file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(PYCOVERAGE_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(
         var=var,
@@ -422,11 +423,11 @@ def generate_make_debian_package(p_main_setup_module, p_template_env, p_argument
     global logger
 
     fmt = "Generate make_debian_package.sh script file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(MAKE_DEBIAN_PACKAGE_SCRIPT_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(
         var=var,
@@ -453,11 +454,11 @@ def generate_build_docker_image_script(p_main_setup_module, p_template_env, p_ar
     global logger
 
     fmt = "Generate build_docker_images.sh script file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(
         var=var,
@@ -484,11 +485,11 @@ def generate_install_debian_package_script(p_main_setup_module, p_template_env, 
     global logger
 
     fmt = "Generate install-debian-package.sh script file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(INSTALL_DEBIAN_PACKAGE_SCRIPT_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(
         var=var,
@@ -516,11 +517,11 @@ def generate_test_app_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
     fmt = "Generate test-app.sh script file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(TEST_APP_SCRIPT_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(
         var=var,
@@ -548,11 +549,11 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
     global logger
 
     fmt = "Generate publish-debian-package.template.sh script file for version {version} of app '{name}'"
-    logger.info(fmt.format(**p_main_setup_module.setup_params))
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(PUBLISH_DEBIAN_PACKAGE_SCRIPT_TEMPLATE)
 
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_text = template.render(
         var=var,
@@ -577,7 +578,7 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
 
 
 def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
-    var = get_vars(p_setup_params=p_main_setup_module.setup_params)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_file_path = p_script_file_path_pattern.format(**(var["setup"]))
 
