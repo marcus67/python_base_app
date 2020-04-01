@@ -722,9 +722,14 @@ def main(p_main_module_dir):
         logger.error(fmt.format(script_name=e.script_name, exit_code=e.exit_code))
         exit_code = 1
 
+    except KeyError as e:
+        fmt = "Exception of type {type}: {msg}"
+        logger.exception(fmt.format(type=type(e), msg=str(e)))
+        exit_code = 2
+
     except Exception as e:
-        fmt = "General exception {msg}"
-        logger.error(fmt.format(msg=str(e)))
+        fmt = "General exception of type {type}: {msg}"
+        logger.error(fmt.format(type=type(e), msg=str(e)))
         exit_code = 2
 
     fmt = "Exiting with code {exit_code}"
