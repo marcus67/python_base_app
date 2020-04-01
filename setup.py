@@ -45,10 +45,13 @@ setup_params = {
     
     "long_description" : """Really long text here.""",
 
-    # additional setup configuration used by CI stages
-    "id" : "python-base-app",
-    "revision" : "2",
 }
+extended_setup_params = {
+    # additional setup configuration used by CI stages
+    "id": "python-base-app",
+    "revision": "2",
+}
+extended_setup_params.update(setup_params)
 
 if __name__ == '__main__':
     setup(**setup_params)

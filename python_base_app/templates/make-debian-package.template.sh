@@ -47,12 +47,14 @@ mkdir -p ${ETC_DIR}
 pushd . > /dev/null
 cd {{ package[0] }}
 
+{% if var.setup.build_debian_package -%}
 {% for file_mapping in package[3].setup.debian_extra_files %}
 TARGET_DIRECTORY=${ROOT_DIR}/$(dirname {{ file_mapping[1] }} )
 mkdir -p ${TARGET_DIRECTORY}
 echo "Deploying extra file '{{ file_mapping[0] }}' to '${ROOT_DIR}/{{ file_mapping[1] }}'..."
 cp -f {{ file_mapping[0] }} ${ROOT_DIR}/{{ file_mapping[1] }}
 {%- endfor %}
+{% endif %}
 
 {% if package[3].setup.git_metadata_file %}
 echo "GIT_BRANCH=\"$(git rev-parse --abbrev-ref HEAD)\"" > {{ package[3].setup.git_metadata_file }}
@@ -62,10 +64,14 @@ echo "GIT_AUTHOR_EMAIL=\"$(git log -1 --pretty=format:'%ae')\"" >>  {{ package[3
 {% endif %}
 
 python3 ./setup.py sdist
+
+{% if var.setup.build_debian_package -%}
 cp dist/{{ package[1] }} ${TMP_DIR}
+{% endif %}
 popd
 {% endfor %}
 
+{% if var.setup.build_debian_package -%}
 cp -a ${BASE_DIR}/{{ var.setup.debian_build_dir}}/DEBIAN ${ROOT_DIR}
 
 {% if var.setup.deploy_systemd_service %}
@@ -81,4 +87,4 @@ cp ${BASE_DIR}/etc/{{ var.setup.name }}.sudo ${SUDOERS_DIR}/{{ var.setup.name }}
 rm -f {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb
 cd ${BASE_DIR}
 dpkg-deb --build {{ var.setup.debian_build_dir }}/${DEBIAN_PACKAGE_BASE_NAME}
-
+{% endif %}
