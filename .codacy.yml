@@ -1,0 +1,10 @@
+engines:
+  duplication:
+    enabled: true
+    exclude_paths:
+      - python_base_app/test/**
+      - alembic/versions/**
+
+exclude_paths:
+  - 'python_base_app/templates/**'
+  - 'python_base_app/static/contrib/**'
