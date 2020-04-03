@@ -24,6 +24,7 @@ import heapq
 import os
 import signal
 import time
+import pathlib
 
 from python_base_app import configuration
 from python_base_app import daemon
@@ -34,8 +35,9 @@ from python_base_app import tools
 DEFAULT_DEBUG_MODE = False
 
 DEFAULT_LOG_LEVEL = 'INFO'
-
 DEFAULT_SPOOL_BASE_DIR = "/var/spool"
+DEFAULT_USER_CONFIG_DIR = ".config"
+DEFAULT_CONF_EXTENSION = ".conf"
 
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
@@ -127,6 +129,17 @@ class BaseApp(daemon.Daemon):
 
         # Only temporary until the app has been initialized completely!
         self._app_config = BaseAppConfigModel()
+
+    def check_user_configuration_file(self):
+
+        home = str(pathlib.Path.home())
+        user_configuration_file = os.path.join(home, DEFAULT_USER_CONFIG_DIR, self._app_name) + DEFAULT_CONF_EXTENSION
+
+        fmt = "Looking for user configuration file in {path}"
+        self._logger.info(fmt.format(path=user_configuration_file))
+
+        if os.path.exists(user_configuration_file):
+            self._arguments.configurations.append(user_configuration_file)
 
     @property
     def down_time(self):
