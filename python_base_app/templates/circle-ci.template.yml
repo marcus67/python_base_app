@@ -23,6 +23,7 @@
 
 version: 2.0
 jobs:
+  {%- if var.setup.build_debian_package %}
   build:
     #working_directory: ~
     docker:
@@ -35,21 +36,83 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
 
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
   {%- if var.setup.run_test_suite %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
   {%- endif %}
       - run: codecov
       - store_artifacts:
           path: htmlcov
       - store_artifacts:
-          path: {{ var.setup.debian_build_dir}}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
+          path: {{ var.setup.debian_build_dir }}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
       - persist_to_workspace:
-          root: {{ var.setup.debian_build_dir}}
+          root: {{ var.setup.debian_build_dir }}
           paths:
             - {{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
+  {%- endif %}
 
+  {%- if var.setup.build_pypi_package %}
+  build_pypi:
+    #working_directory: ~
+    docker:
+      - image: {{ var.setup.docker_image_test }}
+    steps:
+      - checkout
+
+      # Check out all sub modules
+      # See https://circleci.com/docs/2.0/configuration-reference/#checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+      - store_artifacts:
+          path: "dist/*.gz"
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - "*.gz"
+  {%- endif %}
+
+  {%- if var.setup.build_pypi_package %}
+  install_pypi:
+    #working_directory: ~
+    docker:
+      - image: {{ var.setup.docker_image_test }}
+    steps:
+      - checkout
+
+      # Check out all sub modules
+      # See https://circleci.com/docs/2.0/configuration-reference/#checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install_pypi_package }} --use-dev-dir=.
+  {%- if var.setup.run_test_suite %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+  {%- endif %}
+      - run: codecov
+      - store_artifacts:
+          path: htmlcov
+  {%- endif %}
+
+  {%- if var.setup.publish_pypi_package %}
+  publish_pypi:
+    #working_directory: ~
+    docker:
+      - image: {{ var.setup.docker_image_test }}
+    steps:
+      - checkout
+
+      # Check out all sub modules
+      # See https://circleci.com/docs/2.0/configuration-reference/#checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_pypi_package }} --use-dev-dir=.
+  {%- endif %}
+
+  {%- if var.setup.build_debian_package %}
   deploy:
     docker:
       - image: {{ var.setup.docker_image_test }}
@@ -59,8 +122,10 @@ jobs:
           at: {{ var.setup.debian_build_dir}}
       - run: git submodule sync
       - run: git submodule update --init
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
+  {%- endif %}
 
+  {%- if var.setup.build_debian_package %}
   docker:
     docker:
       - image: {{ var.setup.docker_image_docker }}
@@ -72,12 +137,14 @@ jobs:
       - run: git submodule update --init
       - setup_remote_docker:
           docker_layer_caching: false
-      - run: PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }}
+  {%- endif %}
 
 workflows:
     version: 2
     build_and_deploy:
       jobs:
+  {%- if var.setup.build_debian_package %}
         - build
   {%- if var.setup.publish_debian_package|length > 0 %}
         - deploy:
@@ -92,4 +159,17 @@ workflows:
         - docker:
             requires:
               - build
+  {%- endif %}
+  {%- endif %}
+
+  {%- if var.setup.build_pypi_package %}
+        - build_pypi
+        - install_pypi:
+            requires:
+              - build_pypi
+  {%- if var.setup.publish_pypi_package %}
+        - publish_pypi:
+            requires:
+              - install_pypi
+  {%- endif %}
   {%- endif %}

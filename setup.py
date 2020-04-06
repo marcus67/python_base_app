@@ -39,7 +39,11 @@ setup_params = {
         'jinja2',
         'flask-blueprint'
     ],
-    
+
+    "scripts": [
+        "run_python_base_app_test_suite.py",
+    ],
+
     "packages" : [ 'python_base_app', 'python_base_app.test' ],
     "include_package_data": True,
     
@@ -50,6 +54,9 @@ extended_setup_params = {
     # additional setup configuration used by CI stages
     "id": "python-base-app",
     "revision": "2",
+    "build_debian_package": False,
+    "build_pypi_package": True,
+    "publish_pypi_package": True,
 }
 extended_setup_params.update(setup_params)
 

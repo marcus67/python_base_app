@@ -38,7 +38,9 @@ MODULE_NAME = "base_ci_toolbox"
 STAGE_BUILD_PACKAGE = "BUILD"
 STAGE_BUILD_DOCKER_IMAGES = "BUILD_DOCKER_IMAGES"
 STAGE_INSTALL = "INSTALL"
+STAGE_INSTALL_PYPI_PACKAGE = "INSTALL-PYPI-PACKAGE"
 STAGE_PUBLISH_PACKAGE = "PUBLISH-PACKAGE"
+STAGE_PUBLISH_PYPI_PACKAGE = "PUBLISH-PYPI-PACKAGE"
 STAGE_TEST = "TEST"
 STAGE_TEARDOWN = "TEARDOWN"
 STAGE_PREPARE = "PREPARE"
@@ -73,8 +75,14 @@ BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE = 'build-docker-images.template.sh'
 INSTALL_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/install-debian-package.sh'
 INSTALL_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'install-debian-package.template.sh'
 
+INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/install-pypi-package.sh'
+INSTALL_PYPI_PACKAGE_SCRIPT_TEMPLATE = 'install-pypi-package.template.sh'
+
 PUBLISH_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/publish-debian-package.sh'
 PUBLISH_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'publish-debian-package.template.sh'
+
+PUBLISH_PYPI_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/publish-pypi-package.sh'
+PUBLISH_PYPI_PACKAGE_SCRIPT_TEMPLATE = 'publish-pypi-package.template.sh'
 
 TEST_APP_SCRIPT_FILE_PATH = '{bin_dir}/test-app.sh'
 TEST_APP_SCRIPT_TEMPLATE = 'test-app.template.sh'
@@ -95,13 +103,15 @@ default_setup = {
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
+    "ci_stage_install_pypi_package": STAGE_INSTALL_PYPI_PACKAGE,
     "ci_stage_test": STAGE_TEST,
     "ci_stage_teardown": STAGE_TEARDOWN,
     "ci_stage_publish_package": STAGE_PUBLISH_PACKAGE,
+    "ci_stage_publish_pypi_package": STAGE_PUBLISH_PYPI_PACKAGE,
     "require_teardown": False,
     "bin_dir": "bin",
     "test_dir": "test",
-    "run_test_suite": "run_test_suite.py",
+    "run_test_suite": "run_{module_name}_test_suite.py",
     "contrib_dir": "contrib",
     "rel_tmp_dir": "tmp",
     "rel_etc_dir": "etc/{name}",
@@ -131,6 +141,8 @@ default_setup = {
     "install_requires": [],
     "contributing_setups": [],
     "publish_debian_package": [],
+    "build_pypi_package": False,
+    "publish_pypi_package": False,
     "publish_docker_images": [],
     "publish_latest_docker_image": "",
     "docker_registry" : "docker.io",
@@ -488,19 +500,14 @@ def generate_install_debian_package_script(p_main_setup_module, p_template_env, 
     logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(INSTALL_DEBIAN_PACKAGE_SCRIPT_TEMPLATE)
-
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
-
     output_text = template.render(
         var=var,
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
-
     output_file_path = INSTALL_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-
     install_and_test_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
                                                                    output_file_path)
-
     os.makedirs(os.path.dirname(install_and_test_debian_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(install_and_test_debian_package_script_filename, "w") as f:
@@ -510,6 +517,33 @@ def generate_install_debian_package_script(p_main_setup_module, p_template_env, 
     logger.info(fmt.format(filename=install_and_test_debian_package_script_filename))
 
     os.chmod(install_and_test_debian_package_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
+def generate_install_pypi_package_script(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate install-pypi-package.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(INSTALL_PYPI_PACKAGE_SCRIPT_TEMPLATE)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+    output_file_path = INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
+    install_and_test_pypi_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
+                                                                   output_file_path)
+    os.makedirs(os.path.dirname(install_and_test_pypi_package_script_filename), mode=0o777, exist_ok=True)
+
+    with open(install_and_test_pypi_package_script_filename, "w") as f:
+        f.write(output_text)
+
+    fmt = "Wrote install-pypi-package.sh script file to '{filename}'"
+    logger.info(fmt.format(filename=install_and_test_pypi_package_script_filename))
+
+    os.chmod(install_and_test_pypi_package_script_filename,
              stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
 
@@ -552,20 +586,15 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
     logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
 
     template = p_template_env.get_template(PUBLISH_DEBIAN_PACKAGE_SCRIPT_TEMPLATE)
-
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
-
     output_text = template.render(
         var=var,
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments),
         arguments=p_arguments,
         site_packages_dir=get_site_packages_dir()
     )
-
     output_file_path = PUBLISH_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-
     publish_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
-
     os.makedirs(os.path.dirname(publish_debian_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(publish_debian_package_script_filename, "w") as f:
@@ -575,6 +604,34 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
     logger.info(fmt.format(filename=publish_debian_package_script_filename))
 
     os.chmod(publish_debian_package_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
+def generate_publish_pypi_package_script(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate publish-pypi-package.template.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(PUBLISH_PYPI_PACKAGE_SCRIPT_TEMPLATE)
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments,
+                                            p_include_contrib_packages=False),
+        arguments=p_arguments,
+        site_packages_dir=get_site_packages_dir()
+    )
+    output_file_path = PUBLISH_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
+    publish_pypi_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    os.makedirs(os.path.dirname(publish_pypi_package_script_filename), mode=0o777, exist_ok=True)
+
+    with open(publish_pypi_package_script_filename, "w") as f:
+        f.write(output_text)
+
+    fmt = "Wrote publish_pypi_package.sh script file to '{filename}'"
+    logger.info(fmt.format(filename=publish_pypi_package_script_filename))
+
+    os.chmod(publish_pypi_package_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
 
 def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
@@ -638,9 +695,17 @@ def execute_install_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=INSTALL_DEBIAN_PACKAGE_SCRIPT_FILE_PATH)
 
+def execute_install_pypi_package_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH)
+
 def execute_publish_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=PUBLISH_DEBIAN_PACKAGE_SCRIPT_FILE_PATH)
+
+def execute_publish_pypi_package_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=PUBLISH_PYPI_PACKAGE_SCRIPT_FILE_PATH)
 
 def execute_test_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
@@ -651,8 +716,15 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--execute-stage', dest='execute_stage', default=None,
                         help='execute CI stage',
-                        choices=[STAGE_BUILD_PACKAGE, STAGE_BUILD_DOCKER_IMAGES, STAGE_PUBLISH_PACKAGE, STAGE_INSTALL,
-                                 STAGE_TEST, STAGE_TEARDOWN, STAGE_PREPARE])
+                        choices=[STAGE_BUILD_PACKAGE,
+                                 STAGE_BUILD_DOCKER_IMAGES,
+                                 STAGE_PUBLISH_PACKAGE,
+                                 STAGE_PUBLISH_PYPI_PACKAGE,
+                                 STAGE_INSTALL,
+                                 STAGE_INSTALL_PYPI_PACKAGE,
+                                 STAGE_TEST,
+                                 STAGE_TEARDOWN,
+                                 STAGE_PREPARE])
     parser.add_argument('--run-dir', dest='run_dir', default=None)
     parser.add_argument('--use-dev-dir', dest='use_dev_dir', default=None)
     return parser
@@ -690,6 +762,11 @@ def main(p_main_module_dir):
                                                    p_arguments=arguments)
             execute_publish_debian_package_script(p_main_setup_module=main_setup_module)
 
+        elif arguments.execute_stage == STAGE_PUBLISH_PYPI_PACKAGE:
+            generate_publish_pypi_package_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                                   p_arguments=arguments)
+            execute_publish_pypi_package_script(p_main_setup_module=main_setup_module)
+
         elif arguments.execute_stage == STAGE_BUILD_DOCKER_IMAGES:
             generate_build_docker_image_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                                p_arguments=arguments)
@@ -699,6 +776,12 @@ def main(p_main_module_dir):
             generate_install_debian_package_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                                    p_arguments=arguments)
             execute_install_debian_package_script(p_main_setup_module=main_setup_module)
+
+        elif arguments.execute_stage == STAGE_INSTALL_PYPI_PACKAGE:
+
+            generate_install_pypi_package_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                                   p_arguments=arguments)
+            execute_install_pypi_package_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_TEST:
             generate_test_app_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
