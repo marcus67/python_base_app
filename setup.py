@@ -56,7 +56,7 @@ extended_setup_params = {
     "revision": "2",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "publish_pypi_package": True,
+    "publish_pypi_package": ['master', 'release'],
 }
 extended_setup_params.update(setup_params)
 

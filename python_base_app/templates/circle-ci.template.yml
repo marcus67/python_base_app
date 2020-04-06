@@ -98,7 +98,7 @@ jobs:
           path: htmlcov
   {%- endif %}
 
-  {%- if var.setup.publish_pypi_package %}
+  {%- if var.setup.publish_pypi_package|length > 0 %}
   publish_pypi:
     #working_directory: ~
     docker:
@@ -171,9 +171,15 @@ workflows:
         - install_pypi:
             requires:
               - build_pypi
-  {%- if var.setup.publish_pypi_package %}
+  {%- if var.setup.publish_pypi_package|length > 0 %}
         - publish_pypi:
             requires:
               - install_pypi
+            filters:
+              branches:
+                only:
+  {%- for branch in var.setup.publish_pypi_package %}
+                  - {{ branch }}
+  {%- endfor %}
   {%- endif %}
   {%- endif %}

@@ -142,7 +142,7 @@ default_setup = {
     "contributing_setups": [],
     "publish_debian_package": [],
     "build_pypi_package": False,
-    "publish_pypi_package": False,
+    "publish_pypi_package": [],
     "publish_docker_images": [],
     "publish_latest_docker_image": "",
     "docker_registry" : "docker.io",

@@ -88,3 +88,8 @@ workflows:
         - publish_pypi:
             requires:
               - install_pypi
+            filters:
+              branches:
+                only:
+                  - master
+                  - release
