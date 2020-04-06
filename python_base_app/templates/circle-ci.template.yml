@@ -67,11 +67,11 @@ jobs:
 
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - store_artifacts:
-          path: "dist/*.gz"
+          path: "dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
       - persist_to_workspace:
           root: dist
           paths:
-            - "*.gz"
+            - "{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
   {%- endif %}
 
   {%- if var.setup.build_pypi_package %}

@@ -749,10 +749,13 @@ def main(p_main_module_dir):
         template_loader = jinja2.PackageLoader(python_base_app.__name__)
         template_env = jinja2.Environment(loader=template_loader)
 
+        var = get_vars(p_setup_params=main_setup_module.extended_setup_params)
+
         if arguments.execute_stage == STAGE_BUILD_PACKAGE:
-            generate_debian_control(p_main_setup_module=main_setup_module, p_template_env=template_env)
-            generate_debian_postinst(p_main_setup_module=main_setup_module, p_template_env=template_env,
-                                     p_arguments=arguments)
+            if var["setup"]["build_debian_package"]:
+                generate_debian_control(p_main_setup_module=main_setup_module, p_template_env=template_env)
+                generate_debian_postinst(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                         p_arguments=arguments)
             generate_make_debian_package(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                          p_arguments=arguments)
             execute_make_debian_package_script(p_main_setup_module=main_setup_module)

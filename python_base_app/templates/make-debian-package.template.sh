@@ -27,6 +27,8 @@ SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 set -e
 
+{% if var.setup.build_debian_package -%}
+
 # Make local scripts available to build process (e.g. dpkg-deb)
 export PATH=${PATH}:${BASE_DIR}/docker/debian-package-build-tool
 
@@ -41,6 +43,7 @@ SUDOERS_DIR=${ROOT_DIR}/{{ var.setup.rel_sudoers_dir }}
 
 mkdir -p ${TMP_DIR}
 mkdir -p ${ETC_DIR}
+{% endif %}
 
 {% for package in python_packages %}
 # Build PIP package {{ package[1] }}...
