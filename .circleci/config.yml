@@ -48,6 +48,8 @@ jobs:
       - image: accso/docker-python-app:latest
     steps:
       - checkout
+      - attach_workspace:
+          at: "dist"
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -65,6 +67,8 @@ jobs:
       - image: accso/docker-python-app:latest
     steps:
       - checkout
+      - attach_workspace:
+          at: "dist"
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
