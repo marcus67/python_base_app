@@ -19,26 +19,26 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from setuptools import setup
+from os import path
+
+this_directory = path.abspath(path.dirname(__file__))
+
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
+with open(path.join(this_directory, 'requirements.txt')) as f:
+    install_requires = f.read().splitlines()
 
 setup_params = {
     # standard setup configuration
     "name" : "python-base-app",
-    "version" : "0.1",
-    "description" : "Generic tools for Python applications",
+    "version" : "0.1.2",
+    "description" : "Generic tools and base classes for Python applications with web interface.",
     "author" : "Marcus Rickert",
     "author_email" : "marcus.rickert@web.de",
     "url" : "https://github.com/marcus67/python_base_app",
     
-    "install_requires" : [
-        'alembic',
-        'pytest',
-        'requests', 
-        'python-dateutil',
-        'flask',
-        'flask-wtf',
-        'jinja2',
-        'flask-blueprint'
-    ],
+    "install_requires" : install_requires,
 
     "scripts": [
         "run_python_base_app_test_suite.py",
@@ -47,13 +47,13 @@ setup_params = {
     "packages" : [ 'python_base_app', 'python_base_app.test' ],
     "include_package_data": True,
     
-    "long_description" : """Really long text here.""",
-
+    "long_description" : long_description,
+    "long_description_content_type" : 'text/markdown',
 }
+
 extended_setup_params = {
     # additional setup configuration used by CI stages
     "id": "python-base-app",
-    "revision": "2",
     "build_debian_package": False,
     "build_pypi_package": True,
     "publish_pypi_package": ['master', 'release'],

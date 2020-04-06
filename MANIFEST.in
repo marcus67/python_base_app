@@ -1,6 +1,6 @@
 #    Copyright (C) 2019  Marcus Rickert
 #
-#    See https://github.com/marcus67/little_brother
+#    See https://github.com/marcus67/python_base_app
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,3 +17,5 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 include LICENSE
+include README.md
+include requirements.txt
