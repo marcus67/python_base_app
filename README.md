@@ -33,8 +33,17 @@ Note: The vulnerability status is derived from the Python PIP packages found in 
 
 `python_base_app` has the following features:
 
-*   TODO.
-
+   * (Base) classes for handling
+     * configuration,
+     * HTTP server (Flask with optional authentication),
+     * REST access,
+     * logging,
+     * daemon processes,
+   * Templates and generator (JInja2) for creating
+     * Debian packages for Python applications,
+     * PIP packages (build, test, publish),
+     * control files for CircleCI
+     
 ## Caveats
 
 The framework is far from perfect. Some major caveats are listed here and/or in the 

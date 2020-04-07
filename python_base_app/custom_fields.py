@@ -22,11 +22,9 @@ import wtforms.widgets
 
 from python_base_app import tools
 
+
 class BaseCustomField(wtforms.Field):
-
     extra_css_classes = ""
-
-    pass
 
 
 class DurationField(BaseCustomField):
@@ -35,7 +33,7 @@ class DurationField(BaseCustomField):
     def __init__(self, *args, **largs):
 
         super().__init__(*args, **largs)
-
+        self.data = None
         self.invalid_data = None
 
     def _value(self):
@@ -69,6 +67,7 @@ class TimeField(BaseCustomField):
     def __init__(self, *args, **largs):
 
         super().__init__(*args, **largs)
+        self.data = None
         self.invalid_data = None
 
     def _value(self):
@@ -96,8 +95,8 @@ class TimeField(BaseCustomField):
             self.data = None
             self.invalid_data = None
 
-class BooleanField(BaseCustomField):
 
+class BooleanField(BaseCustomField):
     widget = wtforms.widgets.CheckboxInput()
 
     extra_css_classes = "move-left"
@@ -105,11 +104,11 @@ class BooleanField(BaseCustomField):
     def __init__(self, *args, **largs):
 
         super().__init__(*args, **largs)
+        self.data = None
 
     def _value(self):
 
-
-        return  self.data is not None and self.data
+        return self.data is not None and self.data
 
     def process_formdata(self, valuelist):
         if valuelist:
