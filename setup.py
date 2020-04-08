@@ -32,7 +32,7 @@ with open(path.join(this_directory, 'requirements.txt')) as f:
 setup_params = {
     # standard setup configuration
     "name" : "python-base-app",
-    "version" : "0.1.4",
+    "version" : "0.1.5",
     "description" : "Generic tools and base classes for Python applications with web interface.",
     "author" : "Marcus Rickert",
     "author_email" : "marcus.rickert@web.de",
