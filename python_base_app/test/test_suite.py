@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 #    Copyright (C) 2019  Marcus Rickert
 #
-#    See https://github.com/marcus67/little_brother
+#    See https://github.com/marcus67/python_base_app
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,10 @@ import unittest
 
 from python_base_app import log_handling
 from python_base_app.test import base_test
+from python_base_app.test import test_audio_handler
+from python_base_app.test import test_audio_player
 from python_base_app.test import test_configuration
+from python_base_app.test import test_pytest
 
 
 def add_test_cases(p_test_suite, p_config_filename=None):
@@ -31,7 +34,17 @@ def add_test_cases(p_test_suite, p_config_filename=None):
         p_test_suite=p_test_suite,
         p_test_unit_class=test_configuration.TestConfiguration, p_config_filename=p_config_filename)
 
+    base_test.add_tests_in_test_unit(
+        p_test_suite=p_test_suite,
+        p_test_unit_class=test_audio_handler.TestAudioHandler, p_config_filename=p_config_filename)
 
+    base_test.add_tests_in_test_unit(
+        p_test_suite=p_test_suite,
+        p_test_unit_class=test_audio_player.TestAudioPlayer, p_config_filename=p_config_filename)
+
+    base_test.add_tests_in_test_unit(
+        p_test_suite=p_test_suite,
+        p_test_unit_class=test_pytest.TestPytest, p_config_filename=p_config_filename)
 
 def main():
     log_handling.start_logging(p_use_filter=False)

@@ -5,6 +5,10 @@
 `python_base_app` is a simple framework for Python applications with a web frontend using 
 [Flask](https://palletsprojects.com/p/flask/). It is used by [LitleBrother](https://github.com/marcus67/little_brother).
 
+## Change History 
+
+See [here](https://github.com/marcus67/python_base_app/CHANGES.md)
+
 ## GitHub Status
 
 <A HREF="https://github.com/marcus67/python_base_app">
@@ -27,24 +31,24 @@
 | Snyk Vulnerability  | <a href="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt"><img src="https://snyk.io/test/github/marcus67/python_base_app/badge.svg?targetFile=requirements.txt" alt="Known Vulnerabilities" data-canonical-src="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt" style="max-width:100%;"></a> | not available                                                                                                                                                                             |
 | Codacy Code Quality | <a href="https://www.codacy.com/app/marcus67/python_base_app?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcus67/python_base_app&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/3e3130c1c450404db9b16e10ab8af7fd"/></a>                                                                                  | not available                                                                                                                                                                             |
 
-Note: The vulnerability status is derived from the Python PIP packages found in `requirement.txt`.
+Note: The vulnerability status is derived from the Python PIP packages found in `requirements.txt`.
 
 ## Features
 
 `python_base_app` has the following features:
 
-    * (Base) classes for handling
-        * configuration,
-        * HTTP server (Flask with optional authentication),
-        * REST access,
-        * logging,
-        * daemon processes,
-    * Templates and generator (JInja2) for creating
-        * Debian packages for Python applications,
-        * PIP packages (build, test, publish),
-        * control files for CircleCI
+*   (Base) classes for handling
+    * configuration,
+    * HTTP server (Flask with optional authentication),
+    * REST access,
+    * logging,
+    * daemon processes,
+* Templates and generator (JInja2) for creating
+    * Debian packages for Python applications,
+    * PIP packages (build, test, publish),
+    * control files for CircleCI
      
 ## Caveats
 
 The framework is far from perfect. Some major caveats are listed here and/or in the 
-issue list on GitHub (see [here](../issues)).
+issue list on GitHub (see [here](https://github.com/marcus67/python_base_app/issues)).

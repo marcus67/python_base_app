@@ -23,6 +23,7 @@ import logging
 import os
 import sys
 import unittest
+import pytest
 from os.path import join, dirname
 
 from python_base_app import configuration
@@ -202,3 +203,12 @@ class BaseTestCase(unittest.TestCase):
             raise configuration.ConfigurationException(msg.format(testcase=self.__class__.__name__))
 
         return join(self._test_data_base_dir, p_rel_path)
+
+    def execute_pytest(self, p_rel_path="pytest"):
+
+        pytest_dir = os.path.join(os.path.dirname(__file__), p_rel_path)
+
+        fmt = "Executing pytest tests in directory {dirname}"
+        self._logger.info(fmt.format(dirname=pytest_dir))
+
+        self.assertEqual(pytest.cmdline.main([pytest_dir]), 0)
