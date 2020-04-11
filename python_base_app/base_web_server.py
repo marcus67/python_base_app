@@ -192,7 +192,6 @@ class BaseWebServer(object):
 
     def get_authenication_info(self):
 
-        tmp = flask_login.current_user
         return {
             "is_authenticated": flask_login.current_user is not None and flask_login.current_user.is_authenticated,
             "username": getattr(flask_login.current_user, "username",

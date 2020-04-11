@@ -20,12 +20,12 @@
 
 ## Continuous Integration Status Overview
 
-| Status | Master | Release |
-|:------ |:------ |:------- |
-| CircleCI | <A HREF="https://circleci.com/gh/marcus67/python_base_app/tree/master"><IMG SRC="https://img.shields.io/circleci/project/github/marcus67/python_base_app/master.svg?label=master"></A> | <A HREF="https://circleci.com/gh/marcus67/python_base_app/tree/release"><IMG SRC="https://img.shields.io/circleci/project/github/marcus67/python_base_app/release.svg?label=release"></A> |
-| Test Coverage | <A HREF="https://codecov.io/gh/marcus67/python_base_app/branch/master"><IMG SRC="https://img.shields.io/codecov/c/github/marcus67/python_base_app.svg?label=master"></A> | <A HREF="https://codecov.io/gh/marcus67/python_base_app/branch/release"><IMG SRC="https://img.shields.io/codecov/c/github/marcus67/python_base_app/release.svg?label=release"></A> | 
-| Snyk Vulnerability | <a href="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt"><img src="https://snyk.io/test/github/marcus67/python_base_app/badge.svg?targetFile=requirements.txt" alt="Known Vulnerabilities" data-canonical-src="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt" style="max-width:100%;"></a> | not available |
-| Codacy Code Quality | <a href="https://www.codacy.com/app/marcus67/python_base_app?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcus67/python_base_app&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/3e3130c1c450404db9b16e10ab8af7fd"/></a> | not available |
+| Status              | Master                                                                                                                                                                                                                                                                                                                                                          | Release                                                                                                                                                                                   |
+|:------------------- |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CircleCI            | <A HREF="https://circleci.com/gh/marcus67/python_base_app/tree/master"><IMG SRC="https://img.shields.io/circleci/project/github/marcus67/python_base_app/master.svg?label=master"></A>                                                                                                                                                                          | <A HREF="https://circleci.com/gh/marcus67/python_base_app/tree/release"><IMG SRC="https://img.shields.io/circleci/project/github/marcus67/python_base_app/release.svg?label=release"></A> |
+| Test Coverage       | <A HREF="https://codecov.io/gh/marcus67/python_base_app/branch/master"><IMG SRC="https://img.shields.io/codecov/c/github/marcus67/python_base_app.svg?label=master"></A>                                                                                                                                                                                        | <A HREF="https://codecov.io/gh/marcus67/python_base_app/branch/release"><IMG SRC="https://img.shields.io/codecov/c/github/marcus67/python_base_app/release.svg?label=release"></A>        | 
+| Snyk Vulnerability  | <a href="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt"><img src="https://snyk.io/test/github/marcus67/python_base_app/badge.svg?targetFile=requirements.txt" alt="Known Vulnerabilities" data-canonical-src="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt" style="max-width:100%;"></a> | not available                                                                                                                                                                             |
+| Codacy Code Quality | <a href="https://www.codacy.com/app/marcus67/python_base_app?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcus67/python_base_app&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/3e3130c1c450404db9b16e10ab8af7fd"/></a>                                                                                  | not available                                                                                                                                                                             |
 
 Note: The vulnerability status is derived from the Python PIP packages found in `requirement.txt`.
 
@@ -33,16 +33,16 @@ Note: The vulnerability status is derived from the Python PIP packages found in 
 
 `python_base_app` has the following features:
 
-   * (Base) classes for handling
-     * configuration,
-     * HTTP server (Flask with optional authentication),
-     * REST access,
-     * logging,
-     * daemon processes,
-   * Templates and generator (JInja2) for creating
-     * Debian packages for Python applications,
-     * PIP packages (build, test, publish),
-     * control files for CircleCI
+    * (Base) classes for handling
+        * configuration,
+        * HTTP server (Flask with optional authentication),
+        * REST access,
+        * logging,
+        * daemon processes,
+    * Templates and generator (JInja2) for creating
+        * Debian packages for Python applications,
+        * PIP packages (build, test, publish),
+        * control files for CircleCI
      
 ## Caveats
 
