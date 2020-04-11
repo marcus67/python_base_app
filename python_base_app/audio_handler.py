@@ -97,12 +97,12 @@ class AudioHandler(notification_handler.NotificationHandler):
 
             else:
                 fmt = "Invalid audio player '{player}'"
-                self._logger.error(fmt, player=self._config.audio_player)
+                self._logger.error(fmt.format(player=self._config.audio_player))
                 raise configuration.ConfigurationException(fmt)
 
         except Exception:
             fmt = "Cannot load audio player '{player}'"
-            self._logger.error(fmt, player=self._config.audio_player)
+            self._logger.error(fmt.format(player=self._config.audio_player))
             raise configuration.ConfigurationException(fmt)
 
     def init_engine_google(self):

@@ -33,10 +33,3 @@ class TestAudioPlayer(base_test.BaseTestCase):
         a_config = audio_handler.AudioHandlerConfigModel()
         a_player = mpg123_audio_player.Mpg123AudioPlayer(p_mpg123_binary = a_config.mpg123_binary)
         a_player.play_audio_file(HELLO_MPG)
-
-    # @base_test.skip_if_env("NO_AUDIO_OUTPUT")
-    # def test_playsound_player(self):
-    #
-    #     a_player = playsound_audio_player.PlaysoundAudioPlayer()
-    #     a_player.play_audio_file(HELLO_MPG)
-
