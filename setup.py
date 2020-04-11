@@ -56,7 +56,7 @@ extended_setup_params = {
     "id": "python-base-app",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "publish_pypi_package": ['master', 'release'],
+    "publish_pypi_package": ['master'],
 }
 extended_setup_params.update(setup_params)
 
