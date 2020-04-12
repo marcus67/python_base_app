@@ -49,7 +49,7 @@ fi
 {%- endif %}
 echo "Using PATH=${PATH}"
 
-export PYTHONPATH={% for package in python_packages %}:{{ package[0] }}{% endfor %}
+export PYTHONPATH={% for package in python_packages %}{{ package[0] }}:{% endfor %}${PYTHONPATH}
 echo "Using PYTHONPATH=${PYTHONPATH}"
 
 {%- if arguments.run_dir %}
