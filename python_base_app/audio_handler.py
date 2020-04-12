@@ -30,8 +30,8 @@ from python_base_app import pyglet_audio_player
 DEFAULT_SPEECH_GENERATOR_CMD_LINE = '/usr/bin/festival --tts --language american_english {{{pattern}}}'.format(
     pattern=notification_handler.REPLACE_PATTERN_AUDIO_TEXT_FILENAME)
 DEFAULT_AUDIO_MIXER_BIN = '/usr/bin/amixer'
-DEFAULT_AUDIO_FILE_PREFIX = "little-brother-speech-"
-DEFAULT_SPOOL_DIRECTORY = "/var/spool/little-brother"
+DEFAULT_AUDIO_FILE_PREFIX = "python-base-app-speech-"
+DEFAULT_SPOOL_DIRECTORY = "/tmp"
 DEFAULT_SPEECH_WORDS_PER_MINUTE = 100
 
 SECTION_NAME = "AudioHandler"
