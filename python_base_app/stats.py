@@ -26,6 +26,7 @@ class MovingAverage(object):
         self._pointer = 0
         self._values = []
         self._sum = 0.0
+        self._latest_value = None
 
     def add_value(self, p_value):
 
@@ -40,6 +41,11 @@ class MovingAverage(object):
                 self._pointer = 0
 
         self._sum = self._sum + p_value
+        self._latest_value = p_value
+
+    def get_latest_value(self):
+        return self._latest_value
+
 
     def get_value(self, p_default=None):
 
