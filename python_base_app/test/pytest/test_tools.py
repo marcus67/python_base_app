@@ -77,3 +77,29 @@ def test_get_string_as_duration_empty_string():
 
 def test_get_string_as_duration_none():
     assert tools.get_string_as_duration(p_string=None) is None
+
+class TimingResult(object):
+
+    def __init__(self):
+
+        self.duration = None
+
+    def set_duration(self, p_duration):
+
+        self.duration = p_duration
+
+def test_timing_context():
+
+    result = TimingResult()
+
+    sum = 0
+
+    with tools.TimingContext(p_result_handler=lambda duration: result.set_duration(p_duration=duration)):
+        for i in range (0, 10):
+            sum += i
+
+    assert sum == 45
+    assert result.duration is not None
+    assert result.duration > 0
+    assert result.duration < 0.1
+

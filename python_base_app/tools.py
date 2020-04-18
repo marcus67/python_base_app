@@ -19,6 +19,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import datetime
+import time
 import inspect
 import io
 import json
@@ -399,3 +400,15 @@ def get_string_as_time(p_string):
         second = 0
 
     return datetime.time(hour=hour, minute=minute, second=second)
+
+class TimingContext(object):
+
+    def __init__(self, p_result_handler):
+        self._result_handler = p_result_handler
+
+    def __enter__(self):
+        self._start = time.time()
+
+    def __exit__(self, type, value, traceback):
+        self._end = time.time()
+        self._result_handler(self._end - self._start)
