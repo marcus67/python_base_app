@@ -31,5 +31,8 @@ class TestAudioPlayer(base_test.BaseTestCase):
     def test_mpg123_player(self):
 
         a_config = audio_handler.AudioHandlerConfigModel()
+
+        self.assertIsNotNone(a_config)
+
         a_player = mpg123_audio_player.Mpg123AudioPlayer(p_mpg123_binary = a_config.mpg123_binary)
         a_player.play_audio_file(HELLO_MPG)

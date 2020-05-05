@@ -8,7 +8,8 @@ This document lists all changes of `python_base_app` with the most recent change
 *   Provide translations of texts in python_base_app 
 *   Provide gettext function to call Babel
 *   Closes #6, see [here](https://github.com/marcus67/python_base_app/issues/6)
-*   Create python_base_app/settings.py to make settings available to CI process 
+*   Create python_base_app/settings.py to make settings available to CI process
+*   Add tests for module `base_ci_toolbox`
 
 ## Version 0.1.8 (April 18th, 2020)
 

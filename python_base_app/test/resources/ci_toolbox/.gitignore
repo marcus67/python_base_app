@@ -1,0 +1,7 @@
+.circleci
+.codacy.yml
+.codacy.yml
+.coveragerc
+.gitlab-ci.yml
+git.py
+*.mo
