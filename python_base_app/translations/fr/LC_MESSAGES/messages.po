@@ -1,0 +1,36 @@
+# French translations for PROJECT.
+# Copyright (C) 2020 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# ALBANO BATTISTELLA <albano_battistella@hotmail.com>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2020-05-03 00:51+0200\n"
+"PO-Revision-Date: 2020-04-20 17:35+0100\n"
+"Last-Translator: Albano Battistella <albano_battistella@hotmail.com>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/auth_view_handler.py:34
+msgid "Please log in to access this page."
+msgstr "Veuillez vous connecter pour accéder à cette page."
+
+#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/auth_view_handler.py:135
+msgid "Wrong login or password"
+msgstr "Identifiant ou mot de passe incorrect"
+
+#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/tools.py:360
+msgid "Use Hh MMm SSs"
+msgstr "Utilisez Hh MMm SSs"
+
+#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/tools.py:387
+msgid "Use HH[:MM[:SS]]"
+msgstr "Utilisez HH[:MM[:SS]]"
+

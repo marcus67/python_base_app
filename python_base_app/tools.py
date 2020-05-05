@@ -61,6 +61,8 @@ PLATFORM_NAME_MAC_OS = "darwin"
 PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS")
 PROTECTED_PASSWORD_VALUE = "[HIDDEN]"
 
+# Dummy function to trigger extraction by pybabel...
+_ = lambda x: x
 
 def int_to_string(p_integer):
     if p_integer is None:
@@ -355,7 +357,7 @@ def get_string_as_duration(p_string):
     match = REGEX_DURATION.match(p_string)
 
     if match is None:
-        fmt = "Use Hh MMm SSs"
+        fmt = _("Use Hh MMm SSs")
         raise configuration.ConfigurationException(fmt.format(string=p_string))
 
     result = 0
@@ -382,7 +384,7 @@ def get_string_as_time(p_string):
     match = REGEX_TIME.match(p_string)
 
     if match is None:
-        fmt = "Use HH[:MM[:SS]]"
+        fmt = _("Use HH[:MM[:SS]]")
         raise configuration.ConfigurationException(fmt.format(string=p_string))
 
     hour = int(match.group(1))

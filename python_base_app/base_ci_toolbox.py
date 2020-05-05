@@ -148,7 +148,8 @@ default_setup = {
     "docker_registry" : "docker.io",
     "docker_registry_user" : "[DOCKER_REGISTRY_USER_NOT_SET]",
     "docker_context_dir" : "docker",
-    "docker_contexts": []
+    "docker_contexts": [],
+    "babel_rel_directory" : None,
 }
 
 logger = None

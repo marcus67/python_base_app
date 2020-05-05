@@ -66,6 +66,11 @@ echo "GIT_AUTHOR_NAME=\"$(git log -1 --pretty=format:'%an')\"" >>  {{ package[3]
 echo "GIT_AUTHOR_EMAIL=\"$(git log -1 --pretty=format:'%ae')\"" >>  {{ package[3].setup.git_metadata_file }}
 {% endif %}
 
+{% if package[3].setup.babel_rel_directory %}
+pwd
+pybabel compile -d {{ package[2] }}/{{ package[3].setup.babel_rel_directory }}
+{% endif %}
+
 python3 ./setup.py sdist
 
 {% if var.setup.build_debian_package -%}

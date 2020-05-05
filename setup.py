@@ -21,6 +21,8 @@
 from setuptools import setup
 from os import path
 
+from python_base_app import settings
+
 this_directory = path.abspath(path.dirname(__file__))
 
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
@@ -31,13 +33,7 @@ with open(path.join(this_directory, 'requirements.txt')) as f:
 
 setup_params = {
     # standard setup configuration
-    "name" : "python-base-app",
-    "version" : "0.1.8",
-    "description" : "Generic tools and base classes for Python applications with web interface.",
-    "author" : "Marcus Rickert",
-    "author_email" : "marcus.rickert@web.de",
-    "url" : "https://github.com/marcus67/python_base_app",
-    
+
     "install_requires" : install_requires,
 
     "scripts": [
@@ -59,6 +55,11 @@ extended_setup_params = {
     "publish_pypi_package": ['release'],
 }
 extended_setup_params.update(setup_params)
+
+setup_params.update(settings.settings)
+extended_setup_params.update(settings.extended_settings)
+extended_setup_params.update(setup_params)
+
 
 if __name__ == '__main__':
     setup(**setup_params)
