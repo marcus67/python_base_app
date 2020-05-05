@@ -7,7 +7,7 @@
 
 ## Change History 
 
-See [here](https://github.com/marcus67/python_base_app/CHANGES.md)
+See [here](https://github.com/marcus67/python_base_app/blob/master/CHANGES.md)
 
 ## GitHub Status
 
