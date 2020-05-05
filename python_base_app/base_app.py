@@ -119,7 +119,7 @@ class RecurringTask(object):
 
 class BaseApp(daemon.Daemon):
 
-    def __init__(self, p_app_name, p_pid_file, p_arguments, p_dir_name, p_languages=DEFAULT_LANGUAGES):
+    def __init__(self, p_app_name, p_pid_file, p_arguments, p_dir_name, p_languages=None):
 
         super().__init__(pidfile=p_pid_file)
 
@@ -134,6 +134,10 @@ class BaseApp(daemon.Daemon):
         self._localedir = None
         self._localeselector = None
         self._languages = p_languages
+
+        if self._languages is None:
+            self._languages = DEFAULT_LANGUAGES
+
         self._langs = {}
 
         # Only temporary until the app has been initialized completely!
