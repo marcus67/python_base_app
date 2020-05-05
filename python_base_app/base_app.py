@@ -25,12 +25,15 @@ import os
 import signal
 import time
 import pathlib
+import gettext
+import flask
 
 from python_base_app import configuration
 from python_base_app import daemon
 from python_base_app import exceptions
 from python_base_app import log_handling
 from python_base_app import tools
+from python_base_app import settings
 
 DEFAULT_DEBUG_MODE = False
 
@@ -38,6 +41,7 @@ DEFAULT_LOG_LEVEL = 'INFO'
 DEFAULT_SPOOL_BASE_DIR = "/var/spool"
 DEFAULT_USER_CONFIG_DIR = ".config"
 DEFAULT_CONF_EXTENSION = ".conf"
+DEFAULT_LANGUAGES = ['en']
 
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
@@ -115,20 +119,62 @@ class RecurringTask(object):
 
 class BaseApp(daemon.Daemon):
 
-    def __init__(self, p_app_name, p_pid_file, p_arguments, p_dir_name):
+    def __init__(self, p_app_name, p_pid_file, p_arguments, p_dir_name, p_languages=DEFAULT_LANGUAGES):
 
         super().__init__(pidfile=p_pid_file)
 
         self._app_name = p_app_name
         self._dir_name = p_dir_name
+        self._languages = p_languages
         self._arguments = p_arguments
         self._logger = log_handling.get_logger(self.__class__.__name__)
         self._config = None
         self._recurring_tasks = []
         self._downtime = 0
+        self._localedir = None
+        self._localeselector = None
+        self._languages = p_languages
+        self._langs = {}
 
         # Only temporary until the app has been initialized completely!
         self._app_config = BaseAppConfigModel()
+
+    def get_request_locale(self):
+        locale = flask.request.accept_languages.best_match(self._languages)
+        msg = "Best matching locale = {locale}"
+        self._logger.debug(msg.format(locale=locale))
+        return locale
+
+
+    def init_babel(self, p_localeselector):
+
+        babel_rel_directory = settings.extended_settings.get("babel_rel_directory")
+
+        if babel_rel_directory is not None:
+            self._localeselector = p_localeselector
+            self._localedir = os.path.join(os.path.dirname(__file__), babel_rel_directory)
+
+            fmt = "Module python_base_app is using Babel translations in {path}"
+            self._logger.info(fmt.format(path=self._localedir))
+
+        else:
+            fmt = "Setting 'babel_rel_directory' not found "\
+                  "-> no support for Babel translations for module 'python_base_app'"
+            self._logger.warning(fmt)
+
+
+    def gettext(self, p_text):
+
+        current_locale = self._localeselector()
+        gettext_func = self._langs.get(current_locale)
+
+        if gettext_func is None:
+            gettext_func = gettext.translation("messages", localedir=self._localedir,
+                                               languages=[current_locale], fallback=True)
+            self._langs[current_locale] = gettext_func
+
+        return gettext_func.gettext(p_text)
+
 
     def check_user_configuration_file(self):
 

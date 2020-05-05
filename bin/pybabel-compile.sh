@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #    Copyright (C) 2019  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
@@ -16,7 +18,12 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-include LICENSE
-include README.md
-include requirements.txt
-include python_base_app/translations/*/*/messages.mo
+SCRIPT_DIR=$(dirname $0)
+BASE_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+if [ ! "${VIRTUALENV}" == "" ]; then
+    source ${VIRTUALENV}/bin/activate
+fi
+
+PATH=${PATH}:${HOME}/.virtualenvs/little-brother/bin
+pybabel compile -d ${BASE_DIR}/python_base_app/translations
