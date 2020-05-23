@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.1.10 (May 23rd, 2020)
+
+*   Add Danish localization (locale "da")
+
 ## Version 0.1.9 (May 5th, 2020)
 
 *   Integrate compilation of binary Babel files (*.mo) into BUILD
