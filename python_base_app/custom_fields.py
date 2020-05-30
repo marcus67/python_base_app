@@ -87,7 +87,6 @@ class TimeField(BaseCustomField):
                 self.data = tools.get_string_as_time(p_string=valuelist[0])
 
             except Exception as e:
-
                 self.invalid_data = valuelist[0]
                 raise wtforms.validators.ValidationError(message=str(e))
 
@@ -114,7 +113,7 @@ class BooleanField(BaseCustomField):
         if valuelist:
 
             try:
-                self.data = 1 if valuelist[0] else 0
+                self.data = True if valuelist else False
 
             except Exception as e:
                 raise wtforms.validators.ValidationError(message=str(e))

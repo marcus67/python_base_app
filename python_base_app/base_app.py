@@ -42,6 +42,7 @@ DEFAULT_SPOOL_BASE_DIR = "/var/spool"
 DEFAULT_USER_CONFIG_DIR = ".config"
 DEFAULT_CONF_EXTENSION = ".conf"
 DEFAULT_LANGUAGES = ['en']
+DEFAULT_NO_LOG_FILTER = False
 
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
@@ -49,6 +50,9 @@ DEFAULT_TASK_INTERVAL = 10  # seconds
 DEFAULT_MAXIMUM_TIMER_SLACK = 5  # second
 DEFAULT_MINIMUM_DOWNTIME_DURATION = 20  # seconds
 
+CONTRIB_LOG_PATHS = [
+    "alembic.runtime.migration"
+]
 
 class BaseAppConfigModel(configuration.ConfigModel):
 
@@ -449,6 +453,9 @@ def get_argument_parser(p_app_name):
                         help='base path for logging files')
     parser.add_argument('--loglevel', dest='log_level', default=DEFAULT_LOG_LEVEL,
                         help='logging level', choices=['WARN', 'INFO', 'DEBUG'])
+    parser.add_argument('--no-log-filter', dest='no_log_filter', default=DEFAULT_NO_LOG_FILTER,
+                        action='store_const', const=True,
+                        help='deactivate log filter showing thread and user information')
     parser.add_argument('--application-owner', dest='app_owner', default=None,
                         help='name of user running application')
     parser.add_argument('--daemonize', dest='daemonize', action='store_const', const=True, default=False,
@@ -497,8 +504,14 @@ def main(p_app_name, p_app_class, p_argument_parser):
         default_log_file = '%s.log' % p_app_name
 
         log_handling.start_logging(p_level=arguments.log_level, p_log_dir=arguments.log_dir,
-                                   p_log_file=default_log_file)
+                                   p_log_file=default_log_file, p_use_filter=not arguments.no_log_filter)
         logger = log_handling.get_logger()
+
+        for path in CONTRIB_LOG_PATHS:
+            msg = "Setting log filter for library {path}..."
+            logger.debug(msg.format(path=path))
+
+            log_handling.add_default_filter_to_logger_by_name(path)
 
         if arguments.check_installation:
             logger.info("Checking installation...")

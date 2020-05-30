@@ -414,3 +414,20 @@ class TimingContext(object):
     def __exit__(self, type, value, traceback):
         self._end = time.time()
         self._result_handler(self._end - self._start)
+
+def get_new_object_name(p_name_pattern, p_existing_names):
+
+    id = 1
+    found = False
+    new_name = None
+
+    while not found:
+        new_name = p_name_pattern.format(id=id)
+
+        if new_name in p_existing_names:
+            id += 1
+
+        else:
+            found = True
+
+    return new_name

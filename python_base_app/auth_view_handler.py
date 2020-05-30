@@ -46,14 +46,13 @@ class User(flask_login.UserMixin):
 
 class AuthViewHandler(object):
 
-    def __init__(self, p_admin_username, p_admin_password, p_app, p_url_prefix, p_login_view=None,
+    def __init__(self, p_user_handler, p_app, p_url_prefix, p_login_view=None,
                  p_logged_out_endpoint=LOGIN_ENDPOINT_NAME):
 
         if p_login_view is None:
             p_login_view = self.login_view()
 
-        self._admin_username = p_admin_username
-        self._admin_password = p_admin_password
+        self._user_handler = p_user_handler
         self._logged_out_endpoint = p_logged_out_endpoint
         self._login_view = p_login_view
         self._url_prefix = p_url_prefix
@@ -71,7 +70,7 @@ class AuthViewHandler(object):
 
     def load_user(self, p_user_id):
 
-        if p_user_id == self._admin_username:
+        if self._user_handler.is_admin(p_user_id):
             return User(p_username=p_user_id)
 
         else:
@@ -79,7 +78,7 @@ class AuthViewHandler(object):
 
     def check_user(self, p_username, p_password):
 
-        if p_username == self._admin_username and p_password == self._admin_password:
+        if self._user_handler.authenticate(p_username=p_username, p_password=p_password):
             return User(p_username=p_username)
 
         else:

@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.0 (May/June, 2020)
+
+*   Add classes BaseUserHandler and UnixUserHandler
+
 ## Version 0.1.9 (May 5th, 2020)
 
 *   Integrate compilation of binary Babel files (*.mo) into BUILD
