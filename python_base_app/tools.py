@@ -32,6 +32,7 @@ import sys
 import threading
 import traceback
 import urllib.parse
+import socket
 from os.path import dirname
 
 from python_base_app import configuration
@@ -431,3 +432,12 @@ def get_new_object_name(p_name_pattern, p_existing_names):
             found = True
 
     return new_name
+
+def is_valid_dns_name(p_dns_name):
+
+    try:
+        socket.gethostbyname(p_dns_name)
+        return True
+
+    except socket.gaierror:
+        return False
