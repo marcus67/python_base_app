@@ -441,3 +441,7 @@ def is_valid_dns_name(p_dns_name):
 
     except socket.gaierror:
         return False
+
+def format_boolean(p_value):
+
+        return _("On") if p_value else _("Off")
