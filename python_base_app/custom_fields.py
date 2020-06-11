@@ -22,6 +22,7 @@ import wtforms.widgets
 
 from python_base_app import tools
 
+_ = lambda x: x
 
 class BaseCustomField(wtforms.Field):
     extra_css_classes = ""
@@ -120,3 +121,39 @@ class BooleanField(BaseCustomField):
 
         else:
             self.data = None
+
+
+class Uniqueness(object):
+
+    def __init__(self, p_field_selectors=None):
+
+        self._field_selectors = p_field_selectors
+        self._forms = []
+
+    def add_form(self, p_form):
+
+        self._forms.append(p_form)
+        p_form.uniqueness_instance = self
+
+    def __call__(self, form, field):
+
+        if self._field_selectors is None:
+            form.uniqueness_instance(form, field)
+
+        else:
+            print("Check for ", field.data, " in form ", form._prefix)
+
+            for selector in self._field_selectors:
+                for other_form in self._forms:
+                    print("    value=", selector(other_form).data)
+
+                for other_form in self._forms:
+                    print("process ", other_form._prefix, " with value ", selector(other_form).data)
+
+                    if form is other_form:
+                        print("same form")
+                        continue
+
+                    if selector(other_form).data == field.data:
+                        msg = _("Value '{value}' already exists. Must be unique.")
+                        raise wtforms.validators.ValidationError(msg.format(value=field.data))
