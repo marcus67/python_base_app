@@ -141,17 +141,9 @@ class Uniqueness(object):
             form.uniqueness_instance(form, field)
 
         else:
-            print("Check for ", field.data, " in form ", form._prefix)
-
             for selector in self._field_selectors:
                 for other_form in self._forms:
-                    print("    value=", selector(other_form).data)
-
-                for other_form in self._forms:
-                    print("process ", other_form._prefix, " with value ", selector(other_form).data)
-
                     if form is other_form:
-                        print("same form")
                         continue
 
                     if selector(other_form).data == field.data:

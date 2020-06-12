@@ -19,7 +19,6 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import datetime
-import time
 import inspect
 import io
 import json
@@ -27,12 +26,13 @@ import os
 import platform
 import pwd
 import re
+import socket
 import stat
 import sys
 import threading
+import time
 import traceback
 import urllib.parse
-import socket
 from os.path import dirname
 
 from python_base_app import configuration
@@ -443,5 +443,12 @@ def is_valid_dns_name(p_dns_name):
         return False
 
 def format_boolean(p_value):
+    return _("On") if p_value else _("Off")
 
-        return _("On") if p_value else _("Off")
+
+def value_or_not_set(p_value):
+    if p_value is None:
+        return _("Not set")
+
+    else:
+        return p_value

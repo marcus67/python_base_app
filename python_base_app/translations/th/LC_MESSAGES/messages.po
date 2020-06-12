@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  python_base_app\n"
 "Report-Msgid-Bugs-To: little-brother@web.de\n"
-"POT-Creation-Date: 2020-06-07 11:26+0200\n"
+"POT-Creation-Date: 2020-06-13 01:06+0200\n"
 "PO-Revision-Date: 2020-04-19 23:19+0200\n"
 "Last-Translator: Busaba Kramer\n"
 "Language: th\n"
@@ -26,6 +26,10 @@ msgstr "กรุณาล๊อกอินก่อนเข้าเว็บ
 msgid "Wrong login or password"
 msgstr "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
 
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/custom_fields.py:150
+msgid "Value '{value}' already exists. Must be unique."
+msgstr ""
+
 #: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:361
 msgid "Use Hh MMm SSs"
 msgstr ""
@@ -41,3 +45,8 @@ msgstr "เปิด"
 #: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:447
 msgid "Off"
 msgstr "ปิด"
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:452
+msgid "Not set"
+msgstr ""
+
