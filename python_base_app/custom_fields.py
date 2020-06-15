@@ -24,6 +24,7 @@ from python_base_app import tools
 
 _ = lambda x: x
 
+
 class BaseCustomField(wtforms.Field):
     extra_css_classes = ""
 
@@ -82,8 +83,8 @@ class TimeField(BaseCustomField):
             return tools.get_time_as_string(p_timestamp=self.data, p_include_seconds=False)
 
     def process_formdata(self, valuelist):
-        if valuelist:
 
+        if valuelist:
             try:
                 self.data = tools.get_string_as_time(p_string=valuelist[0])
 
@@ -118,6 +119,53 @@ class BooleanField(BaseCustomField):
 
             except Exception as e:
                 raise wtforms.validators.ValidationError(message=str(e))
+
+        else:
+            self.data = None
+
+
+def unlocalize(p_localized_values, p_value):
+    for pair in p_localized_values:
+        if pair[1] == p_value:
+            return pair[0]
+
+    return p_value
+
+
+class LocalizedField(BaseCustomField):
+    widget = wtforms.widgets.TextInput()
+
+    def __init__(self, label='', validators=None, p_values=None, **kwargs):
+        super().__init__(label, validators, **kwargs)
+
+        self.localized_values = p_values
+
+        if self.localized_values is None:
+            self.localized_values = []
+
+    def set_localized_values(self, p_values):
+
+        self.localized_values = p_values
+
+    def localize(self, p_value):
+
+        for pair in self.localized_values:
+            if pair[0] == p_value:
+                return pair[1]
+
+        return p_value
+
+    def unlocalize(self, p_value):
+
+        return unlocalize(p_localized_values=self.localized_values, p_value=p_value)
+
+    def _value(self):
+
+        return self.localize(p_value=self.data)
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            self.data = self.unlocalize(p_value=valuelist[0])
 
         else:
             self.data = None

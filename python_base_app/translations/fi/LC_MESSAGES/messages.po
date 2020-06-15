@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-06-13 01:06+0200\n"
+"POT-Creation-Date: 2020-06-15 23:13+0200\n"
 "PO-Revision-Date: 2020-04-19 11:47+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fi\n"
@@ -26,7 +26,7 @@ msgstr "Kirjaudu sisään käyttääksesi tätä sivua."
 msgid "Wrong login or password"
 msgstr "Väärä käyttäjätunnus tai salasana"
 
-#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/custom_fields.py:150
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/custom_fields.py:198
 msgid "Value '{value}' already exists. Must be unique."
 msgstr ""
 
@@ -38,15 +38,15 @@ msgstr ""
 msgid "Use HH[:MM[:SS]]"
 msgstr ""
 
-#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:447
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:446
 msgid "On"
 msgstr "Päällä"
 
-#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:447
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:446
 msgid "Off"
 msgstr "Pois päältä"
 
-#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:452
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:451
 msgid "Not set"
 msgstr ""
 
