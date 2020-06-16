@@ -22,18 +22,19 @@ import argparse
 import datetime
 import heapq
 import os
+import pathlib
 import signal
 import time
-import pathlib
-import gettext
+
 import flask
 
 from python_base_app import configuration
 from python_base_app import daemon
 from python_base_app import exceptions
+from python_base_app import locale_helper
 from python_base_app import log_handling
-from python_base_app import tools
 from python_base_app import settings
+from python_base_app import tools
 
 DEFAULT_DEBUG_MODE = False
 
@@ -135,9 +136,8 @@ class BaseApp(daemon.Daemon):
         self._config = None
         self._recurring_tasks = []
         self._downtime = 0
-        self._localedir = None
-        self._localeselector = None
-        self._languages = p_languages
+        self._locale_helper = None
+        self._latest_request = None
 
         if self._languages is None:
             self._languages = DEFAULT_LANGUAGES
@@ -147,23 +147,41 @@ class BaseApp(daemon.Daemon):
         # Only temporary until the app has been initialized completely!
         self._app_config = BaseAppConfigModel()
 
+    @property
+    def locale_helper(self):
+
+        return self._locale_helper
+
     def get_request_locale(self):
         locale = flask.request.accept_languages.best_match(self._languages)
-        msg = "Best matching locale = {locale}"
-        self._logger.debug(msg.format(locale=locale))
+
+        if self._latest_request is None or not self._latest_request is flask.request.stream:
+            msg = "Best matching locale = {locale}"
+            self._logger.debug(msg.format(locale=locale))
+            self._latest_request = flask.request.stream
         return locale
 
+    def add_locale_helper(self, p_locale_helper):
+
+        if self._locale_helper is not None:
+            p_locale_helper.chain_helper(self._locale_helper)
+
+        self._locale_helper = p_locale_helper
 
     def init_babel(self, p_localeselector):
 
         babel_rel_directory = settings.extended_settings.get("babel_rel_directory")
 
         if babel_rel_directory is not None:
-            self._localeselector = p_localeselector
-            self._localedir = os.path.join(os.path.dirname(__file__), babel_rel_directory)
+
+            locale_dir = os.path.join(os.path.dirname(__file__), babel_rel_directory)
+            a_locale_helper = locale_helper.LocaleHelper(
+                p_locale_dir=locale_dir, p_locale_selector=p_localeselector)
+
+            self.add_locale_helper(a_locale_helper)
 
             fmt = "Module python_base_app is using Babel translations in {path}"
-            self._logger.info(fmt.format(path=self._localedir))
+            self._logger.info(fmt.format(path=locale_dir))
 
         else:
             fmt = "Setting 'babel_rel_directory' not found "\
@@ -173,15 +191,7 @@ class BaseApp(daemon.Daemon):
 
     def gettext(self, p_text):
 
-        current_locale = self._localeselector()
-        gettext_func = self._langs.get(current_locale)
-
-        if gettext_func is None:
-            gettext_func = gettext.translation("messages", localedir=self._localedir,
-                                               languages=[current_locale], fallback=True)
-            self._langs[current_locale] = gettext_func
-
-        return gettext_func.gettext(p_text)
+        return self._locale_helper.gettext(p_text)
 
 
     def check_user_configuration_file(self):

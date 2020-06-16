@@ -28,9 +28,14 @@ class LocaleHelper(object):
         self._locale_dir = p_locale_dir
         self._locale_selector = p_locale_selector
         self._langs = {}
+        self._chained_helper = None
 
         if self._locale_selector is None:
             self._locale_selector = lambda: "en"
+
+    def chain_helper(self, p_helper):
+
+        self._chained_helper = p_helper
 
     def gettext(self, p_text):
         current_locale = self.locale
@@ -41,7 +46,11 @@ class LocaleHelper(object):
                                                languages=[current_locale], fallback=True)
             self._langs[current_locale] = gettext_func
 
-        return gettext_func.gettext(p_text)
+        if self._chained_helper is None:
+            return gettext_func.gettext(p_text)
+
+        else:
+            return self._chained_helper.gettext(gettext_func.gettext(p_text))
 
     @property
     def locale_selector(self):
