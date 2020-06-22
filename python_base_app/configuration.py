@@ -147,8 +147,8 @@ class ConfigModel(object):
                 return []
 
             else:
-                fmt = "unknown option name '{name}'"
-                raise AttributeError(fmt.format(name=p_option_name))
+                fmt = "unknown option name '{name}' in section '[{section}]'"
+                raise AttributeError(fmt.format(name=p_option_name, section=self.__dict__.get("section_name")))
 
     def __setattr__(self, p_option_name, p_value):
 
@@ -304,6 +304,7 @@ class Configuration(ConfigModel):
 
             try:
                 filesRead = self.config.read([p_filename], encoding="UTF-8")
+
                 if len(filesRead) != 1:
                     fmt = "Error while reading configuration file '{filename}' (file probably does not exist)"
                     errorMessage = fmt.format(filename=p_filename)

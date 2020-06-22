@@ -138,6 +138,8 @@ class BaseApp(daemon.Daemon):
         self._downtime = 0
         self._locale_helper = None
         self._latest_request = None
+        self._partial_basic_init_executed = False
+        self._full_basic_init_executed = False
 
         if self._languages is None:
             self._languages = DEFAULT_LANGUAGES
@@ -221,7 +223,7 @@ class BaseApp(daemon.Daemon):
     def configuration_factory():
         return configuration.Configuration()
 
-    def load_configuration(self, p_configuration):
+    def prepare_configuration(self, p_configuration):
 
         self._app_config = p_configuration[self._app_name]
 
@@ -239,11 +241,15 @@ class BaseApp(daemon.Daemon):
 
         return p_configuration
 
+    def load_configuration(self):
+
+        self._config = self.prepare_configuration(self.configuration_factory())
+
     def check_configuration(self):
 
         logger = log_handling.get_logger()
 
-        self.load_configuration(self.configuration_factory())
+        self.prepare_configuration(self.configuration_factory())
 
         fmt = "%d configuration files are Ok!" % len(self._arguments.configurations)
         logger.info(fmt)
@@ -265,7 +271,8 @@ class BaseApp(daemon.Daemon):
 
     def prepare_services(self, p_full_startup=True):
 
-        pass
+        if self._app_config.log_level is not None:
+            log_handling.set_level(self._app_config.log_level)
 
     def start_services(self):
 
@@ -396,22 +403,28 @@ class BaseApp(daemon.Daemon):
 
     def basic_init(self, p_full_startup=True):
 
+        if self._full_basic_init_executed:
+            return
+
+        if self._partial_basic_init_executed and not p_full_startup:
+            return
+
+        self._full_basic_init_executed = p_full_startup
+        self._partial_basic_init_executed = True
+
         try:
-            self._config = self.load_configuration(self.configuration_factory())
             self.prepare_services(p_full_startup=p_full_startup)
 
         except Exception as e:
             fmt = "Error '{msg}' in basic_init()"
             self._logger.error(fmt.format(msg=str(e)))
-
-            # if self._app_config.debug_mode:
-            #     fmt = "Propagating exception due to debug_mode=True"
-            #     self._logger.warn(fmt)
-            #     raise e
-
             raise e
 
     def run(self):
+
+        # Set the log level again just in case it was changed by an imported library...
+        if self._app_config.log_level is not None:
+            log_handling.set_level(self._app_config.log_level)
 
         previous_exception = None
 
@@ -528,7 +541,6 @@ def main(p_app_name, p_app_class, p_argument_parser):
             check_installation(p_arguments=arguments)
 
         else:
-
             app = p_app_class(p_pid_file=arguments.pid_file, p_arguments=arguments, p_app_name=p_app_name)
 
             if len(arguments.configurations) == 0:
@@ -542,13 +554,17 @@ def main(p_app_name, p_app_class, p_argument_parser):
                 logger.info("Checking configuration files...")
                 app.check_configuration()
 
-            elif arguments.daemonize:
-                logger.info("Starting daemon process...")
-                app.start()
+            else:
+                app.load_configuration()
 
-            elif not app.run_special_commands(p_arguments=arguments):
-                logger.info("Starting as a normal foreground process...")
-                app.run()
+                if not app.run_special_commands(p_arguments=arguments):
+                    if arguments.daemonize:
+                        logger.info("Starting daemon process...")
+                        app.start()
+
+                    else:
+                        logger.info("Starting as a normal foreground process...")
+                        app.run()
 
     except configuration.ConfigurationException as e:
         logger.error(str(e))
@@ -559,7 +575,6 @@ def main(p_app_name, p_app_class, p_argument_parser):
         process_result = 2
 
     except Exception as e:
-
         tools.handle_fatal_exception(p_exception=e, p_logger=logger)
         tools.log_stack_trace(p_logger=logger)
         process_result = 1
