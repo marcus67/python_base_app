@@ -56,10 +56,16 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
         self._logger.info(msg.format(username=self._config.admin_username))
 
         if self._config.user_list is not None:
-            self._users = [name.strip() for name in self._config.user_list.split(",")]
+            try:
+                self._users = {name_uid.split(":")[0].strip(): int(name_uid.split(":")[1]) for name_uid in
+                               self._config.user_list.split(",")}
+
+            except Exception as e:
+                msg = "Invalid user:uid list '{list}' in [UnixUserHandler].user_list"
+                raise configuration.ConfigurationException(msg.format(list=self._config.user_list))
 
             msg = "Using predefined users {users}"
-            self._logger.info(msg.format(users=self._config.user_list))
+            self._logger.info(msg.format(users=",".join(self._users.keys())))
 
     def list_users(self):
 
@@ -76,17 +82,22 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
             return users
 
         else:
-            return self._users
+            return self._users.keys()
 
     def get_uid(self, p_username):
-        try:
-            user = pwd.getpwnam(p_username)
 
-            if user is not None:
-                return user.pw_uid
+        if self._users is None:
+            try:
+                user = pwd.getpwnam(p_username)
 
-        except KeyError:
-            pass
+                if user is not None:
+                    return user.pw_uid
+
+            except KeyError:
+                pass
+
+        else:
+            return self._users.get(p_username)
 
         return None
 
