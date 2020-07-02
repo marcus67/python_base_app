@@ -5,6 +5,8 @@ This document lists all changes of `python_base_app` with the most recent change
 ## Version 0.2.0 (May/June, 2020)
 
 *   Add classes BaseUserHandler and UnixUserHandler
+*   Optional deployment of an apparmor configuration file
+*   Optional deployment of a tmpfiles.d configuration file
 
 ## Version 0.1.9 (May 5th, 2020)
 

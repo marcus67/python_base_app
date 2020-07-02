@@ -45,12 +45,16 @@ class BaseUserHandlerConfigModel(configuration.ConfigModel):
 
 class UnixUserHandler(base_user_handler.BaseUserHandler):
 
-    def __init__(self, p_config):
+    def __init__(self, p_config, p_exclude_user_list=None):
 
         super().__init__()
 
         self._config = p_config
         self._users = None
+        self._exclude_user_list = p_exclude_user_list
+
+        if self._exclude_user_list is None:
+            self._exclude_user_list = []
 
         msg = "Using admin user '{username}'"
         self._logger.info(msg.format(username=self._config.admin_username))
@@ -76,7 +80,8 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
                 if (entry.pw_uid >= self._config.min_uid and
                         entry.pw_uid <= self._config.max_uid and
                         entry.pw_passwd != "" and entry.pw_passwd is not None and
-                        entry.pw_shell not in INVALID_SHELLS):
+                        entry.pw_shell not in INVALID_SHELLS and
+                        entry.pw_name not in self._exclude_user_list):
                     users.append(entry.pw_name)
 
             return users

@@ -19,13 +19,13 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import argparse
+import collections
 import copy
 import os
 import os.path
 import stat
 import subprocess
 import sys
-import collections
 
 import jinja2
 
@@ -118,7 +118,9 @@ default_setup = {
     "rel_log_dir": "var/log/{name}",
     "rel_spool_dir": "var/spool/{name}",
     "rel_systemd_dir": "lib/systemd/system",
+    "rel_tmpfile_dir": "usr/lib/tmpfiles.d",
     "rel_sudoers_dir": "etc/sudoers.d",
+    "rel_apparmor_dir": "etc/apparmor.d",
     "git_metadata_file": "{module_name}/git_metadata.py",
     "user": "{name}",
     "group": "{name}",
@@ -126,7 +128,9 @@ default_setup = {
     "create_usr": False,
     "create_group": False,
     "deploy_systemd_service": False,
+    "deploy_tmpfile_conf": False,
     "deploy_sudoers_file": False,
+    "deploy_apparmor_file": False,
     "version": "0.1",
     "target_alembic_version": None,
     "build_debian_package": True,
