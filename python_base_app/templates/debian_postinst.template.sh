@@ -80,6 +80,16 @@ mkdir -p ${LOG_DIR}
 echo "    * ${SPOOL_DIR}"
 mkdir -p ${SPOOL_DIR}
 
+{% for file_mapping in var.setup.debian_templates %}
+if [ -f {{ file_mapping[1] }} ] ; then
+  echo "Template '{{ file_mapping[0] }}' already exists as '{{ file_mapping[1] }}' -> SKIPPING"
+else
+  echo "Deploying template file '{{ file_mapping[0] }}' to '{{ file_mapping[1] }}'..."
+  cp -f {{ file_mapping[0] }} {{ file_mapping[1] }}
+fi
+{%- endfor %}
+
+
 echo "Setting ownership..."
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}
@@ -87,6 +97,11 @@ echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}
+
+{% for file_mapping in var.setup.debian_templates %}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
+chown {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}
+{%- endfor %}
 
 {% if var.setup.deploy_systemd_service %}
 echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
@@ -112,6 +127,11 @@ echo "    * ${LOG_DIR}"
 chmod -R og-rwx ${LOG_DIR}
 echo "    * ${SPOOL_DIR}"
 chmod -R og-rwx ${SPOOL_DIR}
+
+{% for file_mapping in var.setup.debian_templates %}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
+chmod og-rwx {{ file_mapping[1] }}
+{%- endfor %}
 
 ${PIP3} --version
 ${PIP3} install wheel setuptools

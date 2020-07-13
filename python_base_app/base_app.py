@@ -271,8 +271,10 @@ class BaseApp(daemon.Daemon):
 
     def prepare_services(self, p_full_startup=True):
 
-        if self._app_config.log_level is not None:
-            log_handling.set_level(self._app_config.log_level)
+        pass
+
+    #        if self._app_config.log_level is not None:
+    #            log_handling.set_level(self._app_config.log_level)
 
     def start_services(self):
 
@@ -422,10 +424,6 @@ class BaseApp(daemon.Daemon):
 
     def run(self):
 
-        # Set the log level again just in case it was changed by an imported library...
-        if self._app_config.log_level is not None:
-            log_handling.set_level(self._app_config.log_level)
-
         previous_exception = None
 
         fmt = "Starting app '%s'" % self._app_name
@@ -534,7 +532,7 @@ def main(p_app_name, p_app_class, p_argument_parser):
             msg = "Setting log filter for library {path}..."
             logger.debug(msg.format(path=path))
 
-            log_handling.add_default_filter_to_logger_by_name(path)
+            # log_handling.add_default_filter_to_logger_by_name(path)
 
         if arguments.check_installation:
             logger.info("Checking installation...")

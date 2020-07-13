@@ -2,11 +2,14 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
-## Version 0.2.0 (May/June, 2020)
+## Version 0.2.0 (May/June/July, 2020)
 
 *   Add classes BaseUserHandler and UnixUserHandler
 *   Optional deployment of an apparmor configuration file
 *   Optional deployment of a tmpfiles.d configuration file
+*   Support for template in Debian configuration 
+*   Remove old Debian file tree before build package (to remove obsolete files)
+
 
 ## Version 0.1.9 (May 5th, 2020)
 

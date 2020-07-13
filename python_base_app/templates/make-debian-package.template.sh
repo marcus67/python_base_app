@@ -36,6 +36,12 @@ DEBIAN_PACKAGE_BASE_NAME={{ var.setup.debian_package_name }}_{{ var.setup.versio
 
 ROOT_DIR=${BASE_DIR}/{{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}
 
+echo "Checking Debian build directory ${ROOT_DIR}..."
+if [ -d ${ROOT_DIR}/DEBIAN ] ; then
+  echo "Deleting Debian build directory ${ROOT_DIR}..."
+  rm -rf ${ROOT_DIR}/
+fi
+
 TMP_DIR=${ROOT_DIR}/{{ var.setup.rel_tmp_dir }}
 ETC_DIR=${ROOT_DIR}/{{ var.setup.rel_etc_dir }}
 SYSTEMD_DIR=${ROOT_DIR}/{{ var.setup.rel_systemd_dir }}
