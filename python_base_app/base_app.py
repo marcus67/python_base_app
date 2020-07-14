@@ -120,6 +120,11 @@ class RecurringTask(object):
 
         if self.next_execution is not None:
             self.next_execution = self.next_execution + datetime.timedelta(seconds=p_delay)
+            limit = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.interval)
+
+            # Don't schedule more than one interval into the future!
+            if self.next_execution > limit:
+                self.next_execution = limit
 
 
 class BaseApp(daemon.Daemon):

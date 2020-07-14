@@ -27,19 +27,12 @@ TMP_DIR=/{{ var.setup.rel_tmp_dir }}
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
 LOG_DIR=/{{ var.setup.rel_log_dir }}
 SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
+LIB_DIR=/{{ var.setup.rel_lib_dir }}
+  VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
 SYSTEMD_DIR=/{{ var.setup.rel_systemd_dir }}
 TMPFILE_DIR=/{{ var.setup.rel_tmpfile_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
 APPARMOR_DIR=/{{ var.setup.rel_apparmor_dir }}
-
-if [ -x /usr/local/bin/pip3 ] ; then
-    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself. We had had better
-    # take this one
-    PIP3=/usr/local/bin/pip3
-else
-    # Otherwise take the one that has been installed by the Debian package...
-    PIP3=/usr/bin/pip3
-fi
 
 {% if var.setup.create_group %}
 if grep -q '{{ var.setup.group }}:' /etc/group ; then
@@ -79,6 +72,8 @@ echo "    * ${LOG_DIR}"
 mkdir -p ${LOG_DIR}
 echo "    * ${SPOOL_DIR}"
 mkdir -p ${SPOOL_DIR}
+echo "    * ${LIB_DIR}"
+mkdir -p ${LIB_DIR}
 
 {% for file_mapping in var.setup.debian_templates %}
 if [ -f {{ file_mapping[1] }} ] ; then
@@ -89,6 +84,16 @@ else
 fi
 {%- endfor %}
 
+{% for script in var.setup.scripts %}
+    echo "Creating symbolic link /usr/local/bin/{{ script }} --> ${VIRTUAL_ENV_DIR}/bin/{{ script }}..."
+    ln -fs ${VIRTUAL_ENV_DIR}/bin/{{ script }} /usr/local/bin/{{ script }}
+{%- endfor %}
+
+echo "Creating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
+
+virtualenv -p /usr/bin/python3 ${VIRTUAL_ENV_DIR}
+
+PIP3=${VIRTUAL_ENV_DIR}/bin/pip3
 
 echo "Setting ownership..."
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
@@ -97,6 +102,8 @@ echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}"
+chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}
 
 {% for file_mapping in var.setup.debian_templates %}
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"

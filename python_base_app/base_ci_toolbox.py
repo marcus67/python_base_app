@@ -117,6 +117,8 @@ default_setup = {
     "rel_etc_dir": "etc/{name}",
     "rel_log_dir": "var/log/{name}",
     "rel_spool_dir": "var/spool/{name}",
+    "rel_lib_dir": "var/lib/{name}",
+    "rel_virtual_env_dir": "var/lib/{name}/virtualenv",
     "rel_systemd_dir": "lib/systemd/system",
     "rel_tmpfile_dir": "usr/lib/tmpfiles.d",
     "rel_sudoers_dir": "etc/sudoers.d",
