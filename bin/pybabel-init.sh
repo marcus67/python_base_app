@@ -28,4 +28,4 @@ fi
 PATH=${PATH}:${HOME}/.virtualenvs/little-brother/bin
 echo "Enter LOCALE:"
 read LOCALE
-pybabel init -i ${BASE_DIR}/etc/messages.pot -d ${BASE_DIR}/little_brother/translations -l ${LOCALE}
+pybabel init -i ${BASE_DIR}/etc/messages.pot -d ${BASE_DIR}/python_base_app/translations -l ${LOCALE}

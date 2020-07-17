@@ -16,12 +16,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 settings = {
-    "name" : "python-base-app",
-    "version" : "0.1.9",
-    "description" : "Generic tools and base classes for Python applications with web interface.",
-    "author" : "Marcus Rickert",
-    "author_email" : "marcus.rickert@web.de",
-    "url" : "https://github.com/marcus67/python_base_app",
+    "name": "python-base-app",
+    "version": "0.1.10",
+    "description": "Generic tools and base classes for Python applications with web interface.",
+    "author": "Marcus Rickert",
+    "author_email": "marcus.rickert@web.de",
+    "url": "https://github.com/marcus67/python_base_app",
 }
 
 extended_settings = {
