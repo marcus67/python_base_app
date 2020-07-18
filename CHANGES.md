@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.1.11 (June 7th, 2020)
+
+*   Add Spanish localization (locale "es")
+
 ## Version 0.1.10 (May 23rd, 2020)
 
 *   Add Danish localization (locale "da")

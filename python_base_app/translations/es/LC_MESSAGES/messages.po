@@ -1,15 +1,15 @@
 # Spanish translations for PROJECT.
 # Copyright (C) 2020 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+# FIRST AUTHOR Ruth Wucherpfennig-Krömer, 2020.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: python_base_app\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2020-05-03 00:51+0200\n"
 "PO-Revision-Date: 2020-04-14 21:35+0200\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Last-Translator: Ruth Wucherpfennig-Krömer\n"
 "Language: es\n"
 "Language-Team: es <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
@@ -20,11 +20,11 @@ msgstr ""
 
 #: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/auth_view_handler.py:34
 msgid "Please log in to access this page."
-msgstr ""
+msgstr "Por favor inícia la sesión para acceder esta página"
 
 #: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/auth_view_handler.py:135
 msgid "Wrong login or password"
-msgstr ""
+msgstr "Nombre de usuario o clave falsa"
 
 #: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/tools.py:360
 msgid "Use Hh MMm SSs"
@@ -33,21 +33,3 @@ msgstr ""
 #: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/tools.py:387
 msgid "Use HH[:MM[:SS]]"
 msgstr ""
-
-#~ msgid "Cannot request user status using url '{url}'"
-#~ msgstr ""
-
-#~ msgid "User '{username}' not logged in"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Time left:\n"
-#~ "{minutes} minutes"
-#~ msgstr ""
-
-#~ msgid "Unlimited Time"
-#~ msgstr ""
-
-#~ msgid "No Activity Allowed"
-#~ msgstr ""
-
