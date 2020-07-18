@@ -19,7 +19,6 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import datetime
-import time
 import inspect
 import io
 import json
@@ -27,9 +26,11 @@ import os
 import platform
 import pwd
 import re
+import socket
 import stat
 import sys
 import threading
+import time
 import traceback
 import urllib.parse
 from os.path import dirname
@@ -414,3 +415,40 @@ class TimingContext(object):
     def __exit__(self, type, value, traceback):
         self._end = time.time()
         self._result_handler(self._end - self._start)
+
+def get_new_object_name(p_name_pattern, p_existing_names):
+
+    id = 1
+    found = False
+    new_name = None
+
+    while not found:
+        new_name = p_name_pattern.format(id=id)
+
+        if new_name in p_existing_names:
+            id += 1
+
+        else:
+            found = True
+
+    return new_name
+
+def is_valid_dns_name(p_dns_name):
+
+    try:
+        socket.gethostbyname(p_dns_name)
+        return True
+
+    except socket.gaierror:
+        return False
+
+def format_boolean(p_value):
+    return _("On") if p_value else _("Off")
+
+
+def value_or_not_set(p_value):
+    if p_value is None:
+        return _("Not set")
+
+    else:
+        return p_value

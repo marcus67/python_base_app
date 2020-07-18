@@ -19,13 +19,13 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import argparse
+import collections
 import copy
 import os
 import os.path
 import stat
 import subprocess
 import sys
-import collections
 
 import jinja2
 
@@ -117,8 +117,12 @@ default_setup = {
     "rel_etc_dir": "etc/{name}",
     "rel_log_dir": "var/log/{name}",
     "rel_spool_dir": "var/spool/{name}",
+    "rel_lib_dir": "var/lib/{name}",
+    "rel_virtual_env_dir": "var/lib/{name}/virtualenv",
     "rel_systemd_dir": "lib/systemd/system",
+    "rel_tmpfile_dir": "usr/lib/tmpfiles.d",
     "rel_sudoers_dir": "etc/sudoers.d",
+    "rel_apparmor_dir": "etc/apparmor.d",
     "git_metadata_file": "{module_name}/git_metadata.py",
     "user": "{name}",
     "group": "{name}",
@@ -126,7 +130,9 @@ default_setup = {
     "create_usr": False,
     "create_group": False,
     "deploy_systemd_service": False,
+    "deploy_tmpfile_conf": False,
     "deploy_sudoers_file": False,
+    "deploy_apparmor_file": False,
     "version": "0.1",
     "target_alembic_version": None,
     "build_debian_package": True,
@@ -137,7 +143,8 @@ default_setup = {
     "debian_package_priority": "optional",
     "debian_package_architecture": "amd64",
     "debian_dependencies": [],
-    "debian_extra_files" : [],
+    "debian_extra_files": [],
+    "debian_templates": [],
     "install_requires": [],
     "contributing_setups": [],
     "publish_debian_package": [],
@@ -145,9 +152,9 @@ default_setup = {
     "publish_pypi_package": [],
     "publish_docker_images": [],
     "publish_latest_docker_image": "",
-    "docker_registry" : "docker.io",
-    "docker_registry_user" : "[DOCKER_REGISTRY_USER_NOT_SET]",
-    "docker_context_dir" : "docker",
+    "docker_registry": "docker.io",
+    "docker_registry_user": "[DOCKER_REGISTRY_USER_NOT_SET]",
+    "docker_context_dir": "docker",
     "docker_contexts": [],
     "babel_rel_directory" : None,
 }

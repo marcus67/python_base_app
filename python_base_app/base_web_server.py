@@ -63,13 +63,14 @@ class BaseWebServerConfigModel(configuration.ConfigModel):
 
 class BaseWebServer(object):
 
-    def __init__(self, p_name, p_config, p_package_name, p_use_login_manager=False,
+    def __init__(self, p_name, p_config, p_package_name, p_user_handler=None,
                  p_login_view=None, p_logged_out_endpoint=None):
 
         self._login_manager = None
         self._flask_stopper = None
         self._auth_view_handler = None
         self._server_started = False
+        self._user_handler = p_user_handler
 
         self._name = p_name
         self._config = p_config
@@ -87,13 +88,11 @@ class BaseWebServer(object):
 
         self._app.config["APPLICATION_ROOT"] = self._config.base_url
 
-        if p_use_login_manager:
-            tools.check_config_value(p_config=self._config, p_config_attribute_name="admin_username")
-            tools.check_config_value(p_config=self._config, p_config_attribute_name="admin_password")
+        if self._user_handler is not None:
             tools.check_config_value(p_config=self._config, p_config_attribute_name="app_secret")
 
             self._auth_view_handler = auth_view_handler.AuthViewHandler(
-                p_admin_username=self._config.admin_username, p_admin_password=self._config.admin_password,
+                p_user_handler=self._user_handler,
                 p_app=self._app, p_logged_out_endpoint=p_logged_out_endpoint,
                 p_url_prefix=self._config.base_url,
                 p_login_view=p_login_view)

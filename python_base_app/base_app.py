@@ -22,18 +22,19 @@ import argparse
 import datetime
 import heapq
 import os
+import pathlib
 import signal
 import time
-import pathlib
-import gettext
+
 import flask
 
 from python_base_app import configuration
 from python_base_app import daemon
 from python_base_app import exceptions
+from python_base_app import locale_helper
 from python_base_app import log_handling
-from python_base_app import tools
 from python_base_app import settings
+from python_base_app import tools
 
 DEFAULT_DEBUG_MODE = False
 
@@ -42,6 +43,7 @@ DEFAULT_SPOOL_BASE_DIR = "/var/spool"
 DEFAULT_USER_CONFIG_DIR = ".config"
 DEFAULT_CONF_EXTENSION = ".conf"
 DEFAULT_LANGUAGES = ['en']
+DEFAULT_NO_LOG_FILTER = False
 
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
@@ -49,6 +51,9 @@ DEFAULT_TASK_INTERVAL = 10  # seconds
 DEFAULT_MAXIMUM_TIMER_SLACK = 5  # second
 DEFAULT_MINIMUM_DOWNTIME_DURATION = 20  # seconds
 
+CONTRIB_LOG_PATHS = [
+    "alembic.runtime.migration"
+]
 
 class BaseAppConfigModel(configuration.ConfigModel):
 
@@ -115,6 +120,11 @@ class RecurringTask(object):
 
         if self.next_execution is not None:
             self.next_execution = self.next_execution + datetime.timedelta(seconds=p_delay)
+            limit = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.interval)
+
+            # Don't schedule more than one interval into the future!
+            if self.next_execution > limit:
+                self.next_execution = limit
 
 
 class BaseApp(daemon.Daemon):
@@ -131,9 +141,10 @@ class BaseApp(daemon.Daemon):
         self._config = None
         self._recurring_tasks = []
         self._downtime = 0
-        self._localedir = None
-        self._localeselector = None
-        self._languages = p_languages
+        self._locale_helper = None
+        self._latest_request = None
+        self._partial_basic_init_executed = False
+        self._full_basic_init_executed = False
 
         if self._languages is None:
             self._languages = DEFAULT_LANGUAGES
@@ -143,23 +154,41 @@ class BaseApp(daemon.Daemon):
         # Only temporary until the app has been initialized completely!
         self._app_config = BaseAppConfigModel()
 
+    @property
+    def locale_helper(self):
+
+        return self._locale_helper
+
     def get_request_locale(self):
         locale = flask.request.accept_languages.best_match(self._languages)
-        msg = "Best matching locale = {locale}"
-        self._logger.debug(msg.format(locale=locale))
+
+        if self._latest_request is None or not self._latest_request is flask.request.stream:
+            msg = "Best matching locale = {locale}"
+            self._logger.debug(msg.format(locale=locale))
+            self._latest_request = flask.request.stream
         return locale
 
+    def add_locale_helper(self, p_locale_helper):
+
+        if self._locale_helper is not None:
+            p_locale_helper.chain_helper(self._locale_helper)
+
+        self._locale_helper = p_locale_helper
 
     def init_babel(self, p_localeselector):
 
         babel_rel_directory = settings.extended_settings.get("babel_rel_directory")
 
         if babel_rel_directory is not None:
-            self._localeselector = p_localeselector
-            self._localedir = os.path.join(os.path.dirname(__file__), babel_rel_directory)
+
+            locale_dir = os.path.join(os.path.dirname(__file__), babel_rel_directory)
+            a_locale_helper = locale_helper.LocaleHelper(
+                p_locale_dir=locale_dir, p_locale_selector=p_localeselector)
+
+            self.add_locale_helper(a_locale_helper)
 
             fmt = "Module python_base_app is using Babel translations in {path}"
-            self._logger.info(fmt.format(path=self._localedir))
+            self._logger.info(fmt.format(path=locale_dir))
 
         else:
             fmt = "Setting 'babel_rel_directory' not found "\
@@ -169,15 +198,7 @@ class BaseApp(daemon.Daemon):
 
     def gettext(self, p_text):
 
-        current_locale = self._localeselector()
-        gettext_func = self._langs.get(current_locale)
-
-        if gettext_func is None:
-            gettext_func = gettext.translation("messages", localedir=self._localedir,
-                                               languages=[current_locale], fallback=True)
-            self._langs[current_locale] = gettext_func
-
-        return gettext_func.gettext(p_text)
+        return self._locale_helper.gettext(p_text)
 
 
     def check_user_configuration_file(self):
@@ -207,7 +228,7 @@ class BaseApp(daemon.Daemon):
     def configuration_factory():
         return configuration.Configuration()
 
-    def load_configuration(self, p_configuration):
+    def prepare_configuration(self, p_configuration):
 
         self._app_config = p_configuration[self._app_name]
 
@@ -225,11 +246,15 @@ class BaseApp(daemon.Daemon):
 
         return p_configuration
 
+    def load_configuration(self):
+
+        self._config = self.prepare_configuration(self.configuration_factory())
+
     def check_configuration(self):
 
         logger = log_handling.get_logger()
 
-        self.load_configuration(self.configuration_factory())
+        self.prepare_configuration(self.configuration_factory())
 
         fmt = "%d configuration files are Ok!" % len(self._arguments.configurations)
         logger.info(fmt)
@@ -252,6 +277,9 @@ class BaseApp(daemon.Daemon):
     def prepare_services(self, p_full_startup=True):
 
         pass
+
+    #        if self._app_config.log_level is not None:
+    #            log_handling.set_level(self._app_config.log_level)
 
     def start_services(self):
 
@@ -382,19 +410,21 @@ class BaseApp(daemon.Daemon):
 
     def basic_init(self, p_full_startup=True):
 
+        if self._full_basic_init_executed:
+            return
+
+        if self._partial_basic_init_executed and not p_full_startup:
+            return
+
+        self._full_basic_init_executed = p_full_startup
+        self._partial_basic_init_executed = True
+
         try:
-            self._config = self.load_configuration(self.configuration_factory())
             self.prepare_services(p_full_startup=p_full_startup)
 
         except Exception as e:
             fmt = "Error '{msg}' in basic_init()"
             self._logger.error(fmt.format(msg=str(e)))
-
-            # if self._app_config.debug_mode:
-            #     fmt = "Propagating exception due to debug_mode=True"
-            #     self._logger.warn(fmt)
-            #     raise e
-
             raise e
 
     def run(self):
@@ -449,6 +479,9 @@ def get_argument_parser(p_app_name):
                         help='base path for logging files')
     parser.add_argument('--loglevel', dest='log_level', default=DEFAULT_LOG_LEVEL,
                         help='logging level', choices=['WARN', 'INFO', 'DEBUG'])
+    parser.add_argument('--no-log-filter', dest='no_log_filter', default=DEFAULT_NO_LOG_FILTER,
+                        action='store_const', const=True,
+                        help='deactivate log filter showing thread and user information')
     parser.add_argument('--application-owner', dest='app_owner', default=None,
                         help='name of user running application')
     parser.add_argument('--daemonize', dest='daemonize', action='store_const', const=True, default=False,
@@ -497,15 +530,20 @@ def main(p_app_name, p_app_class, p_argument_parser):
         default_log_file = '%s.log' % p_app_name
 
         log_handling.start_logging(p_level=arguments.log_level, p_log_dir=arguments.log_dir,
-                                   p_log_file=default_log_file)
+                                   p_log_file=default_log_file, p_use_filter=not arguments.no_log_filter)
         logger = log_handling.get_logger()
+
+        for path in CONTRIB_LOG_PATHS:
+            msg = "Setting log filter for library {path}..."
+            logger.debug(msg.format(path=path))
+
+            # log_handling.add_default_filter_to_logger_by_name(path)
 
         if arguments.check_installation:
             logger.info("Checking installation...")
             check_installation(p_arguments=arguments)
 
         else:
-
             app = p_app_class(p_pid_file=arguments.pid_file, p_arguments=arguments, p_app_name=p_app_name)
 
             if len(arguments.configurations) == 0:
@@ -519,13 +557,17 @@ def main(p_app_name, p_app_class, p_argument_parser):
                 logger.info("Checking configuration files...")
                 app.check_configuration()
 
-            elif arguments.daemonize:
-                logger.info("Starting daemon process...")
-                app.start()
+            else:
+                app.load_configuration()
 
-            elif not app.run_special_commands(p_arguments=arguments):
-                logger.info("Starting as a normal foreground process...")
-                app.run()
+                if not app.run_special_commands(p_arguments=arguments):
+                    if arguments.daemonize:
+                        logger.info("Starting daemon process...")
+                        app.start()
+
+                    else:
+                        logger.info("Starting as a normal foreground process...")
+                        app.run()
 
     except configuration.ConfigurationException as e:
         logger.error(str(e))
@@ -536,7 +578,6 @@ def main(p_app_name, p_app_class, p_argument_parser):
         process_result = 2
 
     except Exception as e:
-
         tools.handle_fatal_exception(p_exception=e, p_logger=logger)
         tools.log_stack_trace(p_logger=logger)
         process_result = 1

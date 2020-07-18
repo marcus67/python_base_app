@@ -27,40 +27,35 @@ TMP_DIR=/{{ var.setup.rel_tmp_dir }}
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
 LOG_DIR=/{{ var.setup.rel_log_dir }}
 SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
+LIB_DIR=/{{ var.setup.rel_lib_dir }}
+  VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
 SYSTEMD_DIR=/{{ var.setup.rel_systemd_dir }}
+TMPFILE_DIR=/{{ var.setup.rel_tmpfile_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
-
-if [ -x /usr/local/bin/pip3 ] ; then
-    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself. We had had better
-    # take this one
-    PIP3=/usr/local/bin/pip3
-else
-    # Otherwise take the one that has been installed by the Debian package...
-    PIP3=/usr/bin/pip3
-fi
+APPARMOR_DIR=/{{ var.setup.rel_apparmor_dir }}
 
 {% if var.setup.create_group %}
 if grep -q '{{ var.setup.group }}:' /etc/group ; then
-    echo "Group '{{ var.setup.group }}' already exists."
+    echo "Group '{{ var.setup.group }}' already exists. Skipping group creation."
 else
     #echo "Adding group '{{ var.setup.group }}'..."
     if [ "${APP_GID}" == "" ] ; then
-	addgroup {{ var.setup.group }}
+        addgroup {{ var.setup.group }}
     else
-	addgroup --gid ${APP_GID} {{ var.setup.group }}
+	      addgroup --gid ${APP_GID} {{ var.setup.group }}
     fi
 fi
 {% endif %}
 
 {% if var.setup.create_user %}
 if grep -q '{{ var.setup.user }}:' /etc/passwd ; then
-    echo "User '{{ var.setup.user }}' already exists."
+    echo "User '{{ var.setup.user }}' already exists. Skipping user creation."
 else
     #echo "Adding user '{{ var.setup.user }}'..."
     if  [ "${APP_UID}" == "" ] ; then
-	adduser --ingroup {{ var.setup.group }} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
+        adduser --ingroup {{ var.setup.group }} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
     else
-	adduser --ingroup {{ var.setup.group }} --uid ${APP_UID} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
+        adduser --ingroup {{ var.setup.group }} --uid ${APP_UID} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
     fi
 fi
 {% endif %}
@@ -77,25 +72,77 @@ echo "    * ${LOG_DIR}"
 mkdir -p ${LOG_DIR}
 echo "    * ${SPOOL_DIR}"
 mkdir -p ${SPOOL_DIR}
+echo "    * ${LIB_DIR}"
+mkdir -p ${LIB_DIR}
 
+{% for file_mapping in var.setup.debian_templates %}
+if [ -f {{ file_mapping[1] }} ] ; then
+  echo "Template '{{ file_mapping[0] }}' already exists as '{{ file_mapping[1] }}' -> SKIPPING"
+else
+  echo "Deploying template file '{{ file_mapping[0] }}' to '{{ file_mapping[1] }}'..."
+  cp -f {{ file_mapping[0] }} {{ file_mapping[1] }}
+fi
+{%- endfor %}
+
+{% for script in var.setup.scripts %}
+    echo "Creating symbolic link /usr/local/bin/{{ script }} --> ${VIRTUAL_ENV_DIR}/bin/{{ script }}..."
+    ln -fs ${VIRTUAL_ENV_DIR}/bin/{{ script }} /usr/local/bin/{{ script }}
+{%- endfor %}
+
+echo "Creating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
+
+virtualenv -p /usr/bin/python3 ${VIRTUAL_ENV_DIR}
+
+PIP3=${VIRTUAL_ENV_DIR}/bin/pip3
+
+echo "Setting ownership..."
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}"
+chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}
+
+{% for file_mapping in var.setup.debian_templates %}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
+chown {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}
+{%- endfor %}
 
 {% if var.setup.deploy_systemd_service %}
-chown root.root ${SYSTEMD_DIR}/little-brother.service
+echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
+chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+{% endif %}
+{% if var.setup.deploy_tmpfile_service %}
+echo "    * ${TMPFILE_DIR}/{{ var.setup.name }}.conf"
+chown root.root ${TMPFILE_DIR}/{{ var.setup.name }}.conf
 {% endif %}
 {% if var.setup.deploy_sudoers_file %}
-chown root.root ${SUDOERS_DIR}/little-brother
+echo "    * ${SUDOERS_DIR}/{{ var.setup.name }}"
+chown root.root ${SUDOERS_DIR}/{{ var.setup.name }}
+{% endif %}
+{% if var.setup.deploy_apparmor_file %}
+echo "    * ${APPARMOR_DIR}/{{ var.setup.name }}.conf"
+chown root.root ${APPARMOR_DIR}/{{ var.setup.name }}.conf
 {% endif %}
 
+echo "Setting permissions..."
+echo "    * ${ETC_DIR}"
 chmod -R og-rwx ${ETC_DIR}
+echo "    * ${LOG_DIR}"
 chmod -R og-rwx ${LOG_DIR}
+echo "    * ${SPOOL_DIR}"
 chmod -R og-rwx ${SPOOL_DIR}
+
+{% for file_mapping in var.setup.debian_templates %}
+echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
+chmod og-rwx {{ file_mapping[1] }}
+{%- endfor %}
 
 ${PIP3} --version
 ${PIP3} install wheel setuptools
-echo "Installing PIP packages "
+echo "Installing PIP packages..."
 {% for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
 {% endfor %}
@@ -104,6 +151,6 @@ ${PIP3} install --upgrade --force-reinstall {% for package_name in python_packag
      ${TMP_DIR}/{{ package_name[1] }}{% endfor %}
 
 {% for package_name in python_packages %}
-echo "Removing installation file ${TMP_DIR}/{{ package_name[1] }}"...
+echo "Removing installation file ${TMP_DIR}/{{ package_name[1] }}..."
 rm ${TMP_DIR}/{{ package_name[1] }}
 {% endfor %}

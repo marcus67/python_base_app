@@ -36,10 +36,18 @@ DEBIAN_PACKAGE_BASE_NAME={{ var.setup.debian_package_name }}_{{ var.setup.versio
 
 ROOT_DIR=${BASE_DIR}/{{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}
 
+echo "Checking Debian build directory ${ROOT_DIR}..."
+if [ -d ${ROOT_DIR}/DEBIAN ] ; then
+  echo "Deleting Debian build directory ${ROOT_DIR}..."
+  rm -rf ${ROOT_DIR}/
+fi
+
 TMP_DIR=${ROOT_DIR}/{{ var.setup.rel_tmp_dir }}
 ETC_DIR=${ROOT_DIR}/{{ var.setup.rel_etc_dir }}
 SYSTEMD_DIR=${ROOT_DIR}/{{ var.setup.rel_systemd_dir }}
+TMPFILE_DIR=${ROOT_DIR}/{{ var.setup.rel_tmpfile_dir }}
 SUDOERS_DIR=${ROOT_DIR}/{{ var.setup.rel_sudoers_dir }}
+APPARMOR_DIR=${ROOT_DIR}/{{ var.setup.rel_apparmor_dir }}
 
 mkdir -p ${TMP_DIR}
 mkdir -p ${ETC_DIR}
@@ -87,9 +95,19 @@ mkdir -p ${SYSTEMD_DIR}
 cp ${BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
 {% endif %}
 
+{% if var.setup.deploy_tmpfile_conf %}
+mkdir -p ${TMPFILE_DIR}
+cp ${BASE_DIR}/etc/{{ var.setup.name }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.name }}.conf
+{% endif %}
+
 {% if var.setup.deploy_sudoers_file %}
 mkdir -p ${SUDOERS_DIR}
 cp ${BASE_DIR}/etc/{{ var.setup.name }}.sudo ${SUDOERS_DIR}/{{ var.setup.name }}
+{% endif %}
+
+{% if var.setup.deploy_apparmor_file %}
+mkdir -p ${APPARMOR_DIR}
+cp ${BASE_DIR}/etc/{{ var.setup.name }}.apparmor ${APPARMOR_DIR}/{{ var.setup.name }}.conf
 {% endif %}
 
 rm -f {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  LittleBrotherTaskbar\n"
 "Report-Msgid-Bugs-To: little-brother@web.de\n"
-"POT-Creation-Date: 2020-05-03 00:51+0200\n"
+"POT-Creation-Date: 2020-06-15 23:13+0200\n"
 "PO-Revision-Date: 2020-04-20 09:46+0200\n"
 "Last-Translator: J. Moldawski\n"
 "Language: ru\n"
@@ -17,20 +17,37 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.8.0\n"
 
-#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/auth_view_handler.py:34
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/auth_view_handler.py:34
 msgid "Please log in to access this page."
 msgstr "Пожалуйста войдите в систему."
 
-#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/auth_view_handler.py:135
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/auth_view_handler.py:134
 msgid "Wrong login or password"
 msgstr "Неправильное имя пользователя или пароль"
 
-#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/tools.py:360
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/custom_fields.py:198
+msgid "Value '{value}' already exists. Must be unique."
+msgstr ""
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:361
 msgid "Use Hh MMm SSs"
 msgstr ""
 
-#: /home/mr/projects/LittleBrotherGitHub/contrib/python_base_app/python_base_app/tools.py:387
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:388
 msgid "Use HH[:MM[:SS]]"
 msgstr ""
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:446
+msgid "On"
+msgstr "да"
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:446
+msgid "Off"
+msgstr "нет"
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:451
+msgid "Not set"
+msgstr ""
+
