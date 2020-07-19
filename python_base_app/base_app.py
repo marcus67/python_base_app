@@ -537,7 +537,7 @@ def main(p_app_name, p_app_class, p_argument_parser):
             msg = "Setting log filter for library {path}..."
             logger.debug(msg.format(path=path))
 
-            # log_handling.add_default_filter_to_logger_by_name(path)
+            log_handling.add_default_filter_to_logger_by_name(path)
 
         if arguments.check_installation:
             logger.info("Checking installation...")
