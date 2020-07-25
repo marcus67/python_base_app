@@ -26,15 +26,18 @@
 set -e
 SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
+VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
+
 
 set +e
-PYCOVERAGE_BIN=$(which coverage)
+#PYCOVERAGE_BIN=$(which coverage)
+PYCOVERAGE=${VIRTUAL_ENV_DIR}/bin/coverage
 set -e
 
-if [ "${PYCOVERAGE_BIN}" == "" ] ; then
-    echo "WARNING: No Python coverage tool found in path. No coverage stats will be collected..."
-else
+if [ -x ${PYCOVERAGE_BIN} ] ; then
     echo "Using '${PYCOVERAGE_BIN}' for test coverage analysis..."
+else
+    echo "WARNING: No Python coverage tool found in path. No coverage stats will be collected..."
 fi
 
 

@@ -22,6 +22,8 @@ import wtforms.widgets
 
 from python_base_app import tools
 
+_ = lambda x: x
+
 
 class BaseCustomField(wtforms.Field):
     extra_css_classes = ""
@@ -81,13 +83,12 @@ class TimeField(BaseCustomField):
             return tools.get_time_as_string(p_timestamp=self.data, p_include_seconds=False)
 
     def process_formdata(self, valuelist):
-        if valuelist:
 
+        if valuelist:
             try:
                 self.data = tools.get_string_as_time(p_string=valuelist[0])
 
             except Exception as e:
-
                 self.invalid_data = valuelist[0]
                 raise wtforms.validators.ValidationError(message=str(e))
 
@@ -114,10 +115,85 @@ class BooleanField(BaseCustomField):
         if valuelist:
 
             try:
-                self.data = 1 if valuelist[0] else 0
+                self.data = True if valuelist else False
 
             except Exception as e:
                 raise wtforms.validators.ValidationError(message=str(e))
 
         else:
             self.data = None
+
+
+def unlocalize(p_localized_values, p_value):
+    for pair in p_localized_values:
+        if pair[1] == p_value:
+            return pair[0]
+
+    return p_value
+
+
+class LocalizedField(BaseCustomField):
+    widget = wtforms.widgets.TextInput()
+
+    def __init__(self, label='', validators=None, p_values=None, **kwargs):
+        super().__init__(label, validators, **kwargs)
+
+        self.localized_values = p_values
+
+        if self.localized_values is None:
+            self.localized_values = []
+
+    def set_localized_values(self, p_values):
+
+        self.localized_values = p_values
+
+    def localize(self, p_value):
+
+        for pair in self.localized_values:
+            if pair[0] == p_value:
+                return pair[1]
+
+        return p_value
+
+    def unlocalize(self, p_value):
+
+        return unlocalize(p_localized_values=self.localized_values, p_value=p_value)
+
+    def _value(self):
+
+        return self.localize(p_value=self.data)
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            self.data = self.unlocalize(p_value=valuelist[0])
+
+        else:
+            self.data = None
+
+
+class Uniqueness(object):
+
+    def __init__(self, p_field_selectors=None):
+
+        self._field_selectors = p_field_selectors
+        self._forms = []
+
+    def add_form(self, p_form):
+
+        self._forms.append(p_form)
+        p_form.uniqueness_instance = self
+
+    def __call__(self, form, field):
+
+        if self._field_selectors is None:
+            form.uniqueness_instance(form, field)
+
+        else:
+            for selector in self._field_selectors:
+                for other_form in self._forms:
+                    if form is other_form:
+                        continue
+
+                    if selector(other_form).data == field.data:
+                        msg = _("Value '{value}' already exists. Must be unique.")
+                        raise wtforms.validators.ValidationError(msg.format(value=field.data))

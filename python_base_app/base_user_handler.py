@@ -15,15 +15,26 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-settings = {
-    "name": "python-base-app",
-    "version": "0.2.0",
-    "description": "Generic tools and base classes for Python applications with web interface.",
-    "author": "Marcus Rickert",
-    "author_email": "marcus.rickert@web.de",
-    "url": "https://github.com/marcus67/python_base_app",
-}
+from python_base_app import log_handling
 
-extended_settings = {
-    "babel_rel_directory": "translations"
-}
+import abc
+
+class BaseUserHandler(object, metaclass=abc.ABCMeta):
+
+    def __init__(self):
+
+        self._logger = log_handling.get_logger(self.__class__.__name__)
+
+    @abc.abstractmethod
+    def list_users(self):  # pragma: no cover
+        pass
+
+    @abc.abstractmethod
+    def get_uid(self, p_username):
+        pass
+
+    def authenticate(self, p_username, p_password):
+        return False
+
+    def is_admin(self, p_username):
+        return False

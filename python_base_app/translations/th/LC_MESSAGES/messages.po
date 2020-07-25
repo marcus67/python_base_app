@@ -1,13 +1,13 @@
 # Thai translations for python_base_app.
 # Copyright (C) 2020 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
+# This file is distributed under the same license as the  project.
 # Busaba Kramer, 2020.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: python_base_app\n"
+"Project-Id-Version:  python_base_app\n"
 "Report-Msgid-Bugs-To: little-brother@web.de\n"
-"POT-Creation-Date: 2020-03-29 01:09+0100\n"
+"POT-Creation-Date: 2020-06-15 23:13+0200\n"
 "PO-Revision-Date: 2020-04-19 23:19+0200\n"
 "Last-Translator: Busaba Kramer\n"
 "Language: th\n"
@@ -18,10 +18,35 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.8.0\n"
 
-#: /home/mr/projects/little_brother_taskbar/contrib/python_base_app/python_base_app/auth_view_handler.py:34
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/auth_view_handler.py:34
 msgid "Please log in to access this page."
 msgstr "กรุณาล๊อกอินก่อนเข้าเว็บไซต์"
 
-#: /home/mr/projects/little_brother_taskbar/contrib/python_base_app/python_base_app/auth_view_handler.py:135
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/auth_view_handler.py:134
 msgid "Wrong login or password"
 msgstr "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/custom_fields.py:198
+msgid "Value '{value}' already exists. Must be unique."
+msgstr ""
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:361
+msgid "Use Hh MMm SSs"
+msgstr ""
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:388
+msgid "Use HH[:MM[:SS]]"
+msgstr ""
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:446
+msgid "On"
+msgstr "เปิด"
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:446
+msgid "Off"
+msgstr "ปิด"
+
+#: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:451
+msgid "Not set"
+msgstr ""
+

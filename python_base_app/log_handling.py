@@ -114,7 +114,13 @@ def add_default_filter_to_logger(p_logger):
 
 
 def set_level(p_log_level):
+    msg = "Set logging level to {level}"
+    get_logger().info(msg.format(level=p_log_level))
+
     get_logger().setLevel(get_log_level_by_name(p_log_level_name=p_log_level))
+
+    for h in get_logger().handlers:
+        h.setLevel(get_log_level_by_name(p_log_level_name=p_log_level))
 
 
 def add_default_filter_to_logger_by_name(p_name):
