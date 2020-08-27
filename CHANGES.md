@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.1 (July 18th, 2020)
+
+*   Support for saving configurations back to file
+
 ## Version 0.2.0 (July 18th, 2020)
 
 *   Add classes BaseUserHandler and UnixUserHandler
