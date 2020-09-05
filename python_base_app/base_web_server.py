@@ -175,8 +175,9 @@ class BaseWebServer(object):
 
         tools.check_config_value(p_config=self._config, p_config_attribute_name="host")
 
-        fmt = "Starting web server '{name}' on {address}:{port}"
-        self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port))
+        fmt = "Starting web server '{name}' on {address}:{port}{base_url}"
+        self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
+                                     base_url=self._config.base_url))
 
         # See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
         try:
