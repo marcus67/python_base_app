@@ -30,8 +30,8 @@ BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 cd ${BASE_DIR}
 
 if [ -x /usr/local/bin/pip3 ] ; then
-    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself. We had had better
-    # take this one
+    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself.
+    # We had better take this one...
     PIP3=/usr/local/bin/pip3
 else
     # Otherwise take the one that has been installed by the Debian package...
