@@ -20,7 +20,7 @@
 
 ##################################################################################
 # Please, beware that this file has been generated! Do not make any changes here #
-# but only to python_base_app/templates/install-debian-package.template.sh!      #
+# but only to python_base_app/templates/publish-pypi-package.template.sh!        #
 ##################################################################################
 
 set -e
@@ -33,4 +33,6 @@ if [ "${PYPI_API_TOKEN}" == "" ] ; then
 fi
 
 echo "Publish PIP package {{ python_packages[0][1] }}..."
-twine upload --username __token__ --password ${PYPI_API_TOKEN} dist/{{ python_packages[0][1] }}
+
+# See https://twine.readthedocs.io/en/latest/#using-twine
+twine upload --repository-url {{ python_packages[0][4] }} --username __token__ --password ${PYPI_API_TOKEN} dist/{{ python_packages[0][1] }}

@@ -2,6 +2,12 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.1 (September 9th, 2020)
+
+*   First version of Croatian localization (incomplete and without special characters)
+*   Support different PyPi targets depending on CI build branch 
+*   Publish master branch to [PyPi-Test](https://test.pypi.org/)
+
 ## Version 0.2.1 (September 6th, 2020)
 
 *   Improve logging when opening web server

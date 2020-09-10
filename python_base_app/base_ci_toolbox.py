@@ -93,6 +93,8 @@ PREDEFINED_ENV_VARIABLES = [
     VarStatus('CIRCLE_BRANCH', "Circle CI Git branch name", "GIT_BRANCH"),
 ]
 
+DEFAULT_PYPI_REPOSITORY = "https://pypi.org"
+
 predefined_env_variables = None
 
 default_setup = {
@@ -255,10 +257,11 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
         Return tuples describing name and path details of the python packages used for the application.
         
         @return Array of tuples containing
-            * the path to the package source parent dir
-            * the filename of the python pip package (excluding path)
-            * the module name
-            * the vars of the package
+            * 0: the path to the package source parent dir
+            * 1: the filename of the python pip package (excluding path)
+            * 2: the module name
+            * 3: the vars of the package
+            * 4: the target PyPi repository URL
     """
 
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
@@ -271,9 +274,22 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
         contrib_dir = get_site_packages_dir()
         app_dir = get_site_packages_dir()
 
+    branch = var["setup"].get("GIT_BRANCH")
+    branch_target_rep_map = var["setup"]["publish_pypi_package"]
+
+    target_rep = None
+
+    if isinstance(branch_target_rep_map, dict) and branch is not None:
+        target_rep = branch_target_rep_map[branch]
+
+    if target_rep is None:
+        target_rep = DEFAULT_PYPI_REPOSITORY
+
     contributing_setup_modules = load_contributing_setup_modules(p_main_setup_module)
 
     python_packages = []
+
+    python_packages.append((app_dir, get_python_package_name(p_var=var), var["setup"]["module_name"], var, target_rep))
 
     if p_include_contrib_packages:
         for contributing_setup_module in contributing_setup_modules:
@@ -286,9 +302,7 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
             else:
                 include_path = contrib_dir
 
-            python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var))
-
-    python_packages.append((app_dir, get_python_package_name(p_var=var), var["setup"]["module_name"], var))
+            python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var, target_rep))
 
     return python_packages
 
