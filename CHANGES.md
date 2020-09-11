@@ -2,7 +2,7 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
-## Version 0.2.1 (September 9th, 2020)
+## Version 0.2.2 (September 12th, 2020)
 
 *   First version of Croatian localization (incomplete and without special characters)
 *   Support different PyPi targets depending on CI build branch 
