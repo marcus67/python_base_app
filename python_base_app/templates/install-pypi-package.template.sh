@@ -38,7 +38,7 @@ else
     PIP3=/usr/bin/pip3
 fi
 
-VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][3]['name']}}/virtualenv/bin"
+VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][3]['setup']['name']}}/virtualenv/bin"
 PYTHON_BIN=$VIRTUAL_ENV_DIR/python3
 
 if [ -d $VIRTUAL_ENV_DIR ] ; then
