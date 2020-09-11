@@ -38,7 +38,7 @@ else
     PIP3=/usr/bin/pip3
 fi
 
-VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][1]}}/virtualenv/bin"
+VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][2]}}/virtualenv/bin"
 PYTHON_BIN=$VIRTUAL_ENV_DIR/python3
 
 if [ -d $VIRTUAL_ENV_DIR ] ; then
@@ -51,6 +51,6 @@ else
     chmod +x $PYTHON_BIN
 fi
 
-echo "Installing PIP package {{ python_packages[0][1] }}..."
+echo "Installing PIP package {{python_packages[0][1]}}..."
 
-${PIP3} install --upgrade --force-reinstall dist/{{ python_packages[0][1] }}
+${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}
