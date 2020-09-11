@@ -38,6 +38,19 @@ else
     PIP3=/usr/bin/pip3
 fi
 
+VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][1]}}/virtualenv/bin"
+PYTHON_BIN=$VIRTUAL_ENV_DIR/python3
+
+if [ -d $VIRTUAL_ENV_DIR ] ; then
+    echo "Virtual Python environment detected in $VIRTUAL_ENV_DIR..."
+else
+    echo "Creating makeshift Python interpreter script in $VIRTUAL_ENV_DIR..."
+    mkdir -p $VIRTUAL_ENV_DIR
+    echo "#!/bin/bash" > $PYTHON_BIN
+    echo "python3 $@" >> $PYTHON_BIN
+    chmod +x $PYTHON_BIN
+fi
+
 echo "Installing PIP package {{ python_packages[0][1] }}..."
 
 ${PIP3} install --upgrade --force-reinstall dist/{{ python_packages[0][1] }}

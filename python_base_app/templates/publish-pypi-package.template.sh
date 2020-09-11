@@ -27,12 +27,13 @@ set -e
 SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 
-if [ "${PYPI_API_TOKEN}" == "" ] ; then
-    echo "ERROR: The API token for pypi.org must be provided in PYPI_API_TOKEN"
+if [ "${{ python_packages[0][5] }}" == "" ] ; then
+    echo "ERROR: The API token for pypi.org must be provided in {{ python_packages[0][5] }}"
     exit 1
 fi
 
 echo "Publish PIP package {{ python_packages[0][1] }}..."
 
 # See https://twine.readthedocs.io/en/latest/#using-twine
-twine upload --repository-url {{ python_packages[0][4] }} --username __token__ --password ${PYPI_API_TOKEN} dist/{{ python_packages[0][1] }}
+twine upload --repository-url {{ python_packages[0][4] }} \
+    --username __token__ --password ${{ python_packages[0][5] }} dist/{{ python_packages[0][1] }}
