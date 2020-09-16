@@ -66,6 +66,9 @@ DEBIAN_CONTROL_TEMPLATE = 'debian_control.template.conf'
 DEBIAN_POSTINST_FILE_PATH = '{debian_build_dir}/DEBIAN/postinst'
 DEBIAN_POSTINST_TEMPLATE = 'debian_postinst.template.sh'
 
+GENERIC_INSTALLATION_SCRIPT_FILE_PATH = '{bin_dir}/generic-install.sh'
+GENERIC_INSTALLATION_SCRIPT_TEMPLATE = 'debian_postinst.template.sh'
+
 MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/make-debian-package.sh'
 MAKE_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'make-debian-package.template.sh'
 
@@ -160,6 +163,7 @@ default_setup = {
     "docker_context_dir": "docker",
     "docker_contexts": [],
     "babel_rel_directory" : None,
+    "generate_generic_install" : False,
 }
 
 logger = None
@@ -409,6 +413,7 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
 
     output_text = template.render(
         var=var,
+        generic_script=False,
         user_group_mappings=var["setup"]["user_group_mappings"],
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
@@ -427,6 +432,39 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
 
     fmt = "Wrote Debian post installation file to '{filename}'"
     logger.info(fmt.format(filename=debian_postinst_filename))
+
+def generate_generic_installation_script(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate generic installation file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(GENERIC_INSTALLATION_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+
+    output_text = template.render(
+        var=var,
+        generic_script=True,
+        user_group_mappings=var["setup"]["user_group_mappings"],
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+
+    output_file_path = GENERIC_INSTALLATION_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    debian_postinst_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+
+    os.makedirs(os.path.dirname(debian_postinst_filename), mode=0o777, exist_ok=True)
+
+    with open(debian_postinst_filename, "w") as f:
+        f.write(output_text)
+
+    os.chmod(debian_postinst_filename,
+             stat.S_IRUSR | stat.S_IXUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP | stat.S_IROTH | stat.S_IXOTH)
+
+    fmt = "Wrote generic installation script to '{filename}'"
+    logger.info(fmt.format(filename=debian_postinst_filename))
+
 
 
 def generate_pycoveragerc(p_main_setup_module, p_template_env, p_arguments):
@@ -829,6 +867,12 @@ def main(p_main_module_dir):
             generate_circle_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_codacy_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_git_python_file(p_main_setup_module=main_setup_module, p_template_env=template_env)
+
+            var = get_vars(p_setup_params=main_setup_module.extended_setup_params)
+
+            if var["setup"]["generate_generic_install"]:
+                generate_generic_installation_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                                     p_arguments=arguments)
 
         else:
             msg = "No stage selected -> nothing to do!"

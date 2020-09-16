@@ -20,7 +20,7 @@
 
 import flask
 
-from flask_helpers import blueprint_adapter
+from some_flask_helpers import blueprint_adapter
 
 import python_base_app
 

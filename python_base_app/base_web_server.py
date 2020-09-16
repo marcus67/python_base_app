@@ -28,7 +28,7 @@ import flask.globals
 import flask.wrappers
 import flask_login
 
-import flask_helpers
+import some_flask_helpers
 
 from python_base_app import actuator
 from python_base_app import auth_view_handler
@@ -84,7 +84,7 @@ class BaseWebServer(object):
         self._logger = log_handling.get_logger(self.__class__.__name__)
 
         self._app = flask.Flask(p_package_name)
-        self._flask_stopper = flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
+        self._flask_stopper = some_flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
 
         self._app.config["APPLICATION_ROOT"] = self._config.base_url
 

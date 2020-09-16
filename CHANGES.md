@@ -2,6 +2,12 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.3 (September 14th, 2020)
+
+*   Generate generic installation script `generic-install.sh` (using the same template as the Debian `postinst` script)
+*   Add documentation page about non-Debian installation
+*   Use more compatible commands and options to add users and groups in Debian `postinst` script
+
 ## Version 0.2.2 (September 12th, 2020)
 
 *   First version of Croatian localization (incomplete and without special characters)
