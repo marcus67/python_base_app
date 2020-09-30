@@ -59,7 +59,7 @@ EMPTY_TIME = "-"
 PLATFORM_NAME_WINDOWS = 'windows'
 PLATFORM_NAME_MAC_OS = "darwin"
 
-PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS")
+PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS", "SECRET")
 PROTECTED_PASSWORD_VALUE = "[HID" "DEN]" # trick Codacy
 
 # Dummy function to trigger extraction by pybabel...

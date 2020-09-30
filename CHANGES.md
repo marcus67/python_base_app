@@ -2,6 +2,11 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.4 (September 30th, 2020)
+
+*   Update names of some Debian packages
+*   Hide secrets in logged options
+
 ## Version 0.2.3 (September 14th, 2020)
 
 *   Generate generic installation script `generic-install.sh` (using the same template as the Debian `postinst` script)

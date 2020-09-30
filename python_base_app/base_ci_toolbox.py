@@ -287,8 +287,11 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
     target_rep_token_env_name = None
 
     if isinstance(branch_target_rep_map, dict) and branch is not None:
-        target_rep = branch_target_rep_map[branch][0]
-        target_rep_token_env_name = branch_target_rep_map[branch][1]
+        target_rep_map_entry = branch_target_rep_map.get(branch)
+
+        if target_rep_map_entry is not None:
+            target_rep = target_rep_map_entry[0]
+            target_rep_token_env_name = target_rep_map_entry[1]
 
     if target_rep is None:
         target_rep = DEFAULT_PYPI_REPOSITORY
