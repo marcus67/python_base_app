@@ -174,6 +174,8 @@ echo "    * ${TMPFILE_DIR}/{{ var.setup.name }}.conf"
 chown root.root ${TMPFILE_DIR}/{{ var.setup.name }}.conf
 {% endif %}
 {%- if var.setup.deploy_sudoers_file %}
+echo "    * ${SUDOERS_DIR}"
+chown root.root ${SUDOERS_DIR}
 echo "    * ${SUDOERS_DIR}/{{ var.setup.name }}"
 chown root.root ${SUDOERS_DIR}/{{ var.setup.name }}
 {% endif %}

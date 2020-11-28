@@ -2,6 +2,12 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.5 (November 28th, 2020)
+
+*   Set owner of sudoers file in Debian postinstallation script
+*   'Login' -> 'Username' in failed login message
+*   Upgrade all required PyPi packages
+
 ## Version 0.2.4 (September 30th, 2020)
 
 *   Update names of some Debian packages
