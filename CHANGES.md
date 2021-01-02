@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.7 (January 2nd, 2021)
+
+*   Make deployment to PyPi dependent on successful deployment to Docker registry  
+
 ## Version 0.2.6 (January 2nd, 2021)
 
 *   Support alternate Docker registries in CI/CD environment
