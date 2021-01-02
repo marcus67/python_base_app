@@ -24,18 +24,21 @@ if [ -d ${CONTEXT_DIR} ]; then
     fi
 fi
 
-docker build -t {{ var.setup.docker_registry_user }}/{{ context }}:${REVISION} \
-    --build-arg TAG=${REVISION} ${CONTEXT_DIR}
+docker build -t {{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISION} \
+    --build-arg TAG=${REVISION} \
+    --build-arg DOCKER_REGISTRY={{ var.setup.docker_registry}} \
+    --build-arg DOCKER_REGISTRY_ORG_UNIT={{ var.setup.docker_registry_org_unit }} \
+    ${CONTEXT_DIR}
 {% if var.setup.GIT_BRANCH == var.setup.publish_latest_docker_image %}
-docker tag {{ var.setup.docker_registry_user }}/{{ context }}:${REVISION} \
-    {{ var.setup.docker_registry_user }}/{{ context }}:latest
+docker tag {{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISION} \
+    {{ var.setup.docker_registry_org_unit }}/{{ context }}:latest
 {% endif -%}
 {% if upload -%}
-docker tag {{ var.setup.docker_registry_user }}/{{ context }}:${REVISION} \
-    {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_user }}/{{ context }}:${REVISION}
+docker tag {{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISION} \
+    {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISION}
 {% if var.setup.GIT_BRANCH == var.setup.publish_latest_docker_image %}
-docker tag {{ var.setup.docker_registry_user }}/{{ context }}:${REVISION} \
-    {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_user }}/{{ context }}:latest
+docker tag {{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISION} \
+    {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_org_unit }}/{{ context }}:latest
 {% endif -%}
 {% endif -%}
 {% endfor -%}
@@ -49,9 +52,9 @@ else
     {% for (context, upload) in var.setup.docker_contexts -%}
     {% if upload -%}
     echo "Uploading docker image in context directory '{{ context }}'..."
-    docker push {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_user }}/{{ context }}:${REVISION}
+    docker push {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISION}
     {% if var.setup.GIT_BRANCH == var.setup.publish_latest_docker_image %}
-    docker push {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_user }}/{{ context }}:latest
+    docker push {{ var.setup.docker_registry}}/{{ var.setup.docker_registry_org_unit }}/{{ context }}:latest
     {% endif -%}
     {% endif -%}
     {% endfor -%}

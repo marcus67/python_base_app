@@ -93,7 +93,12 @@ TEST_APP_SCRIPT_TEMPLATE = 'test-app.template.sh'
 VarStatus = collections.namedtuple("VarInfo", "source_name description target_name")
 
 PREDEFINED_ENV_VARIABLES = [
+    VarStatus('FORCED_GIT_BRANCH', "Forced Git branch name (possibly overriding CI/CD branch names)", "GIT_BRANCH"),
     VarStatus('CIRCLE_BRANCH', "Circle CI Git branch name", "GIT_BRANCH"),
+    VarStatus('CI_COMMIT_BRANCH', "GitLab CI/CD Git branch name", "GIT_BRANCH"),
+    VarStatus('DOCKER_REGISTRY_HOST_NAME', "Docker registry host name", "docker_registry"),
+    VarStatus('DOCKER_REGISTRY_ORG_UNIT', "Docker registry organisational unit", "docker_registry_org_unit"),
+    VarStatus('DOCKER_REGISTRY_USER', "Docker registry login user", "docker_registry_user"),
 ]
 
 DEFAULT_PYPI_REPOSITORY = "https://pypi.org"
@@ -160,6 +165,7 @@ default_setup = {
     "publish_latest_docker_image": "",
     "docker_registry": "docker.io",
     "docker_registry_user": "[DOCKER_REGISTRY_USER_NOT_SET]",
+    "docker_registry_org_unit": "[DOCKER_REGISTRY_ORG_UNIT_NOT_SET]",
     "docker_context_dir": "docker",
     "docker_contexts": [],
     "babel_rel_directory" : None,
@@ -188,10 +194,15 @@ def get_predefined_environment_variables():
             value = os.getenv(var_info.source_name)
 
             if value is not None:
-                msg = "{description} ({name}) found in environment with value '{value}' "
-                logger.info(msg.format(name=var_info.source_name, description=var_info.description, value=value))
+                if var_info.target_name in predefined_env_variables:
+                    msg = "New value '{value}' found in environment with value ({name}) to be used for '{target_name}' WILL BE IGNORED!"
+                    logger.warning(msg.format(name=var_info.source_name, value=value, target_name=var_info.target_name))
 
-                predefined_env_variables[var_info.target_name] = value
+                else:
+                    msg = "{description} ({name}) found in environment with value '{value}' to be used for '{target_name}'"
+                    logger.info(msg.format(name=var_info.source_name, description=var_info.description, value=value,
+                                           target_name=var_info.target_name))
+                    predefined_env_variables[var_info.target_name] = value
 
     return predefined_env_variables
 

@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.6 (January 2nd, 2021)
+
+*   Support alternate Docker registries in CI/CD environment
+
 ## Version 0.2.5 (November 28th, 2020)
 
 *   Set owner of sudoers file in Debian postinstallation script
