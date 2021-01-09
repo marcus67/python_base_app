@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.8 (January 9th, 2021)
+
+*   Provide helper function to check if running in Docker container
+
 ## Version 0.2.7 (January 2nd, 2021)
 
 *   Make deployment to PyPi dependent on successful deployment to Docker registry  

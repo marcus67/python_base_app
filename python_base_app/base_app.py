@@ -450,8 +450,12 @@ class BaseApp(daemon.Daemon):
 
         previous_exception = None
 
+        if tools.running_in_docker():
+            self._logger.info("Detected Docker run time.")
+
         fmt = "Starting app '%s'" % self._app_name
         self._logger.info(fmt)
+
 
         try:
             self.basic_init()

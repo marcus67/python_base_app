@@ -452,3 +452,6 @@ def value_or_not_set(p_value):
 
     else:
         return p_value
+
+def running_in_docker():
+    return os.getenv("RUNNING_IN_DOCKER") is not None
