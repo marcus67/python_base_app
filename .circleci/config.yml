@@ -37,11 +37,11 @@ jobs:
 
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python-base-app-0.2.8.tar.gz"
+          path: "dist/python-base-app-0.2.9.tar.gz"
       - persist_to_workspace:
           root: dist
           paths:
-            - "python-base-app-0.2.8.tar.gz"
+            - "python-base-app-0.2.9.tar.gz"
   install_pypi:
     #working_directory: ~
     docker:
