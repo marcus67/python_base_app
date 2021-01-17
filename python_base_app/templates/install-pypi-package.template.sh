@@ -30,14 +30,28 @@ BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 cd ${BASE_DIR}
 
 if [ -x /usr/local/bin/pip3 ] ; then
-    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself. We had had better
-    # take this one
+    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself.
+    # We had better take this one...
     PIP3=/usr/local/bin/pip3
 else
     # Otherwise take the one that has been installed by the Debian package...
     PIP3=/usr/bin/pip3
 fi
 
-echo "Installing PIP package {{ python_packages[0][1] }}..."
+VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][3]['setup']['name']}}/virtualenv/bin"
+PYTHON_BIN=$VIRTUAL_ENV_DIR/python3
 
-${PIP3} install --upgrade --force-reinstall dist/{{ python_packages[0][1] }}
+if [ -d $VIRTUAL_ENV_DIR ] ; then
+    echo "Virtual Python environment detected in $VIRTUAL_ENV_DIR..."
+else
+    echo "Creating makeshift Python interpreter script in $VIRTUAL_ENV_DIR..."
+    mkdir -p $VIRTUAL_ENV_DIR
+    echo "#!/bin/bash" > $PYTHON_BIN
+    echo "python3 $@" >> $PYTHON_BIN
+    chmod +x $PYTHON_BIN
+fi
+
+echo "Installing PIP package {{python_packages[0][1]}}..."
+
+${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}
+

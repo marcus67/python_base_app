@@ -52,7 +52,9 @@ extended_setup_params = {
     "id": "python-base-app",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "publish_pypi_package": ['release'],
+    "publish_pypi_package": { 'release': ( 'https://pypi.org', 'PYPI_API_TOKEN' ),
+                              'master': ( 'https://test.pypi.org/legacy/', 'TEST_PYPI_API_TOKEN') }
+
 }
 extended_setup_params.update(setup_params)
 

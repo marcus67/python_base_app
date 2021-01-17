@@ -66,6 +66,9 @@ DEBIAN_CONTROL_TEMPLATE = 'debian_control.template.conf'
 DEBIAN_POSTINST_FILE_PATH = '{debian_build_dir}/DEBIAN/postinst'
 DEBIAN_POSTINST_TEMPLATE = 'debian_postinst.template.sh'
 
+GENERIC_INSTALLATION_SCRIPT_FILE_PATH = '{bin_dir}/generic-install.sh'
+GENERIC_INSTALLATION_SCRIPT_TEMPLATE = 'debian_postinst.template.sh'
+
 MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/make-debian-package.sh'
 MAKE_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'make-debian-package.template.sh'
 
@@ -90,8 +93,16 @@ TEST_APP_SCRIPT_TEMPLATE = 'test-app.template.sh'
 VarStatus = collections.namedtuple("VarInfo", "source_name description target_name")
 
 PREDEFINED_ENV_VARIABLES = [
+    VarStatus('FORCED_GIT_BRANCH', "Forced Git branch name (possibly overriding CI/CD branch names)", "GIT_BRANCH"),
     VarStatus('CIRCLE_BRANCH', "Circle CI Git branch name", "GIT_BRANCH"),
+    VarStatus('CI_COMMIT_BRANCH', "GitLab CI/CD Git branch name", "GIT_BRANCH"),
+    VarStatus('DOCKER_REGISTRY_HOST_NAME', "Docker registry host name", "docker_registry"),
+    VarStatus('DOCKER_REGISTRY_ORG_UNIT', "Docker registry organisational unit", "docker_registry_org_unit"),
+    VarStatus('DOCKER_REGISTRY_USER', "Docker registry login user", "docker_registry_user"),
 ]
+
+DEFAULT_PYPI_REPOSITORY = "https://pypi.org"
+DEFAULT_PYPI_TOKEN_ENV_NAME = "PYPI_API_TOKEN"
 
 predefined_env_variables = None
 
@@ -154,9 +165,11 @@ default_setup = {
     "publish_latest_docker_image": "",
     "docker_registry": "docker.io",
     "docker_registry_user": "[DOCKER_REGISTRY_USER_NOT_SET]",
+    "docker_registry_org_unit": "[DOCKER_REGISTRY_ORG_UNIT_NOT_SET]",
     "docker_context_dir": "docker",
     "docker_contexts": [],
     "babel_rel_directory" : None,
+    "generate_generic_install" : False,
 }
 
 logger = None
@@ -181,10 +194,15 @@ def get_predefined_environment_variables():
             value = os.getenv(var_info.source_name)
 
             if value is not None:
-                msg = "{description} ({name}) found in environment with value '{value}' "
-                logger.info(msg.format(name=var_info.source_name, description=var_info.description, value=value))
+                if var_info.target_name in predefined_env_variables:
+                    msg = "New value '{value}' found in environment with value ({name}) to be used for '{target_name}' WILL BE IGNORED!"
+                    logger.warning(msg.format(name=var_info.source_name, value=value, target_name=var_info.target_name))
 
-                predefined_env_variables[var_info.target_name] = value
+                else:
+                    msg = "{description} ({name}) found in environment with value '{value}' to be used for '{target_name}'"
+                    logger.info(msg.format(name=var_info.source_name, description=var_info.description, value=value,
+                                           target_name=var_info.target_name))
+                    predefined_env_variables[var_info.target_name] = value
 
     return predefined_env_variables
 
@@ -255,10 +273,12 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
         Return tuples describing name and path details of the python packages used for the application.
         
         @return Array of tuples containing
-            * the path to the package source parent dir
-            * the filename of the python pip package (excluding path)
-            * the module name
-            * the vars of the package
+            * 0: path to the package source parent dir
+            * 1: filename of the python pip package (excluding path)
+            * 2: module name
+            * 3: vars of the package
+            * 4: target PyPi repository URL
+            * 5: variable name containing token for target PyPi repository
     """
 
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
@@ -271,9 +291,31 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
         contrib_dir = get_site_packages_dir()
         app_dir = get_site_packages_dir()
 
+    branch = var["setup"].get("GIT_BRANCH")
+    branch_target_rep_map = var["setup"]["publish_pypi_package"]
+
+    target_rep = None
+    target_rep_token_env_name = None
+
+    if isinstance(branch_target_rep_map, dict) and branch is not None:
+        target_rep_map_entry = branch_target_rep_map.get(branch)
+
+        if target_rep_map_entry is not None:
+            target_rep = target_rep_map_entry[0]
+            target_rep_token_env_name = target_rep_map_entry[1]
+
+    if target_rep is None:
+        target_rep = DEFAULT_PYPI_REPOSITORY
+
+    if target_rep_token_env_name is None:
+        target_rep_token_env_name = DEFAULT_PYPI_TOKEN_ENV_NAME
+
     contributing_setup_modules = load_contributing_setup_modules(p_main_setup_module)
 
     python_packages = []
+
+    python_packages.append((app_dir, get_python_package_name(p_var=var), var["setup"]["module_name"], var,
+                            target_rep, target_rep_token_env_name))
 
     if p_include_contrib_packages:
         for contributing_setup_module in contributing_setup_modules:
@@ -286,9 +328,8 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
             else:
                 include_path = contrib_dir
 
-            python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var))
-
-    python_packages.append((app_dir, get_python_package_name(p_var=var), var["setup"]["module_name"], var))
+            python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var,
+                                    target_rep, target_rep_token_env_name))
 
     return python_packages
 
@@ -386,6 +427,7 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
 
     output_text = template.render(
         var=var,
+        generic_script=False,
         user_group_mappings=var["setup"]["user_group_mappings"],
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
@@ -404,6 +446,39 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
 
     fmt = "Wrote Debian post installation file to '{filename}'"
     logger.info(fmt.format(filename=debian_postinst_filename))
+
+def generate_generic_installation_script(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate generic installation file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(GENERIC_INSTALLATION_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+
+    output_text = template.render(
+        var=var,
+        generic_script=True,
+        user_group_mappings=var["setup"]["user_group_mappings"],
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+
+    output_file_path = GENERIC_INSTALLATION_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    debian_postinst_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+
+    os.makedirs(os.path.dirname(debian_postinst_filename), mode=0o777, exist_ok=True)
+
+    with open(debian_postinst_filename, "w") as f:
+        f.write(output_text)
+
+    os.chmod(debian_postinst_filename,
+             stat.S_IRUSR | stat.S_IXUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP | stat.S_IROTH | stat.S_IXOTH)
+
+    fmt = "Wrote generic installation script to '{filename}'"
+    logger.info(fmt.format(filename=debian_postinst_filename))
+
 
 
 def generate_pycoveragerc(p_main_setup_module, p_template_env, p_arguments):
@@ -806,6 +881,12 @@ def main(p_main_module_dir):
             generate_circle_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_codacy_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_git_python_file(p_main_setup_module=main_setup_module, p_template_env=template_env)
+
+            var = get_vars(p_setup_params=main_setup_module.extended_setup_params)
+
+            if var["setup"]["generate_generic_install"]:
+                generate_generic_installation_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                                     p_arguments=arguments)
 
         else:
             msg = "No stage selected -> nothing to do!"

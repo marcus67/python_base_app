@@ -37,6 +37,10 @@ OPTION_ARRAY_PATTERN = re.compile(r"([^[]*)\[([0-9]+)\]")
 VALID_BOOLEAN_TRUE_VALUES = ['1', 'TRUE', 'T', 'YES', 'WAHR', 'JA', 'J']
 VALID_BOOLEAN_FALSE_VALUES = ['0', 'FALSE', 'F', 'NO', 'FALSCH', 'NEIN', 'N']
 
+IGNORED_DICT_KEYS = [
+    'section_name',
+    '_options'
+]
 
 class ConfigurationException(Exception):
 
@@ -172,15 +176,16 @@ class ConfigModel(object):
         pass
 
 
-class Configuration(ConfigModel):
+class Configuration(object):
 
     def __init__(self):
 
-        super().__init__(p_section_name="_Configuration_")
+        #super().__init__(p_section_name="_Configuration_")
 
         self._sections = {}
         self._logger = log_handling.get_logger(self.__class__.__name__)
         self._section_handlers = []
+        self.config = configparser.ConfigParser(strict=False)
 
     def add_section(self, p_section):
 
@@ -299,7 +304,6 @@ class Configuration(ConfigModel):
             fmt = "Reading configuration file from '%s'" % p_filename
             self._logger.info(fmt)
 
-            self.config = configparser.ConfigParser(strict=False)
             self.config.optionxform = str  # make options case sensitive
 
             try:
@@ -316,7 +320,6 @@ class Configuration(ConfigModel):
         if p_config_string is not None:
 
             try:
-                self.config = configparser.ConfigParser()
                 self.config.read_string(p_config_string)
 
             except Exception as e:
@@ -338,6 +341,28 @@ class Configuration(ConfigModel):
                 self.handle_section(p_section_name=section_name,
                                     p_ignore_invalid_sections=p_ignore_invalid_sections,
                                     p_warn_about_invalid_sections=p_warn_about_invalid_sections)
+
+    def write_to_file(self, p_filename):
+        with open(p_filename, 'w') as configfile:
+            first = True
+
+            for section_name, config in self._sections.items():
+                if first:
+                    first = False
+
+                else:
+                    configfile.write("\n")
+
+                configfile.write("[{name}]\n".format(name=section_name))
+
+                for key, value in config.__dict__.items():
+                    if key in IGNORED_DICT_KEYS:
+                        continue
+
+                    if key.startswith(NONE_TYPE_PREFIX) or key.startswith(NONE_ARRAY_TYPE_PREFIX):
+                        continue
+
+                    configfile.write("{key}={value}\n".format(key=key, value=value))
 
     def read_command_line_parameters(self, p_parameters):
 

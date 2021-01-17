@@ -28,7 +28,7 @@ import flask.globals
 import flask.wrappers
 import flask_login
 
-import flask_helpers
+import some_flask_helpers
 
 from python_base_app import actuator
 from python_base_app import auth_view_handler
@@ -84,7 +84,7 @@ class BaseWebServer(object):
         self._logger = log_handling.get_logger(self.__class__.__name__)
 
         self._app = flask.Flask(p_package_name)
-        self._flask_stopper = flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
+        self._flask_stopper = some_flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
 
         self._app.config["APPLICATION_ROOT"] = self._config.base_url
 
@@ -175,8 +175,9 @@ class BaseWebServer(object):
 
         tools.check_config_value(p_config=self._config, p_config_attribute_name="host")
 
-        fmt = "Starting web server '{name}' on {address}:{port}"
-        self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port))
+        fmt = "Starting web server '{name}' on {address}:{port}{base_url}"
+        self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
+                                     base_url=self._config.base_url))
 
         # See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
         try:

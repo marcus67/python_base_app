@@ -200,17 +200,23 @@ class BaseApp(daemon.Daemon):
 
         return self._locale_helper.gettext(p_text)
 
-
-    def check_user_configuration_file(self):
+    def get_user_configuration_filename(self):
 
         home = str(pathlib.Path.home())
-        user_configuration_file = os.path.join(home, DEFAULT_USER_CONFIG_DIR, self._app_name) + DEFAULT_CONF_EXTENSION
+        return os.path.join(home, DEFAULT_USER_CONFIG_DIR, self._app_name) + DEFAULT_CONF_EXTENSION
+
+
+    def check_user_configuration_file(self, p_filename=None):
+
+        if p_filename is None:
+            p_filename = self.get_user_configuration_filename()
 
         fmt = "Looking for user configuration file in {path}"
-        self._logger.info(fmt.format(path=user_configuration_file))
+        self._logger.info(fmt.format(path=p_filename))
 
-        if os.path.exists(user_configuration_file):
-            self._arguments.configurations.append(user_configuration_file)
+        if os.path.exists(p_filename):
+            self._arguments.configurations.append(p_filename)
+
 
     @property
     def down_time(self):
@@ -250,6 +256,16 @@ class BaseApp(daemon.Daemon):
 
         self._config = self.prepare_configuration(self.configuration_factory())
 
+    def write_config_to_file(self, p_filename=None):
+
+        if p_filename is None:
+            p_filename = self.get_user_configuration_filename()
+
+        fmt = "Writing user configuration to file '{filename}'..."
+        self._logger.info(fmt.format(filename=p_filename))
+
+        self._config.write_to_file(p_filename=p_filename)
+
     def check_configuration(self):
 
         logger = log_handling.get_logger()
@@ -258,6 +274,9 @@ class BaseApp(daemon.Daemon):
 
         fmt = "%d configuration files are Ok!" % len(self._arguments.configurations)
         logger.info(fmt)
+
+    def reevaluate_configuration(self):
+        pass
 
     def handle_sighup(self, p_signum, p_stackframe):
 
@@ -431,8 +450,12 @@ class BaseApp(daemon.Daemon):
 
         previous_exception = None
 
+        if tools.running_in_docker():
+            self._logger.info("Detected Docker run time.")
+
         fmt = "Starting app '%s'" % self._app_name
         self._logger.info(fmt)
+
 
         try:
             self.basic_init()

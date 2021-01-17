@@ -25,42 +25,79 @@ stages:
 - build
 - install_and_check
 {% if var.setup.docker_contexts|length > 0 -%}
-- docker
+- deploy
 {% endif %}
 
-make_debian_package:
+{%- if var.setup.build_debian_package %}
+build_debian:
   image: {{ var.setup.docker_image_make_package }}
   stage: build
   script:
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
   artifacts:
     paths:
-    - {{ var.setup.debian_build_dir }}/*.deb
+      - {{ var.setup.debian_build_dir }}/*.deb
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-check_installation:
+test_debian:
   image: {{ var.setup.docker_image_test }}
   stage: install_and_check
   script:
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}{% if var.setup.run_test_suite %}
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --run-dir=/tmp {% endif %}{% if var.setup.require_teardown %}
-  after_script:
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}{% endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
+    {%- if var.setup.run_test_suite %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+    {%- endif %}
+    - codecov
   artifacts:
-    when: always
     paths:
-    - /var/log/{{ var.setup.name }}/*.log*
-    - ./htmlcov/*
+      - htmlcov
+  variables:
+    # Activate automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{% endif %}
+
+{%- if var.setup.build_pypi_package %}
+build_pypi:
+  image: {{ var.setup.docker_image_make_package }}
+  stage: build
+  script:
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+  after_script:
+    - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}
+  artifacts:
+      when: always
+      paths:
+        - dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-{% if var.setup.docker_contexts|length > 0 -%}
-build_docker_images:
+install_pypi:
+  image: {{ var.setup.docker_image_test }}
+  stage: install_and_check
+  script:
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install_pypi_package }} --use-dev-dir=.
+  {%- if var.setup.run_test_suite %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+  {% endif -%}
+  after_script:
+    - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}
+  artifacts:
+      when: always
+      paths:
+        - htmlcov
+  variables:
+    # Suppress automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{% endif %}
+
+
+{%- if var.setup.build_debian_package and var.setup.docker_contexts|length > 0 %}
+docker:
   image: {{ var.setup.docker_image_docker }}
-  stage: docker
+  stage: deploy
   script:
   - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }} --use-dev-dir=.
   variables:

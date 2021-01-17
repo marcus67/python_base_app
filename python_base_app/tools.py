@@ -59,7 +59,7 @@ EMPTY_TIME = "-"
 PLATFORM_NAME_WINDOWS = 'windows'
 PLATFORM_NAME_MAC_OS = "darwin"
 
-PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS")
+PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS", "SECRET")
 PROTECTED_PASSWORD_VALUE = "[HID" "DEN]" # trick Codacy
 
 # Dummy function to trigger extraction by pybabel...
@@ -452,3 +452,6 @@ def value_or_not_set(p_value):
 
     else:
         return p_value
+
+def running_in_docker():
+    return os.getenv("RUNNING_IN_DOCKER") is not None

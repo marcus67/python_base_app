@@ -19,11 +19,11 @@ import flask
 import flask.wrappers
 import flask_login
 
-import flask_helpers
+import some_flask_helpers
 import python_base_app
 
 AUTH_BLUEPRINT_NAME = 'auth'
-AUTH_BLUEPRINT_ADAPTER = flask_helpers.BlueprintAdapter()
+AUTH_BLUEPRINT_ADAPTER = some_flask_helpers.BlueprintAdapter()
 
 LOGIN_ENDPOINT_NAME = "login"
 LOGOUT_ENDPOINT_NAME = "logout"
