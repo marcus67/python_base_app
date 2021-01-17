@@ -49,7 +49,7 @@ test_debian:
     {%- if var.setup.run_test_suite %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
     {%- endif %}
-    - codedov
+    - codecov
   artifacts:
     paths:
       - htmlcov
