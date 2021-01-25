@@ -21,17 +21,21 @@
 import argparse
 import collections
 import copy
+import logging
 import os
 import os.path
 import stat
 import subprocess
 import sys
+import time
+import typing
 
 import jinja2
 
 import python_base_app
 from python_base_app import exceptions
 from python_base_app import log_handling
+from python_base_app import tools
 
 MODULE_NAME = "base_ci_toolbox"
 
@@ -89,6 +93,8 @@ PUBLISH_PYPI_PACKAGE_SCRIPT_TEMPLATE = 'publish-pypi-package.template.sh'
 
 TEST_APP_SCRIPT_FILE_PATH = '{bin_dir}/test-app.sh'
 TEST_APP_SCRIPT_TEMPLATE = 'test-app.template.sh'
+
+BEACON_INTERVAL = 60  # seconds
 
 VarStatus = collections.namedtuple("VarInfo", "source_name description target_name")
 
@@ -168,11 +174,11 @@ default_setup = {
     "docker_registry_org_unit": "[DOCKER_REGISTRY_ORG_UNIT_NOT_SET]",
     "docker_context_dir": "docker",
     "docker_contexts": [],
-    "babel_rel_directory" : None,
-    "generate_generic_install" : False,
+    "babel_rel_directory": None,
+    "generate_generic_install": False,
 }
 
-logger = None
+logger: typing.Optional[logging.Logger] = None
 
 
 def get_module_dir(p_module):
@@ -206,8 +212,8 @@ def get_predefined_environment_variables():
 
     return predefined_env_variables
 
-def expand_vars(p_vars):
 
+def expand_vars(p_vars):
     while True:
         change_done = False
 
@@ -221,6 +227,7 @@ def expand_vars(p_vars):
 
         if not change_done:
             break
+
 
 def get_vars(p_setup_params):
     setup = copy.copy(default_setup)
@@ -334,7 +341,6 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
     return python_packages
 
 
-
 def generate_standard_file(p_main_setup_module, p_template_env, p_file_description,
                            p_output_filename, p_template_name, p_create_directory=False):
     global logger
@@ -362,15 +368,14 @@ def generate_standard_file(p_main_setup_module, p_template_env, p_file_descripti
     fmt = "Wrote {file_description} file '{filename}'"
     logger.info(fmt.format(filename=filename, file_description=p_file_description))
 
-def generate_git_python_file(p_main_setup_module, p_template_env):
 
+def generate_git_python_file(p_main_setup_module, p_template_env):
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="git.py",
                            p_output_filename=GIT_PY_FILE_PATH, p_template_name=GIT_PY_TEMPLATE)
 
 
 def generate_circle_ci_configuration(p_main_setup_module, p_template_env):
-
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="Circle CI configuration",
                            p_output_filename=CIRCLE_CI_FILE, p_template_name=CIRCLE_CI_TEMPLATE,
@@ -378,13 +383,12 @@ def generate_circle_ci_configuration(p_main_setup_module, p_template_env):
 
 
 def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env):
-
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="GitLab CI configuration",
                            p_output_filename=GITLAB_CI_FILE, p_template_name=GITLAB_CI_TEMPLATE)
 
-def generate_codacy_configuration(p_main_setup_module, p_template_env):
 
+def generate_codacy_configuration(p_main_setup_module, p_template_env):
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="Codacy configuration",
                            p_output_filename=CODACY_FILE_PATH, p_template_name=CODACY_TEMPLATE)
@@ -447,6 +451,7 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
     fmt = "Wrote Debian post installation file to '{filename}'"
     logger.info(fmt.format(filename=debian_postinst_filename))
 
+
 def generate_generic_installation_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
@@ -478,7 +483,6 @@ def generate_generic_installation_script(p_main_setup_module, p_template_env, p_
 
     fmt = "Wrote generic installation script to '{filename}'"
     logger.info(fmt.format(filename=debian_postinst_filename))
-
 
 
 def generate_pycoveragerc(p_main_setup_module, p_template_env, p_arguments):
@@ -617,7 +621,7 @@ def generate_install_pypi_package_script(p_main_setup_module, p_template_env, p_
     )
     output_file_path = INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
     install_and_test_pypi_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
-                                                                   output_file_path)
+                                                                 output_file_path)
     os.makedirs(os.path.dirname(install_and_test_pypi_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(install_and_test_pypi_package_script_filename, "w") as f:
@@ -677,7 +681,8 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
         site_packages_dir=get_site_packages_dir()
     )
     output_file_path = PUBLISH_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    publish_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    publish_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
+                                                          output_file_path)
     os.makedirs(os.path.dirname(publish_debian_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(publish_debian_package_script_filename, "w") as f:
@@ -686,7 +691,8 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
     fmt = "Wrote publish_debian_package.sh script file to '{filename}'"
     logger.info(fmt.format(filename=publish_debian_package_script_filename))
 
-    os.chmod(publish_debian_package_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+    os.chmod(publish_debian_package_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
 
 def generate_publish_pypi_package_script(p_main_setup_module, p_template_env, p_arguments):
@@ -714,7 +720,23 @@ def generate_publish_pypi_package_script(p_main_setup_module, p_template_env, p_
     fmt = "Wrote publish_pypi_package.sh script file to '{filename}'"
     logger.info(fmt.format(filename=publish_pypi_package_script_filename))
 
-    os.chmod(publish_pypi_package_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+    os.chmod(publish_pypi_package_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
+def output_beacon(status):
+    global logger
+
+    done = False
+    count = 0
+
+    while not status.done:
+        time.sleep(1)
+        count += 1
+
+        if count % BEACON_INTERVAL == 0:
+            fmt = "Beacon: waited for another {sec} seconds..."
+            logger.info(fmt.format(sec=BEACON_INTERVAL))
 
 
 def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
@@ -735,7 +757,14 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
     try:
         popen = subprocess.Popen(script_filename, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=extended_env)
 
+        status = tools.SimpleStatus()
+        thread = tools.start_simple_thread(output_beacon, status)
+
         stdout, stderr = popen.communicate()
+
+        status.done = True
+        thread.join()
+
         exit_code = popen.returncode
         msg = "[STDOUT] {line}"
 
@@ -747,7 +776,7 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
 
         for line in stderr.decode("utf-8").split("\n"):
             if line != '':
-                logger.error(msg.format(line=line))
+                logger.info(msg.format(line=line))
 
     except subprocess.CalledProcessError as e:
         exit_code = e.returncode
@@ -769,6 +798,7 @@ def execute_make_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH)
 
+
 def execute_build_docker_image_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH)
@@ -778,17 +808,21 @@ def execute_install_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=INSTALL_DEBIAN_PACKAGE_SCRIPT_FILE_PATH)
 
+
 def execute_install_pypi_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH)
+
 
 def execute_publish_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=PUBLISH_DEBIAN_PACKAGE_SCRIPT_FILE_PATH)
 
+
 def execute_publish_pypi_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=PUBLISH_PYPI_PACKAGE_SCRIPT_FILE_PATH)
+
 
 def execute_test_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
@@ -850,7 +884,7 @@ def main(p_main_module_dir):
 
         elif arguments.execute_stage == STAGE_PUBLISH_PYPI_PACKAGE:
             generate_publish_pypi_package_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
-                                                   p_arguments=arguments)
+                                                 p_arguments=arguments)
             execute_publish_pypi_package_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_BUILD_DOCKER_IMAGES:
@@ -866,7 +900,7 @@ def main(p_main_module_dir):
         elif arguments.execute_stage == STAGE_INSTALL_PYPI_PACKAGE:
 
             generate_install_pypi_package_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
-                                                   p_arguments=arguments)
+                                                 p_arguments=arguments)
             execute_install_pypi_package_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_TEST:
