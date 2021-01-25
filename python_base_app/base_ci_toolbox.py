@@ -28,7 +28,6 @@ import stat
 import subprocess
 import sys
 import time
-import typing
 
 import jinja2
 
@@ -178,7 +177,7 @@ default_setup = {
     "generate_generic_install": False,
 }
 
-logger: typing.Optional[logging.Logger] = None
+logger = None
 
 
 def get_module_dir(p_module):
