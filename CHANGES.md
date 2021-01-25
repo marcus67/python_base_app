@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.10 (January 25th, 2021)
+
+*   Simple beacon for outputting message during execution of long generated scripts (fix CircleCI timeout issue)
+
 ## Version 0.2.8 (January 9th, 2021)
 
 *   Provide helper function to check if running in Docker container

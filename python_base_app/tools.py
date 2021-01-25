@@ -65,6 +65,11 @@ PROTECTED_PASSWORD_VALUE = "[HID" "DEN]" # trick Codacy
 # Dummy function to trigger extraction by pybabel...
 _ = lambda x: x
 
+class SimpleStatus(object):
+
+    def __init__(self):
+        self.done = False
+
 def int_to_string(p_integer):
     if p_integer is None:
         return "[None]"
