@@ -52,6 +52,8 @@ else
 fi
 
 echo "Installing PIP package {{python_packages[0][1]}}..."
+{%- if python_packages[0][3]['setup']['max_cpus'] %}
+INSTALL_OPTION='--install-option="--jobs={{ python_packages[0][3]["setup"]["max_cpus"]}}"'
+{% endif %}
 
-${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}
-
+${PIP3} install --upgrade --force-reinstall ${INSTALL_OPTION} dist/{{python_packages[0][1]}}

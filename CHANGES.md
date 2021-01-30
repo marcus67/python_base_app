@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.11 (January 30th, 2021)
+
+*   Check ENV variable `MAX_CPUS` and forward it as install option `pip` as `--cpus` to limit the maximum number of parallel threads
+
 ## Version 0.2.10 (January 25th, 2021)
 
 *   Simple beacon for outputting message during execution of long generated scripts (fix CircleCI timeout issue)

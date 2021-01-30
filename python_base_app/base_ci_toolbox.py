@@ -104,6 +104,7 @@ PREDEFINED_ENV_VARIABLES = [
     VarStatus('DOCKER_REGISTRY_HOST_NAME', "Docker registry host name", "docker_registry"),
     VarStatus('DOCKER_REGISTRY_ORG_UNIT', "Docker registry organisational unit", "docker_registry_org_unit"),
     VarStatus('DOCKER_REGISTRY_USER', "Docker registry login user", "docker_registry_user"),
+    VarStatus('MAX_CPUS', "Maximum number of parallel CPUs/threads to be used during build", "max_cpus"),
 ]
 
 DEFAULT_PYPI_REPOSITORY = "https://pypi.org"
@@ -175,6 +176,7 @@ default_setup = {
     "docker_contexts": [],
     "babel_rel_directory": None,
     "generate_generic_install": False,
+    "max_cpus": None,
 }
 
 logger = None
