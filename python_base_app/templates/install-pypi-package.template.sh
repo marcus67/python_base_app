@@ -53,8 +53,8 @@ fi
 
 MAKE_BIN_DIR="{{ python_packages[0][3]['setup']['python_base_app_bin_dir'] }}"
 {%- if python_packages[0][3]['setup']['max_cpus'] %}
-echo "Preparing customized make in ${MAKE_BIN_DIR}..."
 export MAX_CPUS={{ python_packages[0][3]["setup"]["max_cpus"] }}
+echo "Preparing customized make in ${MAKE_BIN_DIR} running ${MAX_CPUS} processes in parallel..."
 # Prepend local bin dir so that our `make` is found for the Python wheel build process
 export PATH=${MAKE_BIN_DIR}:${PATH}
 # Export JOBS for the WAF framework
