@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-if [ -z ${MAX_CPUS}] ; then
+if [ -z ${MAX_CPUS} ] ; then
   echo "Calling $0 ..."
   /usr/bin/make $@
 else
