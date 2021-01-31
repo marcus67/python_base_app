@@ -64,4 +64,4 @@ hash -r
 which make
 {% endif %}
 
-${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}
+#${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}
