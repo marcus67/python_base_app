@@ -51,7 +51,6 @@ else
     chmod +x $PYTHON_BIN
 fi
 
-echo "Installing PIP package {{python_packages[0][1]}}..."
 MAKE_BIN_DIR="{{ python_packages[0][3]['setup']['python_base_app_bin_dir'] }}"
 {%- if python_packages[0][3]['setup']['max_cpus'] %}
 echo "Preparing customized make in ${MAKE_BIN_DIR}..."
@@ -61,7 +60,8 @@ export PATH=${MAKE_BIN_DIR}:${PATH}
 # Export JOBS for the WAF framework
 export JOBS=${MAX_CPUS}
 hash -r
-which make
+echo "Check: make found by 'which': $(which make)"
 {% endif %}
 
-#${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}
+echo "Installing PIP package {{python_packages[0][1]}}..."
+${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}

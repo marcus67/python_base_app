@@ -5,5 +5,5 @@ if [ -z ${MAX_CPUS} ] ; then
 else
   echo "Calling $0 with -j${MAX_CPUS}..."
   which gcc
-  /usr/bin/make -j${MAX_CPUS} "$@"
+  /usr/bin/make "$@" -j${MAX_CPUS}
 fi
