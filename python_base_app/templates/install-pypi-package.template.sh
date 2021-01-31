@@ -52,7 +52,7 @@ else
 fi
 
 echo "Installing PIP package {{python_packages[0][1]}}..."
-MAKE_BIN_DIR="{{ python_packages[0][3]['setup']['python_base_app_bin_dir'] }}/bin"
+MAKE_BIN_DIR="{{ python_packages[0][3]['setup']['python_base_app_bin_dir'] }}"
 {%- if python_packages[0][3]['setup']['max_cpus'] %}
 echo "Preparing customized make in ${MAKE_BIN_DIR}..."
 export MAX_CPUS={{ python_packages[0][3]["setup"]["max_cpus"] }}
