@@ -53,7 +53,9 @@ fi
 
 echo "Installing PIP package {{python_packages[0][1]}}..."
 {%- if python_packages[0][3]['setup']['max_cpus'] %}
-INSTALL_OPTION=--install-option="--jobs={{ python_packages[0][3]["setup"]["max_cpus"]}}"
+export MAX_CPUS={{ python_packages[0][3]["setup"]["max_cpus"]}}
+# Prepend local bin dir so that our `make` is found for the Python wheel build process
+export PATH=${BASE_DIR}/bin
 {% endif %}
 
-${PIP3} install --upgrade --force-reinstall ${INSTALL_OPTION} dist/{{python_packages[0][1]}}
+${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}

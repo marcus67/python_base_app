@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+if [ -z ${MAX_CPUS}] ; then
+  echo "Calling $0 ..."
+  /usr/bin/make $@
+else
+  echo "Calling $0 with -j${MAX_CPUS}..."
+  /usr/bin/make -j${MAX_CPUS} $@
+fi
