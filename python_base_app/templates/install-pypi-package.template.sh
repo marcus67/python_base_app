@@ -52,11 +52,14 @@ else
 fi
 
 echo "Installing PIP package {{python_packages[0][1]}}..."
+MAKE_BIN_DIR="{{ python_packages[0][3]['setup']['python_base_app_bin_dir'] }}/bin"
 {%- if python_packages[0][3]['setup']['max_cpus'] %}
-echo "Preparing customized make in ${BASE_DIR}/bin..."
-export MAX_CPUS={{ python_packages[0][3]["setup"]["max_cpus"]}}
+echo "Preparing customized make in ${MAKE_BIN_DIR}..."
+export MAX_CPUS={{ python_packages[0][3]["setup"]["max_cpus"] }}
 # Prepend local bin dir so that our `make` is found for the Python wheel build process
-export PATH=${BASE_DIR}/bin:${PATH}
+export PATH=${MAKE_BIN_DIR}:${PATH}
+# Export JOBS for the WAF framework
+export JOBS=${MAX_CPUS}
 hash -r
 which make
 {% endif %}
