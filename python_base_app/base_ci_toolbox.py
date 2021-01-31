@@ -240,7 +240,7 @@ def get_vars(p_setup_params):
     expand_vars(setup)
 
     # store bin path so that tools can be found
-    setup["python_base_app_bin_dir"] = os.path.join(os.path.dirname(__file__), "bin")
+    setup["python_base_app_bin_dir"] = os.path.realpath(os.path.join(os.path.dirname(__file__), "../bin"))
 
     return {"setup": setup}
 
