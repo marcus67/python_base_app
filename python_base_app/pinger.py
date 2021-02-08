@@ -21,6 +21,8 @@
 import re
 import shlex
 import subprocess
+import urllib.parse
+import requests
 
 from python_base_app import configuration
 from python_base_app import log_handling
@@ -58,6 +60,21 @@ class Pinger(object):
             raise configuration.ConfigurationException(
                 fmt.format(regex=self._config.ping_result_regex, section=SECTION_NAME))
 
+    def is_valid_ping(self, p_host):
+
+        if ":" in p_host:
+
+            try:
+                parts = urllib.parse.urlparse(p_host)
+
+            except ValueError:
+                return False
+
+            return tools.is_valid_dns_name(parts.hostname)
+
+        else:
+            return tools.is_valid_dns_name(p_dns_name=p_host)
+
     def ping(self, p_host):
 
         if ":" in p_host:
@@ -68,7 +85,15 @@ class Pinger(object):
 
     def remote_ping(self, p_url):
 
-        return -1
+        try:
+            r = requests.get(p_url)
+            delay = float(r.text)
+
+        except:
+            return None
+
+        return delay
+
 
     # https://stackoverflow.com/questions/2953462/pinging-servers-in-python
     def local_ping(self, p_host):

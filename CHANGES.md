@@ -2,6 +2,11 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.14 (February ???, 2021)
+
+*   Add class `Pinger` 
+*   Exclude `sudo` package when not needed
+
 ## Version 0.2.13 (January 31st, 2021)
 
 *   Fix usage of local make and export JOBS for WAF framework (just in case)
