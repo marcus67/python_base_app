@@ -7,6 +7,7 @@ This document lists all changes of `python_base_app` with the most recent change
 *   Add class `Pinger` 
 *   Exclude `sudo` package when not needed
 *   Add test case for health API 
+*   Add babel-login to requirements.txt (triggered by new test case)
 
 ## Version 0.2.13 (January 31st, 2021)
 

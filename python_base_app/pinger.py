@@ -52,7 +52,10 @@ class PingerConfigModel(configuration.ConfigModel):
 
 class Pinger(object):
 
-    def __init__(self, p_config, p_default_port):
+    def __init__(self, p_default_port=None, p_config=None):
+        if p_config is None:
+            p_config = PingerConfigModel()
+
         self._config = p_config
         self._default_port = p_default_port
         self._logger = log_handling.get_logger(self.__class__.__name__)
