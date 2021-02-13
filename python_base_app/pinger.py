@@ -30,8 +30,12 @@ from python_base_app import tools
 
 SECTION_NAME = "Pinger"
 
+URL_SEPERATOR = ","
+
+DEFAULT_PING_PORT = 6666
 DEFAULT_PING_COMMAND = "/bin/ping"
 DEFAULT_PING_RESULT_REGEX = r"rtt min/avg/max/mdev = [\d\.]+/([\d\.]+)/[\d\.]+/[\d\.]+ ms"
+DEFAULT_PING_TIMEOUT_IN_SECONDS = 5
 
 
 class PingerConfigModel(configuration.ConfigModel):
@@ -48,8 +52,9 @@ class PingerConfigModel(configuration.ConfigModel):
 
 class Pinger(object):
 
-    def __init__(self, p_config):
+    def __init__(self, p_config, p_default_port):
         self._config = p_config
+        self._default_port = p_default_port
         self._logger = log_handling.get_logger(self.__class__.__name__)
 
         try:
@@ -62,31 +67,44 @@ class Pinger(object):
 
     def is_valid_ping(self, p_host):
 
-        if ":" in p_host:
-
-            try:
-                parts = urllib.parse.urlparse(p_host)
-
-            except ValueError:
-                return False
-
-            return tools.is_valid_dns_name(parts.hostname)
+        if URL_SEPERATOR in p_host:
+            first_url = p_host[:p_host.index(URL_SEPERATOR)]
+            return tools.is_valid_dns_name(first_url)
 
         else:
             return tools.is_valid_dns_name(p_dns_name=p_host)
 
-    def ping(self, p_host):
+    def ping(self, p_host, p_default_port=None):
 
-        if ":" in p_host:
-            return self.remote_ping(p_url=p_host)
+        if p_default_port is None:
+            p_default_port = self._default_port
+
+        if URL_SEPERATOR in p_host:
+            return self.remote_ping(p_url=p_host, p_default_port=p_default_port)
 
         else:
             return self.local_ping(p_host=p_host)
 
-    def remote_ping(self, p_url):
+    def remote_ping(self, p_url, p_default_port, p_default_timeout=DEFAULT_PING_TIMEOUT_IN_SECONDS):
 
+        if not URL_SEPERATOR in p_url:
+            msg = "No URL separator found in '{url}'!"
+            raise Exception(msg.format(url=p_url))
         try:
-            r = requests.get(p_url)
+
+            index = p_url.find(URL_SEPERATOR)
+            first_url = p_url[:index]
+            remaining_url = p_url[index+1:]
+
+            host, port = tools.split_host_url(p_url=first_url, p_default_port_number=p_default_port)
+
+            url = "http://{host}:{port}/api/ping?host={remaining_url}".format(
+                host=host,
+                port=port,
+                remaining_url=remaining_url
+            )
+
+            r = requests.get(url, timeout=p_default_timeout)
             delay = float(r.text)
 
         except:

@@ -28,6 +28,7 @@ from python_base_app.test import test_audio_player
 from python_base_app.test import test_configuration
 from python_base_app.test import test_pytest
 from python_base_app.test import test_base_ci_toolbox
+from python_base_app.test import test_base_web_server
 
 
 def add_test_cases(p_test_suite, p_config_filename=None):
@@ -50,6 +51,10 @@ def add_test_cases(p_test_suite, p_config_filename=None):
     base_test.add_tests_in_test_unit(
         p_test_suite=p_test_suite,
         p_test_unit_class=test_base_ci_toolbox.TestBaseCiToolbox, p_config_filename=p_config_filename)
+
+    base_test.add_tests_in_test_unit(
+        p_test_suite=p_test_suite,
+        p_test_unit_class=test_base_web_server.TestBaseWebServer, p_config_filename=p_config_filename)
 
 
 def main():

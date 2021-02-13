@@ -62,6 +62,8 @@ PLATFORM_NAME_MAC_OS = "darwin"
 PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS", "SECRET")
 PROTECTED_PASSWORD_VALUE = "[HID" "DEN]" # trick Codacy
 
+PORT_NUMBER_SEPERATOR = ":"
+
 # Dummy function to trigger extraction by pybabel...
 _ = lambda x: x
 
@@ -438,10 +440,40 @@ def get_new_object_name(p_name_pattern, p_existing_names):
 
     return new_name
 
+def split_host_url(p_url, p_default_port_number):
+    index = p_url.find(PORT_NUMBER_SEPERATOR)
+
+    if index >= 0:
+        host = p_url[:index]
+        port_string = p_url[index + 1:]
+
+        try:
+            port_number = int(port_string)
+
+        except Exception:
+            msg = "Invalid port number {port}"
+            raise Exception(msg.format(port=port_string))
+
+        if port_number < 1 or port_number > 65535:
+            msg = "Port number {port} of ouf range"
+            raise Exception(msg.format(port=port_number))
+
+        return ( host, port_number )
+
+    else:
+        return ( p_url, p_default_port_number)
+
+
 def is_valid_dns_name(p_dns_name):
 
     try:
-        socket.gethostbyname(p_dns_name)
+        dns_name, port = split_host_url(p_url=p_dns_name, p_default_port_number=1)
+
+    except Exception:
+        return False
+
+    try:
+        socket.gethostbyname(dns_name)
         return True
 
     except socket.gaierror:

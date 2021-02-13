@@ -41,10 +41,11 @@ DEFAULT_INTERNAL_BASE_URL = ''
 
 _ = lambda x: x
 
+DUMMY_SECTION_NAME = "BaseWebServer"
 
 class BaseWebServerConfigModel(configuration.ConfigModel):
 
-    def __init__(self, p_section_name):
+    def __init__(self, p_section_name=DUMMY_SECTION_NAME):
         super(BaseWebServerConfigModel, self).__init__(p_section_name)
         self.scheme = "http"
         self.host = "0.0.0.0"
@@ -166,7 +167,7 @@ class BaseWebServer(object):
             fmt = "Waiting for the server thread to terminate"
             self._logger.info(fmt)
 
-            self._process.join()
+            self._process.join(timeout=3)
 
             fmt = "HTTP server '%s' shut down successfully" % self._name
             self._logger.info(fmt)
