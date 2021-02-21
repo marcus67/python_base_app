@@ -9,6 +9,7 @@ This document lists all changes of `python_base_app` with the most recent change
 *   Add test case for health API 
 *   Add babel-login to requirements.txt (triggered by new test case)
 *   Add dependency on package `some_flask_helpers`
+*   Add helper function `get_dns_name_by_ip_address()`
 
 ## Version 0.2.13 (January 31st, 2021)
 

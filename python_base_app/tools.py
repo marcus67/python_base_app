@@ -479,6 +479,18 @@ def is_valid_dns_name(p_dns_name):
     except socket.gaierror:
         return False
 
+def get_dns_name_by_ip_address(p_ip_address):
+
+    try:
+        result = socket.gethostbyaddr(p_ip_address)
+        return result[0]
+
+    except Exception as e:
+        return p_ip_address
+
+
+
+
 def format_boolean(p_value):
     return _("On") if p_value else _("Off")
 
