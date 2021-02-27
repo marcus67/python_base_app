@@ -68,9 +68,9 @@ class LdapUser(object):
 
 class LdapUserHandler(base_user_handler.BaseUserHandler):
 
-    def __init__(self, p_config):
+    def __init__(self, p_config, p_exclude_user_list=None):
 
-        super().__init__(p_config=p_config)
+        super().__init__(p_config=p_config, p_exclude_user_list=p_exclude_user_list)
 
         self._config = p_config
         self._users = None

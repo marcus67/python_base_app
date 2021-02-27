@@ -40,7 +40,7 @@ class UnixUserHandlerConfigModel(base_user_handler.BaseUserHandlerConfigModel):
 
 class UnixUserHandler(base_user_handler.BaseUserHandler):
 
-    def __init__(self, p_config, p_exclude_user_list):
+    def __init__(self, p_config, p_exclude_user_list=None):
 
         super().__init__(p_config=p_config, p_exclude_user_list=p_exclude_user_list)
         self._users = None
