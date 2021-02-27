@@ -2,6 +2,15 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.16 (February 27th, 2021)
+
+*   Add Debian packages in `python_base_app/templates/debian_control.template.conf` to enable loading 
+    of Python module `python-ldap`
+
+*   Move functionality from `UnixUserHandler` to `BaseUserHandler`
+
+*   Add new class `LdapUserHandler` for authorization and authentication with an LDAP server
+
 ## Version 0.2.15 (February 23rd, 2021)
 
 *   Add test case for health API 
