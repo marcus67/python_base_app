@@ -80,10 +80,7 @@ set -e
 if [ "${RUN_TEST_BIN}" == "" ] ; then
     echo "ERROR: Cannot find executable {{ var.setup.run_test_suite }} in PATH=${PATH}"
     exit 1
-elif [ "${PYCOVERAGE_BIN}" == "" ] ; then
-    echo "Running test script ${RUN_TEST_BIN}..."
-    ${RUN_TEST_BIN}
-else
+elif [ -x ${PYCOVERAGE_BIN} ] ; then
     echo "Calling pycoverage 'erase'..."
     ${PYCOVERAGE_BIN} erase
     echo "Calling pycoverage 'run' for test script ${RUN_TEST_BIN}..."
@@ -91,4 +88,7 @@ else
     echo "Calling pycoverage 'report'..."
     ${PYCOVERAGE_BIN} report
     ${PYCOVERAGE_BIN} html
+else
+    echo "Running test script ${RUN_TEST_BIN}..."
+    ${RUN_TEST_BIN}
 fi
