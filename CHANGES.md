@@ -15,6 +15,8 @@ This document lists all changes of `python_base_app` with the most recent change
 
 *   Repair call of `coverage`
 
+*   Add test cases for class `UnixUserHandler`
+
 ## Version 0.2.15 (February 23rd, 2021)
 
 *   Add test case for health API 

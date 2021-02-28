@@ -56,7 +56,7 @@ class BaseUserHandler(object, metaclass=abc.ABCMeta):
             return False
 
         if p_shell is not None:
-            if p_shell not in INVALID_SHELLS:
+            if p_shell in INVALID_SHELLS:
                 return False
 
         if p_username is not None:

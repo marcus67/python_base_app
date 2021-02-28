@@ -1,4 +1,4 @@
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2021  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -251,7 +251,7 @@ class TestLdapUserHandler(base_test.BaseTestCase):
 
         self.assertFalse(handler.is_admin(p_username=USER_2_UID))
 
-    def test_is_valid_uid_super_branch(self):
+    def test_is_invalid_uid_super_branch(self):
         handler = ldap_user_handler.LdapUserHandler(p_config=self.get_config())
 
         self.assertFalse(handler.is_valid_uid(p_uid=100, p_username="xxx"))
