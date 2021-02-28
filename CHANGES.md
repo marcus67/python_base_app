@@ -11,6 +11,10 @@ This document lists all changes of `python_base_app` with the most recent change
 
 *   Add new class `LdapUserHandler` for authorization and authentication with an LDAP server
 
+*   Exclude template Python files  `.coveragerc`
+
+*   Repair call of `coverage`
+
 ## Version 0.2.15 (February 23rd, 2021)
 
 *   Add test case for health API 

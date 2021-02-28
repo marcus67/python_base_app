@@ -33,6 +33,12 @@ DEFAULT_MIN_UID = 500
 DEFAULT_MAX_UID = 65000
 INVALID_SHELLS = ["/usr/sbin/nologin", "/bin/false"]
 
+USER_FILTER_PATTERN = "(objectClass={cls})"
+USER_ATTRS = ["uid", "uidNumber", "gecos"]
+
+GROUP_FILTER_PATTERN = "( & (objectClass={cls}) (cn={group}) )"
+GROUP_ATTRS = ["memberUid"]
+
 
 class LdapUserHandlerConfigModel(base_user_handler.BaseUserHandlerConfigModel):
 
@@ -61,8 +67,8 @@ class LdapUserHandlerConfigModel(base_user_handler.BaseUserHandlerConfigModel):
 
 class LdapUser(object):
 
-    def __init__(self, p_uid, p_dn):
-        self.uid = p_uid
+    def __init__(self, p_uid_number, p_dn):
+        self.uid_number = p_uid_number
         self.dn = p_dn
 
 
@@ -80,9 +86,8 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
         msg = "Using LDAP server at {url} with bind DN '{dn}'..."
         self._logger.info(msg.format(url=self.get_ldap_url(), dn=self._config.ldap_bind_dn))
 
-        if self._config.ldap_admin_group_name:
-            msg = "Using LDAP group '{admin_group}' for retrieving administrators..."
-            self._logger.info(msg.format(admin_group=self._config.ldap_admin_group_name))
+        msg = "Using LDAP group '{admin_group}' for retrieving administrators..."
+        self._logger.info(msg.format(admin_group=self._config.ldap_admin_group_name))
 
         if self._config.ldap_user_group_name:
             msg = "Using LDAP group '{user_group}' for retrieving users..."
@@ -113,11 +118,10 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
 
         con = self.get_ldap_connection()
 
-        filter_pattern = "( & (objectClass={cls}) (cn={group}) )"
         result = con.search_s(self._config.ldap_search_base_dn, ldap.SCOPE_SUBTREE,
-                              filter_pattern.format(cls=self._config.ldap_group_object_class,
-                                                    group=p_group_dn),
-                              ["memberUid"])
+                              GROUP_FILTER_PATTERN.format(cls=self._config.ldap_group_object_class,
+                                                          group=p_group_dn),
+                              GROUP_ATTRS)
 
         usernames = {entry.decode("utf-8") for entry in result[0][1]["memberUid"]}
         return usernames
@@ -155,14 +159,13 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
         if self._users is None:
             con = self.get_ldap_connection()
 
-            filter_pattern = "(objectClass={cls})"
             result = con.search_s(self._config.ldap_search_base_dn, ldap.SCOPE_SUBTREE,
-                                  filter_pattern.format(cls=self._config.ldap_user_object_class),
-                                  ["uid", "uidNumber", "gecos"])
+                                  USER_FILTER_PATTERN.format(cls=self._config.ldap_user_object_class),
+                                  USER_ATTRS)
 
             self._users = {
-                entry[1]["uid"][0].decode("utf-8") :
-                    LdapUser(p_uid=int(entry[1]["uidNumber"][0].decode("utf-8")), p_dn=entry[0])
+                entry[1]["uid"][0].decode("utf-8"):
+                    LdapUser(p_uid_number=int(entry[1]["uidNumber"][0].decode("utf-8")), p_dn=entry[0])
                 for entry in result
             }
 
@@ -170,8 +173,8 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
 
     def list_users(self):
 
-        return [ username for username, user in self.users.items()
-                 if self.is_valid_uid(p_uid=user.uid, p_username=username) ]
+        return [username for username, user in self.users.items()
+                if self.is_valid_uid(p_uid=user.uid_number, p_username=username)]
 
     def get_uid(self, p_username):
 
@@ -180,7 +183,7 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
         if ldap_user is None:
             return None
 
-        return ldap_user.uid
+        return ldap_user.uid_number
 
     def authenticate(self, p_username, p_password):
 
@@ -194,7 +197,7 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
 
         except ldap.INVALID_CREDENTIALS:
             msg = "failed attempt to authenticate as user '{username}'"
-            self._logger.warn(msg.format(username=p_username))
+            self._logger.warning(msg.format(username=p_username))
             return False
 
         return True
