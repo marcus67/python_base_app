@@ -19,6 +19,7 @@
 include LICENSE
 include README.md
 include requirements.txt
+include python_base_app/static/icons/*.png
 include python_base_app/translations/*/*/messages.mo
 include python_base_app/test/resources/ci_toolbox/*
 include python_base_app/test/resources/ci_toolbox/a_package/*

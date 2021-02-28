@@ -1,3 +1,5 @@
+![PythonBaseApp-Logo](python_base_app/static/icons/icon-python-base-app-128x128.png)
+
 # Python Application Framework `python_base_app`
 
 ## Overview
@@ -39,14 +41,20 @@ Note: The vulnerability status is derived from the Python PIP packages found in 
 
 *   (Base) classes for handling
     *   configuration,
-    *   HTTP server (Flask with optional authentication),
+    *   HTTP server (Flask with optional authentication (simple configured admin password and LDAP)),
+    *   helper classes for Flask WTF,
+    *   actuator providing a health endpoint,
+    *   helpers for notification using popups or audio messages,
     *   REST access,
     *   logging,
-    *   daemon processes,
-*   Templates and generator (JInja2) for creating
+    *   daemon processes
+    *   wrapper for pinging other servers with integration of [ProxyPing](https://github.com/marcus67/proxy_ping)
+
+*   Templates and generator (Jinja2) for creating
     *   Debian packages for Python applications,
     *   PIP packages (build, test, publish),
-    *   control files for CircleCI
+    *   control files for continous integration platforms CircleCI and GitLab,
+    *   control file abalyzing test coverage using Python module `coverage`
      
 ## Caveats
 
