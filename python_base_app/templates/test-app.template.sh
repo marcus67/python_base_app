@@ -30,8 +30,8 @@ VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
 
 
 set +e
-#PYCOVERAGE_BIN=$(which coverage)
-PYCOVERAGE_BIN=${VIRTUAL_ENV_DIR}/bin/coverage
+PYCOVERAGE_BIN=$(which coverage)
+#PYCOVERAGE_BIN=${VIRTUAL_ENV_DIR}/bin/coverage
 set -e
 
 if [ -x ${PYCOVERAGE_BIN} ] ; then
