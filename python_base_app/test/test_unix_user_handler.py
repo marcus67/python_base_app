@@ -39,6 +39,11 @@ USER_2_UID_NUMBER = "1001"
 USER_2_UID = "non-admin"
 USER_2_PASSWORD = "0ther$ecret"
 
+USER_3_DN = "cn=special-user," + USER_BASE_CN
+USER_3_UID_NUMBER = "100"
+USER_3_UID = "special-user"
+USER_3_PASSWORD = "0ther$ecret"
+
 CONFIG_USER_LIST = USER_1_UID + ":" + USER_1_UID_NUMBER + "," + USER_2_UID + ":" + USER_2_UID_NUMBER
 
 GROUP_BASE_DN = "ou=groups," + SEARCH_BASE_DN
@@ -72,6 +77,8 @@ FAKE_USER_MAP = {
                       p_shell="/bin/bash"),
     USER_2_UID: FakePasswordEntry(p_uid=int(USER_2_UID_NUMBER), p_username=USER_2_UID, p_password=USER_2_PASSWORD,
                       p_shell="/bin/bash"),
+    USER_3_UID: FakePasswordEntry(p_uid=int(USER_3_UID_NUMBER), p_username=USER_3_UID, p_password=USER_3_PASSWORD,
+                                  p_shell="/bin/bash"),
 }
 
 def fake_getpwall():
