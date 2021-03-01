@@ -29,10 +29,6 @@ DEFAULT_LDAP_PORT = 389
 DEFAULT_LDAP_USER_OBJECT_CLASS = "posixAccount"
 DEFAULT_LDAP_GROUP_OBJECT_CLASS = "posixGroup"
 
-DEFAULT_MIN_UID = 500
-DEFAULT_MAX_UID = 65000
-INVALID_SHELLS = ["/usr/sbin/nologin", "/bin/false"]
-
 USER_FILTER_PATTERN = "(objectClass={cls})"
 USER_ATTRS = ["uid", "uidNumber", "gecos"]
 
@@ -54,9 +50,6 @@ class LdapUserHandlerConfigModel(base_user_handler.BaseUserHandlerConfigModel):
         self.ldap_admin_group_name = configuration.NONE_STRING
         self.ldap_user_object_class = DEFAULT_LDAP_USER_OBJECT_CLASS
         self.ldap_group_object_class = DEFAULT_LDAP_GROUP_OBJECT_CLASS
-
-        self.min_uid = DEFAULT_MIN_UID
-        self.max_uid = DEFAULT_MAX_UID
 
     def is_active(self):
         return (self.ldap_bind_dn is not None and
