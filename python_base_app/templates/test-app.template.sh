@@ -32,7 +32,7 @@ VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
 set +e
 # Prepend virtual environment to PATH so that it will be searched first (before globally installed Python directories)
 #export PATH=${VIRTUAL_ENV_DIR}/bin:${PATH}
-PYCOVERAGE_BIN=$(which coverage
+PYCOVERAGE_BIN=$(which coverage)
 #PYCOVERAGE_BIN=${VIRTUAL_ENV_DIR}/bin/coverage
 set -e
 
