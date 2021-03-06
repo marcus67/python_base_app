@@ -82,9 +82,19 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
         msg = "Using LDAP group '{admin_group}' for retrieving administrators..."
         self._logger.info(msg.format(admin_group=self._config.ldap_admin_group_name))
 
+        # Test-load group to detect misconfiguration during startup
+        grp = self.admin_group
+        msg = "Valid administrators: {user_names}"
+        self._logger.info(msg.format(user_names=", ".join(grp)))
+
         if self._config.ldap_user_group_name:
             msg = "Using LDAP group '{user_group}' for retrieving users..."
             self._logger.info(msg.format(user_group=self._config.ldap_user_group_name))
+
+            # Test-load group to detect misconfiguration during startup
+            grp = self.user_group
+            msg = "Valid users: {user_names}"
+            self._logger.info(msg.format(user_names=", ".join(grp)))
 
     def get_ldap_url(self):
 
@@ -100,10 +110,17 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
             p_bind_password = self._config.ldap_bind_password
 
         con = ldap.initialize(self.get_ldap_url())
-        result = con.simple_bind_s(p_bind_dn, p_bind_password)
 
-        if result[0] != 97:
-            raise Exception()  # todo
+        try:
+            result = con.simple_bind_s(p_bind_dn, p_bind_password)
+
+            if result[0] != 97:
+                msg = "error {result} while opening LDAP server at {url}"
+                raise configuration.ConfigurationException(msg.format(result=result[0], url=self.get_ldap_url()))
+
+        except Exception as e:
+            msg = "exception '{msg}' while opening LDAP server at {url}"
+            raise configuration.ConfigurationException(msg.format(msg=str(e), url=self.get_ldap_url()))
 
         return con
 
@@ -115,6 +132,11 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
                               GROUP_FILTER_PATTERN.format(cls=self._config.ldap_group_object_class,
                                                           group=p_group_dn),
                               GROUP_ATTRS)
+
+        if len(result) == 0:
+            msg = "cannot find LDAP group '{group_dn}' in sub tree '{dn}'"
+            raise configuration.ConfigurationException(msg.format(group_dn=p_group_dn,
+                                                                  dn=self._config.ldap_search_base_dn))
 
         usernames = {entry.decode("utf-8") for entry in result[0][1]["memberUid"]}
         return usernames
