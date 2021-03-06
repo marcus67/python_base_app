@@ -42,7 +42,7 @@ STAGE_PREPARE_DIRS = [
 STAGE_BUILD_FILES = [
     'bin/make-debian-package.sh',
     'a_package/translations/de/LC_MESSAGES/messages.mo',
-    'a_package.egg-info/dependency_links.txt',
+    #'a_package.egg-info/dependency_links.txt',
     'a_package.egg-info/PKG-INFO',
     'a_package.egg-info/requires.txt',
     'a_package.egg-info/SOURCES.txt',
