@@ -118,6 +118,9 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
                 msg = "error {result} while opening LDAP server at {url}"
                 raise configuration.ConfigurationException(msg.format(result=result[0], url=self.get_ldap_url()))
 
+        except ldap.INVALID_CREDENTIALS:
+            raise
+
         except Exception as e:
             msg = "exception '{msg}' while opening LDAP server at {url}"
             raise configuration.ConfigurationException(msg.format(msg=str(e), url=self.get_ldap_url()))
@@ -211,9 +214,12 @@ class LdapUserHandler(base_user_handler.BaseUserHandler):
             self.get_ldap_connection(p_bind_dn=ldap_user.dn, p_bind_password=p_password)
 
         except ldap.INVALID_CREDENTIALS:
-            msg = "failed attempt to authenticate as user '{username}'"
-            self._logger.warning(msg.format(username=p_username))
             return False
+
+        except Exception as e:
+            msg = "failed attempt to authenticate as user '{username}' due to '{msg}'"
+            self._logger.warning(msg.format(username=p_username, msg=str(e)))
+            raise e
 
         return True
 
