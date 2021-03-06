@@ -42,6 +42,7 @@ else
     echo "WARNING: No Python coverage tool found in path. No coverage stats will be collected..."
 fi
 
+pip3 freeze
 
 {%- if arguments.use_dev_dir %}
 export PATH={{ arguments.use_dev_dir }}:${PATH}
