@@ -40,6 +40,12 @@ fi
 
 VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][3]['setup']['name']}}/virtualenv/bin"
 PYTHON_BIN=$VIRTUAL_ENV_DIR/python3
+ORIG_PYTHON3_BIN=$(which python3)
+
+if [ "${ORIG_PYTHON3_BIN}" == "" ] ; then
+    echo "No Python3 interpreter found in PATH!"
+    exit 1
+fi
 
 if [ -d $VIRTUAL_ENV_DIR ] ; then
     echo "Virtual Python environment detected in $VIRTUAL_ENV_DIR..."
@@ -47,7 +53,7 @@ else
     echo "Creating makeshift Python interpreter script in $VIRTUAL_ENV_DIR..."
     mkdir -p $VIRTUAL_ENV_DIR
     echo "#!/bin/bash" > $PYTHON_BIN
-    echo "python3 $@" >> $PYTHON_BIN
+    echo "${ORIG_PYTHON3_BIN} $@" >> $PYTHON_BIN
     chmod +x $PYTHON_BIN
 fi
 

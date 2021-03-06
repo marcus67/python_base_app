@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2021  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -31,7 +31,7 @@ VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
 
 set +e
 # Prepend virtual environment to PATH so that it will be searched first (before globally installed Python directories)
-#export PATH=${VIRTUAL_ENV_DIR}/bin:${PATH}
+export PATH=${VIRTUAL_ENV_DIR}/bin:${PATH}
 PYCOVERAGE_BIN=$(which coverage)
 #PYCOVERAGE_BIN=${VIRTUAL_ENV_DIR}/bin/coverage
 set -e
