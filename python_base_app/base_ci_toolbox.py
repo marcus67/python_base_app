@@ -129,6 +129,7 @@ default_setup = {
     "bin_dir": "bin",
     "test_dir": "test",
     "run_test_suite": "run_{module_name}_test_suite.py",
+    "run_test_suite_no_venv": "run_{module_name}_test_suite_no_venv.py",
     "contrib_dir": "contrib",
     "rel_tmp_dir": "tmp",
     "rel_etc_dir": "etc/{name}",

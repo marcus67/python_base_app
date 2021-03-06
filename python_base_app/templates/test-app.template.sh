@@ -26,14 +26,13 @@
 set -e
 SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
-VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
+VIRTUAL_ENV_BIN_DIR=/{{ var.setup.rel_virtual_env_dir }}/bin
 
 
 set +e
 # Prepend virtual environment to PATH so that it will be searched first (before globally installed Python directories)
-export PATH=${VIRTUAL_ENV_DIR}/bin:${PATH}
+export PATH=${VIRTUAL_ENV_BIN_DIR}:${PATH}
 PYCOVERAGE_BIN=$(which coverage)
-#PYCOVERAGE_BIN=${VIRTUAL_ENV_DIR}/bin/coverage
 set -e
 
 if [ -x ${PYCOVERAGE_BIN} ] ; then
@@ -77,6 +76,7 @@ fi
 
 set +e
 RUN_TEST_BIN=`which {{ var.setup.run_test_suite }}`
+RUN_TEST_BIN_NO_VENV=`which {{ var.setup.run_test_suite_no_venv }}`
 set -e
 
 
@@ -86,8 +86,17 @@ if [ "${RUN_TEST_BIN}" == "" ] ; then
 elif [ -x ${PYCOVERAGE_BIN} ] ; then
     echo "Calling pycoverage 'erase'..."
     ${PYCOVERAGE_BIN} erase
-    echo "Calling pycoverage 'run' for test script ${RUN_TEST_BIN}..."
-    ${PYCOVERAGE_BIN} run ${RUN_TEST_BIN}
+
+    if [ -d $VIRTUAL_ENV_BIN_DIR ] ; then
+        echo "Virtual Python environment detected in $VIRTUAL_ENV_BIN_DIR..."
+        echo "Calling pycoverage 'run' for test script ${RUN_TEST_BIN} in virtual environment..."
+        ${PYCOVERAGE_BIN} run ${RUN_TEST_BIN}
+    else
+        echo "No virtual Python environment detected..."
+        echo "Calling pycoverage 'run' for test script ${RUN_TEST_BIN_NO_VENV}..."
+        ${PYCOVERAGE_BIN} run ${RUN_TEST_BIN_NO_VENV}
+    fi
+
     echo "Calling pycoverage 'report'..."
     ${PYCOVERAGE_BIN} report
     ${PYCOVERAGE_BIN} html

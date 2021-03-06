@@ -1,4 +1,4 @@
-#! /var/lib/python_base_app/virtualenv/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 #    Copyright (C) 2019  Marcus Rickert
