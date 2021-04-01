@@ -21,7 +21,7 @@
 import re
 import shlex
 import subprocess
-import urllib.parse
+
 import requests
 
 from python_base_app import configuration
@@ -33,8 +33,19 @@ SECTION_NAME = "Pinger"
 URL_SEPERATOR = ","
 
 DEFAULT_PING_PORT = 6666
-DEFAULT_PING_COMMAND = "/bin/ping"
-DEFAULT_PING_RESULT_REGEX = r"rtt min/avg/max/mdev = [\d\.]+/([\d\.]+)/[\d\.]+/[\d\.]+ ms"
+
+if tools.is_mac_os():
+    DEFAULT_PING_COMMAND = "/sbin/ping"
+    DEFAULT_PING_WAIT_OPTION = "-W"
+
+else:
+    DEFAULT_PING_COMMAND = "/bin/ping"
+    DEFAULT_PING_WAIT_OPTION = "-w"
+
+# MacOS: round-trip min/avg/max/stddev = 0.043/0.043/0.043/0.000 ms
+# Linux: rtt min/avg/max/mdev = 0.043/0.043/0.043/0.000 ms
+
+DEFAULT_PING_RESULT_REGEX = r"(rtt|round-trip) min/avg/max/(mdev|stddev) = [\d\.]+/([\d\.]+)/[\d\.]+/[\d\.]+ ms"
 DEFAULT_PING_TIMEOUT_IN_SECONDS = 5
 
 
@@ -48,6 +59,7 @@ class PingerConfigModel(configuration.ConfigModel):
 
         self.ping_command = DEFAULT_PING_COMMAND
         self.ping_result_regex = DEFAULT_PING_RESULT_REGEX
+        self.ping_wait_option = DEFAULT_PING_WAIT_OPTION
 
 
 class Pinger(object):
@@ -97,7 +109,7 @@ class Pinger(object):
 
             index = p_url.find(URL_SEPERATOR)
             first_url = p_url[:index]
-            remaining_url = p_url[index+1:]
+            remaining_url = p_url[index + 1:]
 
             host, port = tools.split_host_url(p_url=first_url, p_default_port_number=p_default_port)
 
@@ -115,7 +127,6 @@ class Pinger(object):
 
         return delay
 
-
     # https://stackoverflow.com/questions/2953462/pinging-servers-in-python
     def local_ping(self, p_host):
         """
@@ -123,10 +134,11 @@ class Pinger(object):
         Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
         """
 
-        fmt = "{ping_command} -w 1 {c_option} {host}"
+        fmt = "{ping_command} {w_option} 1 {c_option} {host}"
         raw_command = fmt.format(ping_command=self._config.ping_command,
                                  # Ping command count option as function of OS
                                  c_option='-n 1' if tools.is_windows() else '-c 1',
+                                 w_option=self._config.ping_wait_option,
                                  host=shlex.quote(p_host))
 
         command = shlex.split(raw_command)
@@ -141,7 +153,7 @@ class Pinger(object):
             result = self.ping_result_regex.match(line.decode("UTF-8"))
 
             if result:
-                delay = float(result.group(1))
+                delay = float(result.group(3))
                 break
 
         fmt = "Host {host} is {status}"
