@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.17 (April 2nd, 2021)
+
+*   Make test suite compile on MacOS
+
 ## Version 0.2.16 (February 27th, 2021)
 
 *   Add Debian packages in `python_base_app/templates/debian_control.template.conf` to enable loading 
