@@ -17,7 +17,7 @@
 
 settings = {
     "name": "python-base-app",
-    "version": "0.2.17",
+    "version": "0.2.18",
     "description": "Generic tools and base classes for Python applications with web interface.",
     "author": "Marcus Rickert",
     "author_email": "marcus.rickert@web.de",

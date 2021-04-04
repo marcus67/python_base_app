@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.18 (April 3nd, 2021)
+
+*   Moved `copy_attributes` and `create_class_instance` from LittleBrother to `tools.py`
+
 ## Version 0.2.17 (April 2nd, 2021)
 
 *   Make test suite compile on MacOS

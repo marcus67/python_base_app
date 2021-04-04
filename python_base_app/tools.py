@@ -502,5 +502,19 @@ def value_or_not_set(p_value):
     else:
         return p_value
 
+
 def running_in_docker():
     return os.getenv("RUNNING_IN_DOCKER") is not None
+
+
+def copy_attributes(p_from: object, p_to: object, p_only_existing=False) -> None:
+    for (key, value) in p_from.__dict__.items():
+        if not key.startswith('_'):
+            if key in p_to.__dict__ or not p_only_existing:
+                setattr(p_to, key, value)
+
+
+def create_class_instance(p_class, p_initial_values) -> object:
+    instance = p_class()
+    copy_attributes(p_from=p_initial_values, p_to=instance)
+    return instance
