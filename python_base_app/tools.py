@@ -488,12 +488,16 @@ def get_dns_name_by_ip_address(p_ip_address):
     except Exception as e:
         return p_ip_address
 
-def objects_are_equal(p_object1: object, p_object2: object):
+def objects_are_equal(p_object1: object, p_object2: object, p_logger=None):
     for attr, value1 in p_object1.__dict__.items():
         if not attr.startswith('_') and not callable(value1):
             value2 = getattr(p_object2, attr)
 
             if value1 != value2:
+                if p_logger is not None:
+                    msg = "objects_are_equal: attribute '{attr}' differs: '{value1}' != '{value2}'"
+                    p_logger.error(msg.format(attr=attr, value1=value1, value2=value2))
+
                 return False
 
     return True
