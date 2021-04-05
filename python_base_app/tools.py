@@ -493,6 +493,15 @@ def objects_are_equal(p_object1: object, p_object2: object, p_logger=None):
         if not attr.startswith('_') and not callable(value1):
             value2 = getattr(p_object2, attr)
 
+            if value1 is None and value2 is None:
+                continue
+
+            if value1 is None and value2 is not None:
+                return False
+
+            if value2 is None and value1 is not None:
+                return False
+
             if type(value1) != type(value2):
                 if p_logger is not None:
                     msg = "objects_are_equal: attribute type of '{attr}' differs: '{type1}' != '{type2}'"
