@@ -41,7 +41,7 @@ SONAR_SCANNER_BIN=$(which sonar-scanner)
 set -e
 
 if [ ! -x ${SONAR_SCANNER_BIN:-x} ] ; then
-    echo "WARNING: No Sonar CLI found in path. Aborting..."
+    echo "ERROR: No Sonar CLI found in path. Aborting..."
     exit 1
 fi
 
