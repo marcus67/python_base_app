@@ -79,7 +79,7 @@ ${SONAR_SCANNER_BIN} \
     -Dsonar.python.coverage.reportPaths=coverage.xml \
     -Dsonar.sources=. \
     -Dsonar.coverage.exclusions={%if var.setup.analyze_extra_coverage_exclusions %}{{ var.setup.analyze_extra_coverage_exclusions}},{%endif%}**__init__**,setup.py,contrib/** \
-    -Dsonar.exclusions={%if var.setup.analyze_extra_exclusions %}{{ var.setup.analyze_extra_exclusions}},{%endif%}**/*.js,**/*.xml,**/*.css,{{ python_packages[0][2] }}/static/**,{{ python_packages[0][2] }}/alembic/**,contrib/** \
+    -Dsonar.exclusions={%if var.setup.analyze_extra_exclusions %}{{ var.setup.analyze_extra_exclusions}},{%endif%}**/*.js,**/*.xml,**/*.css,{{ python_packages[0][2] }}/static/**,{{ python_packages[0][2] }}/templates/**,{{ python_packages[0][2] }}/alembic/**,contrib/** \
     -Dsonar.language=py \
     -Dsonar.host.url=${SONAR_HOST_URL} \
     -Dsonar.login=${SONAR_LOGIN} \
