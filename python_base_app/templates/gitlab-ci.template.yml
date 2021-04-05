@@ -23,42 +23,42 @@
 
 stages:
   - build
-  { % if var.setup.analyze% }
-- analyze
-  { % endif % }
-- install_and_check
-  { % if var.setup.docker_contexts|length > 0 -% }
-- deploy
-  { % endif % }
+  {% if var.setup.analyze %}
+  - analyze
+  {% endif %}
+  - install_and_check
+  {% if var.setup.docker_contexts|length > 0 -%}
+  - deploy
+  {% endif %}
 
-  { %- if var.setup.build_debian_package % }
+  {%- if var.setup.build_debian_package %}
 build_debian:
-  image: { { var.setup.docker_image_make_package } }
+  image: {{ var.setup.docker_image_make_package }}
   stage: build
   script:
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
   artifacts:
     paths:
-      - { { var.setup.debian_build_dir } }/*.deb
+      - {{ var.setup.debian_build_dir }}/*.deb
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-  { % if var.setup.analyze % }
+  {% if var.setup.analyze %}
 analyze_sonarqube:
   image:
-  stage: { { var.setup.docker_image_sonarqube } }
+  stage: {{ var.setup.docker_image_sonarqube }}
 
-  { % endif % }
+  {% endif %}
 
 test_debian:
-  image: { { var.setup.docker_image_test } }
+  image: {{ var.setup.docker_image_test }}
   stage: install_and_check
   script:
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
-    { %- if var.setup.run_test_suite % }
+    {%- if var.setup.run_test_suite %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
-    { %- endif % }
+    {%- endif %}
     - codecov
   artifacts:
     paths:

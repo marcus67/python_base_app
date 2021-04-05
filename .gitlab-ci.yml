@@ -22,9 +22,10 @@
 ##################################################################################
 
 stages:
-- build
-- install_and_check
-
+  - build
+  
+  - install_and_check
+  
 build_pypi:
   image: accso/docker-python-app:latest
   stage: build

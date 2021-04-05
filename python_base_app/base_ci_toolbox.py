@@ -21,6 +21,7 @@
 import argparse
 import collections
 import copy
+import logging
 import os
 import os.path
 import stat
@@ -181,7 +182,7 @@ default_setup = {
     "analyze": False,
 }
 
-logger = None
+logger:logging.Logger = None
 
 
 def get_module_dir(p_module):
