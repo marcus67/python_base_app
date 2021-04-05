@@ -23,8 +23,9 @@ import logging
 import os
 import sys
 import unittest
-import pytest
 from os.path import join, dirname
+
+import pytest
 
 from python_base_app import configuration
 from python_base_app import log_handling
@@ -217,3 +218,8 @@ class BaseTestCase(unittest.TestCase):
         pytest_result = pytest.cmdline.main([pytest_dir])
 
         self.assertEqual(pytest_result, 0)
+
+    def check_list_length(self, p_list, p_length):
+
+        self.assertIsNotNone(p_list)
+        self.assertEqual(len(p_list), p_length)

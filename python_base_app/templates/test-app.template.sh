@@ -100,6 +100,7 @@ elif [ -x ${PYCOVERAGE_BIN} ] ; then
     echo "Calling pycoverage 'report'..."
     ${PYCOVERAGE_BIN} report
     ${PYCOVERAGE_BIN} html
+    ${PYCOVERAGE_BIN} xml
 else
     echo "Running test script ${RUN_TEST_BIN}..."
     ${RUN_TEST_BIN}

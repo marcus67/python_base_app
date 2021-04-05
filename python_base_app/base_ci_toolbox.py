@@ -21,7 +21,6 @@
 import argparse
 import collections
 import copy
-import logging
 import os
 import os.path
 import stat
@@ -116,6 +115,7 @@ default_setup = {
     "docker_image_make_package": "accso/docker-python-app:latest",
     "docker_image_test": "accso/docker-python-app:latest",
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9",
+    "docker_image_sonarqube": "sonarsource/sonar-scanner-cli",
     "ci_toolbox_script": "ci_toolbox.py",
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
@@ -178,6 +178,7 @@ default_setup = {
     "babel_rel_directory": None,
     "generate_generic_install": False,
     "max_cpus": None,
+    "analyze": False,
 }
 
 logger = None

@@ -490,7 +490,7 @@ def get_dns_name_by_ip_address(p_ip_address):
 
 def objects_are_equal(p_object1: object, p_object2: object):
     for attr, value1 in p_object1.__dict__.items():
-        if not attr.startswith('_'):
+        if not attr.startswith('_') and not callable(value1):
             value2 = getattr(p_object2, attr)
 
             if value1 != value2:
