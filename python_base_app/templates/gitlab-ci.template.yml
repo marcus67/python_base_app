@@ -1,4 +1,4 @@
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2021  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -23,9 +23,9 @@
 
 stages:
   - build
-  {% if var.setup.analyze %}
+  {% if var.setup.analyze -%}
   - analyze
-  {% endif %}
+  {% endif -%}
   - install_and_check
   {% if var.setup.docker_contexts|length > 0 -%}
   - deploy
@@ -44,13 +44,6 @@ build_debian:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-  {% if var.setup.analyze %}
-analyze_sonarqube:
-  image:
-  stage: {{ var.setup.docker_image_sonarqube }}
-
-  {% endif %}
-
 test_debian:
   image: {{ var.setup.docker_image_test }}
   stage: install_and_check
@@ -63,8 +56,22 @@ test_debian:
   artifacts:
     paths:
       - htmlcov
+      - coverage.xml
   variables:
     # Activate automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{% endif %}
+
+{%- if var.setup.analyze %}
+analyze:
+  image: {{ var.setup.docker_image_analyze }}
+  stage: analyze
+  script:
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_analyze }} --use-dev-dir=.
+  after_script:
+    - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}
+  variables:
+    # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 {% endif %}
 

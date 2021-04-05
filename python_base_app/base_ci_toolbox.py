@@ -45,6 +45,7 @@ STAGE_INSTALL_PYPI_PACKAGE = "INSTALL-PYPI-PACKAGE"
 STAGE_PUBLISH_PACKAGE = "PUBLISH-PACKAGE"
 STAGE_PUBLISH_PYPI_PACKAGE = "PUBLISH-PYPI-PACKAGE"
 STAGE_TEST = "TEST"
+STAGE_ANALYZE = "ANALYZE"
 STAGE_TEARDOWN = "TEARDOWN"
 STAGE_PREPARE = "PREPARE"
 
@@ -93,6 +94,9 @@ PUBLISH_PYPI_PACKAGE_SCRIPT_TEMPLATE = 'publish-pypi-package.template.sh'
 TEST_APP_SCRIPT_FILE_PATH = '{bin_dir}/test-app.sh'
 TEST_APP_SCRIPT_TEMPLATE = 'test-app.template.sh'
 
+ANALYZE_APP_SCRIPT_FILE_PATH = '{bin_dir}/analyze-app.sh'
+ANALYZE_APP_SCRIPT_TEMPLATE = 'analyze-app.template.sh'
+
 BEACON_INTERVAL = 60  # seconds
 
 VarStatus = collections.namedtuple("VarInfo", "source_name description target_name")
@@ -116,13 +120,14 @@ default_setup = {
     "docker_image_make_package": "accso/docker-python-app:latest",
     "docker_image_test": "accso/docker-python-app:latest",
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9",
-    "docker_image_sonarqube": "sonarsource/sonar-scanner-cli",
+    "docker_image_analyze": "accso/docker-python-app:latest",
     "ci_toolbox_script": "ci_toolbox.py",
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
     "ci_stage_install_pypi_package": STAGE_INSTALL_PYPI_PACKAGE,
     "ci_stage_test": STAGE_TEST,
+    "ci_stage_analyze": STAGE_ANALYZE,
     "ci_stage_teardown": STAGE_TEARDOWN,
     "ci_stage_publish_package": STAGE_PUBLISH_PACKAGE,
     "ci_stage_publish_pypi_package": STAGE_PUBLISH_PYPI_PACKAGE,
@@ -180,6 +185,8 @@ default_setup = {
     "generate_generic_install": False,
     "max_cpus": None,
     "analyze": False,
+    "analyze_extra_coverage_exclusions": None,
+    "analyze_extra_exclusions": None,
 }
 
 logger:logging.Logger = None
@@ -672,6 +679,37 @@ def generate_test_app_script(p_main_setup_module, p_template_env, p_arguments):
 
     os.chmod(test_app_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
+def generate_analyze_app_script(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate analyze-app.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(ANALYZE_APP_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments),
+        arguments=p_arguments,
+        site_packages_dir=get_site_packages_dir()
+    )
+
+    output_file_path = ANALYZE_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    analyze_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+
+    os.makedirs(os.path.dirname(analyze_app_script_filename), mode=0o777, exist_ok=True)
+
+    with open(analyze_app_script_filename, "w") as f:
+        f.write(output_text)
+
+    fmt = "Wrote analyze-app.sh script file to '{filename}'"
+    logger.info(fmt.format(filename=analyze_app_script_filename))
+
+    os.chmod(analyze_app_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
 
 def generate_publish_debian_package_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
@@ -835,6 +873,9 @@ def execute_test_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=TEST_APP_SCRIPT_FILE_PATH)
 
+def execute_analyze_app_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=ANALYZE_APP_SCRIPT_FILE_PATH)
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -847,6 +888,7 @@ def get_parser():
                                  STAGE_INSTALL,
                                  STAGE_INSTALL_PYPI_PACKAGE,
                                  STAGE_TEST,
+                                 STAGE_ANALYZE,
                                  STAGE_TEARDOWN,
                                  STAGE_PREPARE])
     parser.add_argument('--run-dir', dest='run_dir', default=None)
@@ -916,6 +958,11 @@ def main(p_main_module_dir):
             generate_pycoveragerc(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                   p_arguments=arguments)
             execute_test_app_script(p_main_setup_module=main_setup_module)
+
+        elif arguments.execute_stage == STAGE_ANALYZE:
+            generate_analyze_app_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                     p_arguments=arguments)
+            execute_analyze_app_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_PREPARE:
             generate_gitlab_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
