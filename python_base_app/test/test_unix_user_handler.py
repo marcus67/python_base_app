@@ -24,70 +24,61 @@ from python_base_app.test import base_test
 
 SEARCH_BASE_DN = "dc=mydomain,dc=com"
 
-BIND_DN = "cn=admin," + SEARCH_BASE_DN
-BIND_PASSWORD = "unixtest"
+ADMIN_USER = "admin"
+ADMIN_PASSWORD = "hello!"
 
-USER_BASE_CN = "ou=users," + SEARCH_BASE_DN
-
-USER_1_DN = "cn=admin," + USER_BASE_CN
 USER_1_UID_NUMBER = "1000"
 USER_1_UID = "admin"
 USER_1_PASSWORD = "$ecret"
 
-USER_2_DN = "cn=non-admin," + USER_BASE_CN
 USER_2_UID_NUMBER = "1001"
 USER_2_UID = "non-admin"
 USER_2_PASSWORD = "0ther$ecret"
 
-USER_3_DN = "cn=special-user," + USER_BASE_CN
 USER_3_UID_NUMBER = "100"
 USER_3_UID = "special-user"
 USER_3_PASSWORD = "0ther$ecret"
 
 CONFIG_USER_LIST = USER_1_UID + ":" + USER_1_UID_NUMBER + "," + USER_2_UID + ":" + USER_2_UID_NUMBER
 
-GROUP_BASE_DN = "ou=groups," + SEARCH_BASE_DN
-
-ADMIN_GROUP_NAME = "little-brother-admins"
-ADMIN_GROUP_DN = "ou=" + ADMIN_GROUP_NAME + "," + GROUP_BASE_DN
-
-USER_GROUP_NAME = "little-brother-users"
-USER_GROUP_DN = "ou=" + USER_GROUP_NAME + "," + GROUP_BASE_DN
-
-UNIX_TREE = {
-    BIND_DN: {
-        "userPassword": BIND_PASSWORD
-    },
-    USER_1_DN: {
-        "userPassword": USER_1_PASSWORD
-    }
-}
 
 class FakePasswordEntry(object):
 
     def __init__(self, p_uid, p_username, p_password, p_shell):
-
         self.pw_uid = p_uid
         self.pw_name = p_username
         self.pw_passwd = p_password
         self.pw_shell = p_shell
 
+
 FAKE_USER_MAP = {
     USER_1_UID: FakePasswordEntry(p_uid=int(USER_1_UID_NUMBER), p_username=USER_1_UID, p_password=USER_1_PASSWORD,
-                      p_shell="/bin/bash"),
+                                  p_shell="/bin/bash"),
     USER_2_UID: FakePasswordEntry(p_uid=int(USER_2_UID_NUMBER), p_username=USER_2_UID, p_password=USER_2_PASSWORD,
-                      p_shell="/bin/bash"),
+                                  p_shell="/bin/bash"),
     USER_3_UID: FakePasswordEntry(p_uid=int(USER_3_UID_NUMBER), p_username=USER_3_UID, p_password=USER_3_PASSWORD,
                                   p_shell="/bin/bash"),
 }
 
+
 def fake_getpwall():
     return FAKE_USER_MAP.values()
+
 
 def fake_getpwnam(p_username):
     return FAKE_USER_MAP.get(p_username)
 
+
 class TestUnixUserHandler(base_test.BaseTestCase):
+
+    @classmethod
+    def create_dummy_unix_user_handler(cls):
+        config = unix_user_handler.UnixUserHandlerConfigModel()
+        config.admin_username = ADMIN_USER
+        config.admin_password = ADMIN_PASSWORD
+        config.user_list = CONFIG_USER_LIST
+
+        return unix_user_handler.UnixUserHandler(p_config=config)
 
     # See https://pypi.org/project/fakeunix/
     def setUp(self):
