@@ -27,7 +27,12 @@ set -e
 SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 VIRTUAL_ENV_BIN_DIR=/{{ var.setup.rel_virtual_env_dir }}/bin
+LOCAL_ENV_FILE=${BASE_DIR}/.dev-env-settings.sh
 
+if [ -f ${LOCAL_ENV_FILE} ] ; then
+  echo "Reading local environment settings from ${LOCAL_ENV_FILE}..."
+  . ${LOCAL_ENV_FILE}
+fi
 
 set +e
 # Prepend virtual environment to PATH so that it will be searched first (before globally installed Python directories)

@@ -8,6 +8,7 @@ This document lists all changes of `python_base_app` with the most recent change
 *   Added method `compare_objects` in `tools.py`
 *   Moved `check_list_length` from LittleBrother to `base_test.py` 
 *   Added support for SonarQube analysis (script generation)
+*   Read `.dev-env-settings.sh` in `test-app.sh`
 
 ## Version 0.2.17 (April 2nd, 2021)
 
