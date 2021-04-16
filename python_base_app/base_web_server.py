@@ -29,7 +29,6 @@ import flask.wrappers
 import flask_login
 
 import some_flask_helpers
-
 from python_base_app import actuator
 from python_base_app import auth_view_handler
 from python_base_app import configuration
@@ -77,8 +76,6 @@ class BaseWebServer(object):
         self._config = p_config
         self._login_view = p_login_view
 
-        # self._blueprint = flask.Blueprint("main", python_base_app.__name__)
-
         if p_package_name is None:
             raise configuration.ConfigurationException("HttpServer: p_package_name must not be None")
 
@@ -118,19 +115,17 @@ class BaseWebServer(object):
         if self._auth_view_handler is not None:
             self._auth_view_handler.destroy()
 
-    def add_url_rule(self, p_rel_url, p_endpoint, p_view_method, p_blueprint=None,
+    def add_url_rule(self, p_rel_url, p_endpoint, p_view_method, p_blueprint,
                      p_methods=None,
                      p_login_required=False):
 
         if p_login_required:
             p_view_method = flask_login.login_required(p_view_method)
 
-        blueprint = p_blueprint if p_blueprint is not None else self._blueprint
-
-        blueprint.add_url_rule(join(self._config.base_url, p_rel_url),
-                               p_endpoint,
-                               p_view_method,
-                               methods=p_methods)
+        p_blueprint.add_url_rule(join(self._config.base_url, p_rel_url),
+                                 p_endpoint,
+                                 p_view_method,
+                                 methods=p_methods)
 
     def get_url(self, p_rel_url='', p_internal=False, p_simple=False):
 
@@ -191,7 +186,8 @@ class BaseWebServer(object):
             self._server_exception = e
             raise e
 
-    def get_authenication_info(self):
+    @classmethod
+    def get_authentication_info(cls):
 
         return {
             "is_authenticated": flask_login.current_user is not None and flask_login.current_user.is_authenticated,
