@@ -82,8 +82,11 @@ fi
 set +e
 RUN_TEST_BIN=`which {{ var.setup.run_test_suite }}`
 RUN_TEST_BIN_NO_VENV=`which {{ var.setup.run_test_suite_no_venv }}`
-set -e
 
+echo "Chrome test environment..."
+chrome -version
+chromedriver -version
+set -e
 
 if [ "${RUN_TEST_BIN}" == "" ] ; then
     echo "ERROR: Cannot find executable {{ var.setup.run_test_suite }} in PATH=${PATH}"
