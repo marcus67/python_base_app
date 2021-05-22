@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.19 (May 22nd, 2021)
+
+*   Closes #12, see [here](https://github.com/marcus67/python_base_app/issues/12)
+
 ## Version 0.2.18 (April 3nd, 2021)
 
 *   Moved `copy_attributes` and `create_class_instance` from LittleBrother to `tools.py`
@@ -10,6 +14,7 @@ This document lists all changes of `python_base_app` with the most recent change
 *   Added support for SonarQube analysis (script generation)
 *   Read `.dev-env-settings.sh` in `test-app.sh`
 *   Don't assume `BaseWebServer` to have a blueprint
+*   Show version details for Chrome/Selenium test environment 
 
 ## Version 0.2.17 (April 2nd, 2021)
 

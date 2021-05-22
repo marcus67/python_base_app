@@ -187,6 +187,7 @@ default_setup = {
     "analyze": False,
     "analyze_extra_coverage_exclusions": None,
     "analyze_extra_exclusions": None,
+    "script_timeout": 600,
 }
 
 logger:logging.Logger = None
@@ -791,37 +792,35 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
 
     script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
 
-    fmt = "<<<<< START script {filename} ..."
-    logger.info(fmt.format(filename=script_filename))
+    timeout = p_main_setup_module.extended_setup_params.get("script_timeout")
+
+    fmt = "<<<<< START script {filename} (timeout={timeout}[sec])..."
+    logger.info(fmt.format(filename=script_filename, timeout=timeout))
 
     extended_env = os.environ.copy()
     extended_env.update(get_predefined_environment_variables())
 
     expand_vars(extended_env)
+    thread = None
+    status = None
 
     try:
-        popen = subprocess.Popen(script_filename, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=extended_env)
-
         status = tools.SimpleStatus()
         thread = tools.start_simple_thread(output_beacon, status)
 
-        stdout, stderr = popen.communicate()
+        process = subprocess.Popen(script_filename, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                   env=extended_env, bufsize=1, universal_newlines=True)
 
-        status.done = True
-        thread.join()
+        msg = "[STDOUT/STDERR] {line}"
 
-        exit_code = popen.returncode
-        msg = "[STDOUT] {line}"
+        for output in iter(process.stdout.readline, ""):
+            for line in output.split("\n"):
+                if line != '':
+                    logger.info(msg.format(line=line))
 
-        for line in stdout.decode("utf-8").split("\n"):
-            if line != '':
-                logger.info(msg.format(line=line))
+        process.communicate(timeout=5)
+        exit_code = process.returncode
 
-        msg = "[STDERR] {line}"
-
-        for line in stderr.decode("utf-8").split("\n"):
-            if line != '':
-                logger.info(msg.format(line=line))
 
     except subprocess.CalledProcessError as e:
         exit_code = e.returncode
@@ -830,7 +829,17 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
 
     except Exception as e:
         exit_code = -1
-        logger.error("General exception in subprocess!")
+        msg = "General exception '{exception}' in subprocess!"
+        logger.error(msg.format(exception=str(e)))
+
+    finally:
+
+        if status is not None:
+            status.done = True
+
+        if thread is not None:
+            thread.join()
+
 
     msg = ">>>>> END script {filename} ..."
     logger.info(msg.format(filename=script_filename))
