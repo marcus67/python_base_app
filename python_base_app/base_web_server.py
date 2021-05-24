@@ -27,6 +27,7 @@ from os.path import join
 import flask.globals
 import flask.wrappers
 import flask_login
+from flask_wtf import CSRFProtect
 
 import some_flask_helpers
 from python_base_app import actuator
@@ -71,6 +72,7 @@ class BaseWebServer(object):
         self._auth_view_handler = None
         self._server_started = False
         self._user_handler = p_user_handler
+        self._csrf = None
 
         self._name = p_name
         self._config = p_config
@@ -82,6 +84,7 @@ class BaseWebServer(object):
         self._logger = log_handling.get_logger(self.__class__.__name__)
 
         self._app = flask.Flask(p_package_name)
+
         self._flask_stopper = some_flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
 
         self._app.config["APPLICATION_ROOT"] = self._config.base_url
@@ -95,7 +98,11 @@ class BaseWebServer(object):
                 p_url_prefix=self._config.base_url,
                 p_login_view=p_login_view)
 
+            # Activate CSRF protection
             self._app.config.update(SECRET_KEY=self._config.app_secret)
+            self._csrf = CSRFProtect()
+            self._csrf.init_app(self._app)
+
 
         self._server_exception = None
 

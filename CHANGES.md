@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.20 (May 24th, 2021)
+
+*   Use new CSRF handling
+
 ## Version 0.2.19 (May 22nd, 2021)
 
 *   Closes #12, see [here](https://github.com/marcus67/python_base_app/issues/12) 
