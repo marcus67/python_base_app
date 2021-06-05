@@ -2,6 +2,55 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.20 (May 24th, 2021)
+
+*   Use new CSRF handling
+
+## Version 0.2.19 (May 22nd, 2021)
+
+*   Closes #12, see [here](https://github.com/marcus67/python_base_app/issues/12) 
+
+## Version 0.2.18 (April 3nd, 2021)
+
+*   Moved `copy_attributes` and `create_class_instance` from LittleBrother to `tools.py`
+*   Added method `compare_objects` in `tools.py`
+*   Moved `check_list_length` from LittleBrother to `base_test.py` 
+*   Added support for SonarQube analysis (script generation)
+*   Read `.dev-env-settings.sh` in `test-app.sh`
+*   Don't assume `BaseWebServer` to have a blueprint
+*   Show version details for Chrome/Selenium test environment 
+
+## Version 0.2.17 (April 2nd, 2021)
+
+*   Make test suite compile on MacOS
+
+## Version 0.2.16 (February 27th, 2021)
+
+*   Add Debian packages in `python_base_app/templates/debian_control.template.conf` to enable loading 
+    of Python module `python-ldap`
+
+*   Move functionality from `UnixUserHandler` to `BaseUserHandler`
+
+*   Add new class `LdapUserHandler` for authorization and authentication with an LDAP server
+
+*   Exclude template Python files  `.coveragerc`
+
+*   Repair call of `coverage`
+
+*   Add test cases for class `UnixUserHandler`
+
+## Version 0.2.15 (February 23rd, 2021)
+
+*   Add test case for health API 
+*   Add babel-login to requirements.txt (triggered by new test case)
+*   Add dependency on package `some_flask_helpers`
+*   Add helper function `get_dns_name_by_ip_address()`
+
+## Version 0.2.14 (February 12th, 2021)
+
+*   Add class `Pinger` 
+*   Exclude `sudo` package when not needed
+
 ## Version 0.2.13 (January 31st, 2021)
 
 *   Fix usage of local make and export JOBS for WAF framework (just in case)

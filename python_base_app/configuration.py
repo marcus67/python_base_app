@@ -53,6 +53,7 @@ class ConfigurationSectionHandler(object, metaclass=abc.ABCMeta):
     def __init__(self, p_section_prefix):
         self._section_prefix = p_section_prefix
         self._configuration = None
+        self._logger = log_handling.get_logger(self.__class__.__name__)
 
     @property
     def section_prefix(self):

@@ -21,6 +21,8 @@ import tempfile
 
 import sys
 
+import setuptools
+
 from python_base_app import base_ci_toolbox
 from python_base_app.test import base_test
 
@@ -114,6 +116,8 @@ class TestBaseCiToolbox(base_test.BaseTestCase):
         self.remove_files(p_rel_paths=STAGE_PREPARE_FILES, p_rel_dirs=STAGE_PREPARE_DIRS)
 
     def test_stage_build(self):
+
+        print("setuptools.version", setuptools.version.__version__)
 
         self.remove_files(p_rel_paths=STAGE_BUILD_FILES, p_rel_dirs=STAGE_BUILD_DIRS)
         main_module_dir = os.path.join(os.path.dirname(__file__), self.get_resource_base_path())

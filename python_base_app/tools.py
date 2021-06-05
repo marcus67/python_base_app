@@ -62,6 +62,8 @@ PLATFORM_NAME_MAC_OS = "darwin"
 PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS", "SECRET")
 PROTECTED_PASSWORD_VALUE = "[HID" "DEN]" # trick Codacy
 
+PORT_NUMBER_SEPERATOR = ":"
+
 # Dummy function to trigger extraction by pybabel...
 _ = lambda x: x
 
@@ -438,14 +440,88 @@ def get_new_object_name(p_name_pattern, p_existing_names):
 
     return new_name
 
+def split_host_url(p_url, p_default_port_number):
+    index = p_url.find(PORT_NUMBER_SEPERATOR)
+
+    if index >= 0:
+        host = p_url[:index]
+        port_string = p_url[index + 1:]
+
+        try:
+            port_number = int(port_string)
+
+        except Exception:
+            msg = "Invalid port number {port}"
+            raise Exception(msg.format(port=port_string))
+
+        if port_number < 1 or port_number > 65535:
+            msg = "Port number {port} of ouf range"
+            raise Exception(msg.format(port=port_number))
+
+        return ( host, port_number )
+
+    else:
+        return ( p_url, p_default_port_number)
+
+
 def is_valid_dns_name(p_dns_name):
 
     try:
-        socket.gethostbyname(p_dns_name)
+        dns_name, port = split_host_url(p_url=p_dns_name, p_default_port_number=1)
+
+    except Exception:
+        return False
+
+    try:
+        socket.gethostbyname(dns_name)
         return True
 
     except socket.gaierror:
         return False
+
+def get_dns_name_by_ip_address(p_ip_address):
+
+    try:
+        result = socket.gethostbyaddr(p_ip_address)
+        return result[0]
+
+    except Exception as e:
+        return p_ip_address
+
+def objects_are_equal(p_object1: object, p_object2: object, p_logger=None):
+    for attr, value1 in p_object1.__dict__.items():
+        if not attr.startswith('_') and not callable(value1):
+            value2 = getattr(p_object2, attr)
+
+            if value1 is None and value2 is None:
+                continue
+
+            if value1 is None and value2 is not None:
+                return False
+
+            if value2 is None and value1 is not None:
+                return False
+
+            if type(value1) != type(value2):
+                if p_logger is not None:
+                    msg = "objects_are_equal: attribute type of '{attr}' differs: '{type1}' != '{type2}'"
+                    p_logger.error(msg.format(attr=attr, type1=type(value1), type2=type(value2)))
+
+                return False
+
+            if not isinstance(value1, (int, float, complex, datetime.date, datetime.time, str)):
+                if not objects_are_equal(p_object1=value1, p_object2=value2, p_logger=p_logger):
+                    return False
+
+            elif value1 != value2:
+                if p_logger is not None:
+                    msg = "objects_are_equal: attribute '{attr}' differs: '{value1}' != '{value2}'"
+                    p_logger.error(msg.format(attr=attr, value1=value1, value2=value2))
+
+                return False
+
+    return True
+
 
 def format_boolean(p_value):
     return _("On") if p_value else _("Off")
@@ -458,5 +534,19 @@ def value_or_not_set(p_value):
     else:
         return p_value
 
+
 def running_in_docker():
     return os.getenv("RUNNING_IN_DOCKER") is not None
+
+
+def copy_attributes(p_from: object, p_to: object, p_only_existing=False) -> None:
+    for (key, value) in p_from.__dict__.items():
+        if not key.startswith('_'):
+            if key in p_to.__dict__ or not p_only_existing:
+                setattr(p_to, key, value)
+
+
+def create_class_instance(p_class, p_initial_values) -> object:
+    instance = p_class()
+    copy_attributes(p_from=p_initial_values, p_to=instance)
+    return instance

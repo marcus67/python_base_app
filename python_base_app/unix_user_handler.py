@@ -24,20 +24,15 @@ SECTION_NAME = "UnixUserHandler"
 
 HANDLER_NAME = "unix"
 
-DEFAULT_MIN_UID = 500
-DEFAULT_MAX_UID = 65000
-INVALID_SHELLS = ["/usr/sbin/nologin", "/bin/false"]
 
-
-class BaseUserHandlerConfigModel(configuration.ConfigModel):
+class UnixUserHandlerConfigModel(base_user_handler.BaseUserHandlerConfigModel):
 
     def __init__(self):
         super().__init__(p_section_name=SECTION_NAME)
+
         self.admin_username = configuration.NONE_STRING
         self.admin_password = configuration.NONE_STRING
         self.user_list = configuration.NONE_STRING
-        self.min_uid = DEFAULT_MIN_UID
-        self.max_uid = DEFAULT_MAX_UID
 
     def is_active(self):
         return self.admin_username is not None and self.admin_password is not None
@@ -47,14 +42,8 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
 
     def __init__(self, p_config, p_exclude_user_list=None):
 
-        super().__init__()
-
-        self._config = p_config
+        super().__init__(p_config=p_config, p_exclude_user_list=p_exclude_user_list)
         self._users = None
-        self._exclude_user_list = p_exclude_user_list
-
-        if self._exclude_user_list is None:
-            self._exclude_user_list = []
 
         msg = "Using admin user '{username}'"
         self._logger.info(msg.format(username=self._config.admin_username))
@@ -77,11 +66,8 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
 
         if self._users is None:
             for entry in pwd.getpwall():
-                if (entry.pw_uid >= self._config.min_uid and
-                        entry.pw_uid <= self._config.max_uid and
-                        entry.pw_passwd != "" and entry.pw_passwd is not None and
-                        entry.pw_shell not in INVALID_SHELLS and
-                        entry.pw_name not in self._exclude_user_list):
+                if self.is_valid_uid(p_uid=entry.pw_uid, p_username=entry.pw_name,
+                                     p_password=entry.pw_passwd, p_shell=entry.pw_shell):
                     users.append(entry.pw_name)
 
             return users

@@ -18,8 +18,9 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from setuptools import setup
 from os import path
+
+from setuptools import setup
 
 from python_base_app import settings
 
@@ -53,8 +54,8 @@ extended_setup_params = {
     "build_debian_package": False,
     "build_pypi_package": True,
     "publish_pypi_package": { 'release': ( 'https://upload.pypi.org/legacy/', 'PYPI_API_TOKEN' ),
-                              'master': ( 'https://test.pypi.org/legacy/', 'TEST_PYPI_API_TOKEN') }
-
+                              'master': ( 'https://test.pypi.org/legacy/', 'TEST_PYPI_API_TOKEN') },
+    "analyze": True
 }
 extended_setup_params.update(setup_params)
 

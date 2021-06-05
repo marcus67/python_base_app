@@ -27,9 +27,9 @@ from os.path import join
 import flask.globals
 import flask.wrappers
 import flask_login
+from flask_wtf import CSRFProtect
 
 import some_flask_helpers
-
 from python_base_app import actuator
 from python_base_app import auth_view_handler
 from python_base_app import configuration
@@ -41,10 +41,11 @@ DEFAULT_INTERNAL_BASE_URL = ''
 
 _ = lambda x: x
 
+DUMMY_SECTION_NAME = "BaseWebServer"
 
 class BaseWebServerConfigModel(configuration.ConfigModel):
 
-    def __init__(self, p_section_name):
+    def __init__(self, p_section_name=DUMMY_SECTION_NAME):
         super(BaseWebServerConfigModel, self).__init__(p_section_name)
         self.scheme = "http"
         self.host = "0.0.0.0"
@@ -71,12 +72,11 @@ class BaseWebServer(object):
         self._auth_view_handler = None
         self._server_started = False
         self._user_handler = p_user_handler
+        self._csrf = None
 
         self._name = p_name
         self._config = p_config
         self._login_view = p_login_view
-
-        # self._blueprint = flask.Blueprint("main", python_base_app.__name__)
 
         if p_package_name is None:
             raise configuration.ConfigurationException("HttpServer: p_package_name must not be None")
@@ -84,6 +84,7 @@ class BaseWebServer(object):
         self._logger = log_handling.get_logger(self.__class__.__name__)
 
         self._app = flask.Flask(p_package_name)
+
         self._flask_stopper = some_flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
 
         self._app.config["APPLICATION_ROOT"] = self._config.base_url
@@ -97,7 +98,11 @@ class BaseWebServer(object):
                 p_url_prefix=self._config.base_url,
                 p_login_view=p_login_view)
 
+            # Activate CSRF protection
             self._app.config.update(SECRET_KEY=self._config.app_secret)
+            self._csrf = CSRFProtect()
+            self._csrf.init_app(self._app)
+
 
         self._server_exception = None
 
@@ -117,19 +122,17 @@ class BaseWebServer(object):
         if self._auth_view_handler is not None:
             self._auth_view_handler.destroy()
 
-    def add_url_rule(self, p_rel_url, p_endpoint, p_view_method, p_blueprint=None,
+    def add_url_rule(self, p_rel_url, p_endpoint, p_view_method, p_blueprint,
                      p_methods=None,
                      p_login_required=False):
 
         if p_login_required:
             p_view_method = flask_login.login_required(p_view_method)
 
-        blueprint = p_blueprint if p_blueprint is not None else self._blueprint
-
-        blueprint.add_url_rule(join(self._config.base_url, p_rel_url),
-                               p_endpoint,
-                               p_view_method,
-                               methods=p_methods)
+        p_blueprint.add_url_rule(join(self._config.base_url, p_rel_url),
+                                 p_endpoint,
+                                 p_view_method,
+                                 methods=p_methods)
 
     def get_url(self, p_rel_url='', p_internal=False, p_simple=False):
 
@@ -166,7 +169,7 @@ class BaseWebServer(object):
             fmt = "Waiting for the server thread to terminate"
             self._logger.info(fmt)
 
-            self._process.join()
+            self._process.join(timeout=3)
 
             fmt = "HTTP server '%s' shut down successfully" % self._name
             self._logger.info(fmt)
@@ -190,7 +193,8 @@ class BaseWebServer(object):
             self._server_exception = e
             raise e
 
-    def get_authenication_info(self):
+    @classmethod
+    def get_authentication_info(cls):
 
         return {
             "is_authenticated": flask_login.current_user is not None and flask_login.current_user.is_authenticated,

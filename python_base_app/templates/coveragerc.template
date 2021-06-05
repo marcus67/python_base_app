@@ -29,6 +29,7 @@ source = {% for package_name in python_packages %}{{ package_name[0] }}/{{ packa
          {% endfor %}
 omit = {% for package_name in python_packages %}{{ package_name[0] }}/{{ package_name[2] }}/setup.py
        {{ package_name[0] }}/{{ package_name[2] }}/__init__.py
+       {{ package_name[0] }}/{{ package_name[2] }}/templates/*.py
        {{ package_name[0] }}/{{ package_name[2] }}/{{ var.setup.test_dir }}/__init__.py
        {% endfor %}
 

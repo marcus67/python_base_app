@@ -15,15 +15,59 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import abc
+
+from python_base_app import configuration
 from python_base_app import log_handling
 
-import abc
+DEFAULT_MIN_UID = 500
+DEFAULT_MAX_UID = 65000
+INVALID_SHELLS = ["/usr/sbin/nologin", "/bin/false"]
+
+SYSTEM_EXCLUDE_USER_LIST = [
+    'NextFreeUnixId'
+]
+
+
+class BaseUserHandlerConfigModel(configuration.ConfigModel):
+
+    def __init__(self, p_section_name):
+        super().__init__(p_section_name=p_section_name)
+        self.min_uid = DEFAULT_MIN_UID
+        self.max_uid = DEFAULT_MAX_UID
+
+    def is_active(self):
+        return self.admin_username is not None and self.admin_password is not None
+
 
 class BaseUserHandler(object, metaclass=abc.ABCMeta):
 
-    def __init__(self):
+    def __init__(self, p_config, p_exclude_user_list=None):
 
         self._logger = log_handling.get_logger(self.__class__.__name__)
+        self._config = p_config
+        self._exclude_user_list = p_exclude_user_list
+
+        if self._exclude_user_list is None:
+            self._exclude_user_list = []
+
+    def is_valid_uid(self, p_uid, p_username=None, p_password=None, p_shell=None):
+        if p_uid < self._config.min_uid  or p_uid > self._config.max_uid:
+            return False
+
+        if p_shell is not None:
+            if p_shell in INVALID_SHELLS:
+                return False
+
+        if p_username is not None:
+            if p_username in self._exclude_user_list or p_username in SYSTEM_EXCLUDE_USER_LIST:
+                return False
+
+        if p_password is not None:
+            if len(p_password) < 2:
+                return False
+
+        return True
 
     @abc.abstractmethod
     def list_users(self):  # pragma: no cover

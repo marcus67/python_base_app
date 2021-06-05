@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2021  Marcus Rickert
+# Copyright (C) 2019-2021  Marcus Rickert
 #
 # See https://github.com/marcus67/python_base_app
 # This program is free software; you can redistribute it and/or modify
@@ -15,22 +15,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-git_metadata = {
-    "commit_id": "<unknown>",
-    "branch": "<unknown>",
-    "author_name": "<unknown>",
-    "author_email": "<unknown>"
-}
+# Make a copy of this file named '.dev-senv-settings.sh'. It will be read by some of the scripts to set the
+# environment settings relating to your development environment.
 
-try:
-    from python_base_app import git_metadata
+# Set the URL of the SonarQube instance
+SONAR_HOST_URL=TODO
 
-    git_metadata = {
-        "commit_id": git_metadata.GIT_COMMIT_ID[0:16],
-        "branch": git_metadata.GIT_BRANCH,
-        "author_name": git_metadata.GIT_AUTHOR_NAME,
-        "author_email":git_metadata.GIT_AUTHOR_EMAIL
-    }
+# Set the token provided by SonarQube
+SONAR_LOGIN=TODO
 
-except Exception as e:
-    print(str(e))
+# Set the project key provided by SonarQube
+SONAR_PROJECT_KEY=TODO

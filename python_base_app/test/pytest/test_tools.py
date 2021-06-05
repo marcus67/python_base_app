@@ -103,3 +103,21 @@ def test_timing_context():
     assert result.duration > 0
     assert result.duration < 0.1
 
+
+def test_is_valid_dns_name():
+    assert tools.is_valid_dns_name(p_dns_name="web.de")
+    assert tools.is_valid_dns_name(p_dns_name="web.de:1")
+    assert tools.is_valid_dns_name(p_dns_name="web.de:65535")
+    assert tools.is_valid_dns_name(p_dns_name="192.168.1.1")
+    assert tools.is_valid_dns_name(p_dns_name="192.168.1.1:6666")
+
+def test_is_invalid_dns_name():
+    assert not tools.is_valid_dns_name(p_dns_name="some.weird.host")
+    assert not tools.is_valid_dns_name(p_dns_name="web.de:0")
+    assert not tools.is_valid_dns_name(p_dns_name="web.de:65536")
+    assert not tools.is_valid_dns_name(p_dns_name="256.168.1.1")
+    assert not tools.is_valid_dns_name(p_dns_name="256.168.1.1:6666")
+
+def test_split_host_url():
+    assert tools.split_host_url("some.host", p_default_port_number=123) == ("some.host", 123)
+    assert tools.split_host_url("some.host:345", p_default_port_number=123) == ("some.host", 345)

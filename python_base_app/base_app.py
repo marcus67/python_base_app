@@ -36,6 +36,8 @@ from python_base_app import log_handling
 from python_base_app import settings
 from python_base_app import tools
 
+PACKAGE_NAME = "python_base_app"
+
 DEFAULT_DEBUG_MODE = False
 
 DEFAULT_LOG_LEVEL = 'INFO'
