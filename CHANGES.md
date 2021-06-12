@@ -2,6 +2,12 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.21 (June 13th, 2021)
+
+*   New exception `RangeNotSatisfiableException`
+*   Add support for parameters for requests methods "POST", "PUT", and "DELETE"
+*   Support for https://github.com/marcus67/little_brother/issues/130
+
 ## Version 0.2.20 (May 24th, 2021)
 
 *   Use new CSRF handling
