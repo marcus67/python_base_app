@@ -1,14 +1,14 @@
-# Italian translations for .
+# Italian translations for Little-Brother-TasksBar.
 # Copyright (C) 2019 ORGANIZATION
 # This file is distributed under the same license as the  project.
-# ALBANO BATTISTELLA <albano_battistella@hotmail.com>, 2019.
+# ALBANO BATTISTELLA <albano_battistella@hotmail.com>, 2019,2020,2021.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version:  python-base-app\n"
 "Report-Msgid-Bugs-To: marcus.rickert@web.de\n"
 "POT-Creation-Date: 2020-06-15 23:13+0200\n"
-"PO-Revision-Date: 2020-04-11 15:00+0100\n"
+"PO-Revision-Date: 2021-06-21 20:00+0200\n"
 "Last-Translator: albano battistella <albano_battistella@hotmail.com>\n"
 "Language: it\n"
 "Language-Team: it <LL@li.org>\n"
@@ -28,15 +28,15 @@ msgstr "Nome utente o password errati"
 
 #: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/custom_fields.py:198
 msgid "Value '{value}' already exists. Must be unique."
-msgstr ""
+msgstr "Il valore '{value}' esiste già. Deve essere unico."
 
 #: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:361
 msgid "Use Hh MMm SSs"
-msgstr ""
+msgstr "UsA Hh MMm SSs"
 
 #: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:388
 msgid "Use HH[:MM[:SS]]"
-msgstr ""
+msgstr "UsA HH[:MM[:SS]]"
 
 #: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:446
 msgid "On"
@@ -48,5 +48,5 @@ msgstr "Spento"
 
 #: /home/mr/projects/LittleBrotherFeature/contrib/python_base_app/python_base_app/tools.py:451
 msgid "Not set"
-msgstr ""
+msgstr "Non impostato"
 
