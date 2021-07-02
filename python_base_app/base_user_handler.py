@@ -63,10 +63,6 @@ class BaseUserHandler(object, metaclass=abc.ABCMeta):
             if p_username in self._exclude_user_list or p_username in SYSTEM_EXCLUDE_USER_LIST:
                 return False
 
-        if p_password is not None:
-            if len(p_password) < 2:
-                return False
-
         return True
 
     @abc.abstractmethod

@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.22 (July 2nd, 2021)
+
+*   Don't require users in /etc/passwd to have actual passwords in order to be used for the new user list
+
 ## Version 0.2.21 (June 13th, 2021)
 
 *   New exception `RangeNotSatisfiableException`
