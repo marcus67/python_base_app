@@ -60,6 +60,16 @@ class ArtifactBlockedException(Exception):
         return "ArtifactBlockedException with error code '%s' while accessing artifact '%s'" % (
             str(self._error_code), self._artifact_path)
 
+class RangeNotSatisfiableException(Exception):
+
+    def __init__(self, p_artifact_path, p_error_code):
+        self._artifact_path = p_artifact_path
+        self._error_code = p_error_code
+
+    def __str__(self):
+        return "RangeNotSatisfiableException with error code '%s' while accessing artifact '%s'" % (
+            str(self._error_code), self._artifact_path)
+
 
 class TimeoutException(Exception):
 

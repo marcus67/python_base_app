@@ -140,6 +140,12 @@ class BaseRestAPIAccess(object):
             raise exceptions.ArtifactNotFoundException(p_artifact_path=p_artifact_path, p_error_code=error_code,
                                                        p_result_document=p_result_document)
 
+        elif error_code == 416:
+
+            fmt = "Range not satisfiable in '%s'" % p_artifact_path
+            self._logger.error(fmt)
+            raise exceptions.RangeNotSatisfiableException(p_artifact_path=p_artifact_path, p_error_code=error_code)
+
         elif error_code == 500 or error_code == 423:
 
             fmt = "Artifact '%s' is locked" % p_artifact_path
@@ -203,13 +209,13 @@ class BaseRestAPIAccess(object):
                 r = requests.get(p_url, auth=auth, stream=False, headers=headers, params=p_parameters)
 
             elif p_method == "PUT":
-                r = requests.put(p_url, auth=auth, data=p_data, headers=headers)
+                r = requests.put(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters)
 
             elif p_method == "POST":
-                r = requests.post(p_url, auth=auth, data=p_data, headers=headers)
+                r = requests.post(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters)
 
             elif p_method == "DELETE":
-                r = requests.delete(p_url, auth=auth, data=p_data, headers=headers)
+                r = requests.delete(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters)
 
             else:
                 raise NotImplementedError("Invalid method '%s'" % p_method)
