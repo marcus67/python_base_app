@@ -31,5 +31,6 @@ DEBIAN_PACKAGE_BASE_NAME={{ var.setup.debian_package_name }}_{{ var.setup.versio
 
 dpkg -i {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb || true
 
-apt-get update
+# See https://superuser.com/questions/1456989/how-to-configure-apt-in-debian-buster-after-release
+apt-get update --allow-releaseinfo-change
 apt-get install -f -y --no-install-recommends
