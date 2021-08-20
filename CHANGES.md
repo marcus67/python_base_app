@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.24 (August 16th, 2021)
+
+*   Add option `--allow-releaseinfo-change` to `apt-get update`
+
 ## Version 0.2.23 (August 15th, 2021)
 
 *   Update Italian localization
