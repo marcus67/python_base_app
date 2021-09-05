@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2021  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -28,6 +28,7 @@ import flask.globals
 import flask.wrappers
 import flask_login
 from flask_wtf import CSRFProtect
+from secure import Secure
 
 import some_flask_helpers
 from python_base_app import actuator
@@ -42,6 +43,17 @@ DEFAULT_INTERNAL_BASE_URL = ''
 _ = lambda x: x
 
 DUMMY_SECTION_NAME = "BaseWebServer"
+
+# see https://improveandrepeat.com/2020/10/python-friday-43-add-security-headers-to-your-flask-application/
+# see https://secure.readthedocs.io/en/latest/frameworks.html#flask
+
+secure_headers = Secure()
+
+
+def set_secure_headers(response):
+    secure_headers.framework.flask(response)
+    return response
+
 
 class BaseWebServerConfigModel(configuration.ConfigModel):
 
@@ -85,6 +97,14 @@ class BaseWebServer(object):
 
         self._app = flask.Flask(p_package_name)
 
+        # see https://improveandrepeat.com/2020/10/python-friday-43-add-security-headers-to-your-flask-application/
+        # see https://secure.readthedocs.io/en/latest/frameworks.html#flask
+        self._app.after_request(set_secure_headers)
+
+        # see https://stackoverflow.com/questions/62992831/python-session-samesite-none-not-being-set
+        # see https://flask.palletsprojects.com/en/2.0.x/security/#security-cookie
+        self._app.config['SESSION_COOKIE_SAMESITE'] = "Strict"
+
         self._flask_stopper = some_flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
 
         self._app.config["APPLICATION_ROOT"] = self._config.base_url
@@ -103,11 +123,11 @@ class BaseWebServer(object):
             self._csrf = CSRFProtect()
             self._csrf.init_app(self._app)
 
-
         self._server_exception = None
 
         # Install the actuator handler for the health check
-        self._actuator_view_handler = actuator.ActuatorViewHandler(p_app=self._app, p_url_prefix=self._config.internal_base_url)
+        self._actuator_view_handler = actuator.ActuatorViewHandler(p_app=self._app,
+                                                                   p_url_prefix=self._config.internal_base_url)
 
         logger = log_handling.get_logger("werkzeug")
         logger.setLevel(logging.WARNING)
