@@ -19,6 +19,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import datetime
+
 import pytest
 
 from python_base_app import configuration
@@ -121,3 +122,11 @@ def test_is_invalid_dns_name():
 def test_split_host_url():
     assert tools.split_host_url("some.host", p_default_port_number=123) == ("some.host", 123)
     assert tools.split_host_url("some.host:345", p_default_port_number=123) == ("some.host", 345)
+
+def test_today():
+    today = tools.get_today()
+    assert today.hour == 0
+    assert today.minute == 0
+    assert today.second == 0
+    assert today.microsecond == 0
+

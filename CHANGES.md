@@ -2,10 +2,13 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
-## Version 0.2.25 (September 5th, 2021)
+## Version 0.2.25 (September 6th, 2021)
 
 *   Add improved HTTP header options using package `secure`
 *   Set session protection of login manager to `strong`
+*   Add utility function `get_today`
+*   Closes [LittleBrother issue 144](https://github.com/marcus67/little_brother/issues/144)
+*   Closes [LittleBrother issue 138](https://github.com/marcus67/little_brother/issues/138)
 
 ## Version 0.2.24 (August 16th, 2021)
 
