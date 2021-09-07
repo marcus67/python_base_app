@@ -13,4 +13,4 @@ python-ldap>=3.3.1
 requests>=2.25.0
 some-flask-helpers>=0.2.2
 urllib3>=1.26.2
-WTForms>=2.3.3
+WTForms>=3.0.0a1
