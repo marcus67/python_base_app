@@ -25,14 +25,14 @@ Changes:        23rd Jan 2009 (David Mytton <david@boxedice.com>)
 # Core modules
 from __future__ import print_function
 
-from python_base_app import log_handling
-
 import atexit
 import errno
 import os
 import signal
 import sys
 import time
+
+from python_base_app import log_handling
 
 
 class Daemon(object):
@@ -131,7 +131,7 @@ class Daemon(object):
         #             signal.signal(signal.SIGTERM, sigtermhandler)
         #             signal.signal(signal.SIGINT, sigtermhandler)
 
-        self.log("Daemon gestarted")
+        self.log("Started daemon.")
 
         # Write pidfile
         atexit.register(
@@ -156,7 +156,7 @@ class Daemon(object):
         Start the daemon
         """
 
-        self.log("Daemon starten...")
+        self.log("Starting daemon...")
 
         # Check for a pidfile to see if the daemon already runs
         try:
@@ -183,7 +183,7 @@ class Daemon(object):
         """
 
         if self.verbose >= 1:
-            self.log("Daemon stoppen...")
+            self.log("Stopping daemon...")
 
         # Get the pid from the pidfile
         pid = self.get_pid()
@@ -216,7 +216,7 @@ class Daemon(object):
                 print(str(err))
                 sys.exit(1)
 
-        self.log("Daemon gestoppt")
+        self.log("Daemon stopped")
 
     def restart(self):
         """

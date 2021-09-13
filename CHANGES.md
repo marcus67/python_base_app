@@ -2,13 +2,16 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
-## Version 0.2.25 (September 6th, 2021)
+## Version 0.2.25 (September 13th, 2021)
 
-*   Add improved HTTP header options using package `secure`
-*   Set session protection of login manager to `strong`
-*   Add utility function `get_today`
-*   Closes [LittleBrother issue 144](https://github.com/marcus67/little_brother/issues/144)
-*   Closes [LittleBrother issue 138](https://github.com/marcus67/little_brother/issues/138)
+* Add improved HTTP header options using package `secure`
+* Set session protection of login manager to `strong`
+* Add utility function `get_today`
+* Closes [LittleBrother issue 144](https://github.com/marcus67/little_brother/issues/144)
+* Closes [LittleBrother issue 138](https://github.com/marcus67/little_brother/issues/138)
+* Exclude alembic files from coverage analysis
+* Fix alembic at 1.5.8
+* Remove German logging messages
 
 ## Version 0.2.24 (August 16th, 2021)
 
