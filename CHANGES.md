@@ -12,6 +12,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Exclude alembic files from coverage analysis
 * Fix alembic at 1.5.8
 * Remove German logging messages
+* Closes [LittleBrother issue 154](https://github.com/marcus67/little_brother/issues/154)
 
 ## Version 0.2.24 (August 16th, 2021)
 
