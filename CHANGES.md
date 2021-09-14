@@ -2,7 +2,7 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
-## Version 0.2.25 (September 13th, 2021)
+## Version 0.2.25 (September 14th, 2021)
 
 * Add improved HTTP header options using package `secure`
 * Set session protection of login manager to `strong`
@@ -13,6 +13,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Fix alembic at 1.5.8
 * Remove German logging messages
 * Closes [LittleBrother issue 154](https://github.com/marcus67/little_brother/issues/154)
+* Upgrade WTForms to version 3.0.0a1
 
 ## Version 0.2.24 (August 16th, 2021)
 
