@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2021  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -60,17 +60,21 @@ PLATFORM_NAME_WINDOWS = 'windows'
 PLATFORM_NAME_MAC_OS = "darwin"
 
 PASSWORD_PATTERNS = ("PASSW", "KENNW", "ACCESS", "SECRET")
-PROTECTED_PASSWORD_VALUE = "[HID" "DEN]" # trick Codacy
+PROTECTED_PASSWORD_VALUE = "[HID" "DEN]"  # trick Codacy
 
 PORT_NUMBER_SEPERATOR = ":"
 
+
 # Dummy function to trigger extraction by pybabel...
-_ = lambda x: x
+def _(x):
+    return x
+
 
 class SimpleStatus(object):
 
     def __init__(self):
         self.done = False
+
 
 def int_to_string(p_integer):
     if p_integer is None:
@@ -90,6 +94,11 @@ def is_mac_os():
 
 def get_current_time():
     return datetime.datetime.now()
+
+
+def get_today():
+    today = datetime.datetime.now()
+    return datetime.datetime(year=today.year, month=today.month, day=today.day)
 
 
 def get_date_as_string(p_date, p_short=False):
@@ -333,7 +342,10 @@ def handle_fatal_exception(p_exception, p_logger=None):
         sys.stderr.write(str(p_exception))
 
 
-def objectify_dict(p_dict, p_class, p_attribute_classes={}):
+def objectify_dict(p_dict, p_class, p_attribute_classes=None):
+    if p_attribute_classes is None:
+        p_attribute_classes = {}
+
     instance = p_class()
 
     for attr_name, attr_value in p_dict.items():
@@ -411,6 +423,7 @@ def get_string_as_time(p_string):
 
     return datetime.time(hour=hour, minute=minute, second=second)
 
+
 class TimingContext(object):
 
     def __init__(self, p_result_handler):
@@ -419,26 +432,27 @@ class TimingContext(object):
     def __enter__(self):
         self._start = time.time()
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, a_type, value, a_traceback):
         self._end = time.time()
         self._result_handler(self._end - self._start)
 
-def get_new_object_name(p_name_pattern, p_existing_names):
 
-    id = 1
+def get_new_object_name(p_name_pattern, p_existing_names):
+    an_id = 1
     found = False
     new_name = None
 
     while not found:
-        new_name = p_name_pattern.format(id=id)
+        new_name = p_name_pattern.format(id=an_id)
 
         if new_name in p_existing_names:
-            id += 1
+            an_id += 1
 
         else:
             found = True
 
     return new_name
+
 
 def split_host_url(p_url, p_default_port_number):
     index = p_url.find(PORT_NUMBER_SEPERATOR)
@@ -452,24 +466,23 @@ def split_host_url(p_url, p_default_port_number):
 
         except Exception:
             msg = "Invalid port number {port}"
-            raise Exception(msg.format(port=port_string))
+            raise ValueError(msg.format(port=port_string))
 
         if port_number < 1 or port_number > 65535:
             msg = "Port number {port} of ouf range"
-            raise Exception(msg.format(port=port_number))
+            raise ValueError(msg.format(port=port_number))
 
-        return ( host, port_number )
+        return host, port_number
 
     else:
-        return ( p_url, p_default_port_number)
+        return p_url, p_default_port_number
 
 
 def is_valid_dns_name(p_dns_name):
-
     try:
         dns_name, port = split_host_url(p_url=p_dns_name, p_default_port_number=1)
 
-    except Exception:
+    except ValueError:
         return False
 
     try:
@@ -479,14 +492,15 @@ def is_valid_dns_name(p_dns_name):
     except socket.gaierror:
         return False
 
-def get_dns_name_by_ip_address(p_ip_address):
 
+def get_dns_name_by_ip_address(p_ip_address):
     try:
         result = socket.gethostbyaddr(p_ip_address)
         return result[0]
 
-    except Exception as e:
+    except Exception:
         return p_ip_address
+
 
 def objects_are_equal(p_object1: object, p_object2: object, p_logger=None):
     for attr, value1 in p_object1.__dict__.items():
