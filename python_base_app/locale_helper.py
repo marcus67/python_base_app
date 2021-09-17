@@ -39,6 +39,10 @@ class LocaleHelper(object):
 
     def gettext(self, p_text):
         current_locale = self.locale
+
+        if current_locale is None:
+            current_locale = "en"
+
         gettext_func = self._langs.get(current_locale)
 
         if gettext_func is None:

@@ -42,6 +42,8 @@ USER_2_UID = "non-admin"
 
 GROUP_BASE_DN = "ou=groups," + SEARCH_BASE_DN
 
+GROUP_SEARCH_BASE_DN = GROUP_BASE_DN
+
 ADMIN_GROUP_NAME = "little-brother-admins"
 ADMIN_GROUP_DN = "ou=" + ADMIN_GROUP_NAME + "," + GROUP_BASE_DN
 
@@ -86,7 +88,7 @@ RETURN_VALUES = [
         ]
     ),
     (
-        'search_s', (SEARCH_BASE_DN, 2, ADMIN_GROUP_FILTER,
+        'search_s', (GROUP_SEARCH_BASE_DN, 2, ADMIN_GROUP_FILTER,
                      ", ".join(ldap_user_handler.GROUP_ATTRS), 0),
         [
             (ADMIN_GROUP_DN,
@@ -97,7 +99,7 @@ RETURN_VALUES = [
         ]
     ),
     (
-        'search_s', (SEARCH_BASE_DN, 2, USER_GROUP_FILTER,
+        'search_s', (GROUP_SEARCH_BASE_DN, 2, USER_GROUP_FILTER,
                      ", ".join(ldap_user_handler.GROUP_ATTRS), 0),
         [
             (USER_GROUP_DN,
@@ -134,6 +136,7 @@ class TestLdapUserHandler(base_test.BaseTestCase):
         config.ldap_bind_dn = BIND_DN
         config.ldap_bind_password = BIND_PASSWORD
         config.ldap_search_base_dn = SEARCH_BASE_DN
+        config.ldap_group_search_base_dn = GROUP_SEARCH_BASE_DN
         config.ldap_admin_group_name = ADMIN_GROUP_NAME
 
         return config
