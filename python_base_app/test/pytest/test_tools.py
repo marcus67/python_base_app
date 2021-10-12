@@ -130,3 +130,8 @@ def test_today():
     assert today.second == 0
     assert today.microsecond == 0
 
+def test_running_in_docker():
+    assert not tools.running_in_docker()
+
+def test_running_in_snap():
+    assert not tools.running_in_snap()

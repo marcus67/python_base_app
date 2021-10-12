@@ -455,6 +455,9 @@ class BaseApp(daemon.Daemon):
         if tools.running_in_docker():
             self._logger.info("Detected Docker run time.")
 
+        elif tools.running_in_snap():
+            self._logger.info("Detected Snapcraft run time")
+
         fmt = "Starting app '%s'" % self._app_name
         self._logger.info(fmt)
 

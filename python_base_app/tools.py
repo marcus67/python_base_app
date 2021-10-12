@@ -552,6 +552,9 @@ def value_or_not_set(p_value):
 def running_in_docker():
     return os.getenv("RUNNING_IN_DOCKER") is not None
 
+def running_in_snap():
+    return os.getenv("RUNNING_IN_SNAP") is not None
+
 
 def copy_attributes(p_from: object, p_to: object, p_only_existing=False) -> None:
     for (key, value) in p_from.__dict__.items():
