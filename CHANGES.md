@@ -6,6 +6,7 @@ This document lists all changes of `python_base_app` with the most recent change
 
 * Cleanly handle stdout of ping command
 * Generate extra package dependencies in Debian control file 
+* Add CODE_OF_CONDUCT.md and CONTRIBUTING.md
 
 ## Version 0.2.26 (October 12th, 2021)
 
