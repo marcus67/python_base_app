@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.28 (January 2nd, 2022)
+
+* Clean deployment to test.pypi.org
+
 ## Version 0.2.27 (January 1st, 2022)
 
 * Cleanly handle stdout of ping command
