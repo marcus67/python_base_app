@@ -5,6 +5,7 @@ This document lists all changes of `python_base_app` with the most recent change
 ## Version 0.2.27 (January 1st, 2022)
 
 * Cleanly handle stdout of ping command
+* Generate extra package dependencies in Debian control file 
 
 ## Version 0.2.26 (October 12th, 2021)
 
