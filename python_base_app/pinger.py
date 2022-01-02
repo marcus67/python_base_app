@@ -27,6 +27,7 @@ import requests
 from python_base_app import configuration
 from python_base_app import log_handling
 from python_base_app import tools
+from python_base_app.configuration import ConfigurationException
 
 SECTION_NAME = "Pinger"
 
@@ -149,8 +150,16 @@ class Pinger(object):
 
         proc = subprocess.Popen(command, stdout=subprocess.PIPE)
 
-        for line in proc.stdout:
-            result = self.ping_result_regex.match(line.decode("UTF-8"))
+        stdout, _stderr = proc.communicate()
+
+        if proc.returncode != 0:
+            fmt = "{cmd} returns exit code {exitcode}"
+            raise ConfigurationException(fmt.format(cmd=command, exitcode=proc.returncode))
+
+        stdout_string = stdout.decode("UTF-8")
+
+        for line in stdout_string.split("\n"):
+            result = self.ping_result_regex.match(line)
 
             if result:
                 delay = float(result.group(3))
