@@ -139,8 +139,11 @@ class Pinger(object):
     # https://stackoverflow.com/questions/2953462/pinging-servers-in-python
     def local_ping(self, p_host):
         """
-        Returns True if host (str) responds to a ping request.
+        Checks if a host reacts to a ICMP ping request.
         Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
+
+        :param p_host: DNS or ip address of the host to be pinged
+        :return: the delay in milliseconds (as float) if the host responds, None otherwise
         """
 
         fmt = "{ping_command} {w_option} 1 {c_option} {host}"
@@ -156,15 +159,13 @@ class Pinger(object):
         fmt = "Executing command {cmd} in Popen"
         self._logger.debug(fmt.format(cmd=command))
 
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE)
-
-        stdout, _stderr = proc.communicate()
+        proc = subprocess.run(command, stdout=subprocess.PIPE)
 
         if proc.returncode != 0:
             fmt = "{cmd} returns exit code {exitcode}"
             raise ConfigurationException(fmt.format(cmd=command, exitcode=proc.returncode))
 
-        stdout_string = stdout.decode("UTF-8")
+        stdout_string = proc.stdout.decode("UTF-8")
 
         for line in stdout_string.split("\n"):
             fmt = "ping output: {line}"
