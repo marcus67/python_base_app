@@ -125,9 +125,10 @@ class Pinger(object):
             fmt = "result of remote ping: {delay}"
             self._logger.debug(fmt.format(delay=r.text))
 
-            delay = float(r.text.replace(',', "."))
+            delay = float(r.text.replace(',', '.'))
 
-        except:
+        except Exception as e:
+            self._logger.exception(e)
             return None
 
         return delay
