@@ -159,6 +159,9 @@ class Pinger(object):
         stdout_string = stdout.decode("UTF-8")
 
         for line in stdout_string.split("\n"):
+            fmt = "ping output: {line}"
+            self._logger.debug(fmt.format(line=line))
+
             result = self.ping_result_regex.match(line)
 
             if result:
