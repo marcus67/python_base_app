@@ -161,7 +161,7 @@ class Pinger(object):
 
         proc = subprocess.run(command, stdout=subprocess.PIPE)
 
-        if proc.returncode != 0:
+        if proc.returncode >= 2:
             fmt = "{cmd} returns exit code {exitcode}"
             raise ConfigurationException(fmt.format(cmd=command, exitcode=proc.returncode))
 
