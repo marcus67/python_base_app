@@ -60,6 +60,8 @@ fi
 {%- if var.setup.deploy_systemd_service %}
 mkdir -p ${SYSTEMD_DIR}
 cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+echo "Execute systemctl daemon-reload..."
+systemctl daemon-reload
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_conf %}
