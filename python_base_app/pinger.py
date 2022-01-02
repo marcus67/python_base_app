@@ -119,16 +119,19 @@ class Pinger(object):
                 port=port,
                 remaining_url=remaining_url
             )
+            fmt = "Delegating to remote host using URL {url}"
+            self._logger.debug(fmt.format(url=url))
 
             r = requests.get(url, timeout=p_default_timeout)
 
-            fmt = "result of remote ping: {delay}"
+            fmt = "Result of remote ping: {delay}"
             self._logger.debug(fmt.format(delay=r.text))
 
             delay = float(r.text.replace(',', '.'))
 
         except Exception as e:
-            self._logger.exception(e)
+            fmt = "Exception during remote ping: {msg}"
+            self._logger.error(fmt.format(msg=str(e)))
             return None
 
         return delay
