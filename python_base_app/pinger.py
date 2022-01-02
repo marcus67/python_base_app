@@ -121,7 +121,11 @@ class Pinger(object):
             )
 
             r = requests.get(url, timeout=p_default_timeout)
-            delay = float(r.text)
+
+            fmt = "result of remote ping: {delay}"
+            self._logger.debug(fmt.format(delay=r.text))
+
+            delay = float(r.text.replace(',', "."))
 
         except:
             return None
