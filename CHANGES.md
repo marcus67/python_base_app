@@ -2,6 +2,17 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.28 (January 2nd, 2022)
+
+* Clean deployment to test.pypi.org
+
+## Version 0.2.27 (January 1st, 2022)
+
+* Cleanly handle stdout of ping command
+* Generate extra package dependencies in Debian control file 
+* Add CODE_OF_CONDUCT.md and CONTRIBUTING.md
+* Execute daemon reload in Debian post-install script
+
 ## Version 0.2.26 (October 12th, 2021)
 
 * Exclude .md files from Codacy checks
