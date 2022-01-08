@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.29 (January 8th, 2022)
+
+* Add jinja2 templates to PIP package
+
 ## Version 0.2.28 (January 2nd, 2022)
 
 * Clean deployment to test.pypi.org
