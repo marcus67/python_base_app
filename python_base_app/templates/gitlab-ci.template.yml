@@ -29,7 +29,11 @@ stages:
   {% endif -%}
   {% if var.setup.docker_contexts|length > 0 -%}
   - deploy
-  {% endif %}
+  {% endif -%}
+  {% if var.setup.publish_pypi_package|length > 0 -%}
+  - publish
+  {% endif -%}
+
 
   {%- if var.setup.build_debian_package %}
 build_debian:
@@ -124,3 +128,11 @@ docker:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 {% endif %}
+
+{%- if var.setup.publish_pypi_package|length > 0 %}
+publish_pypi:
+  image: {{ var.setup.docker_image_test }}
+  stage: publish
+  script:
+  - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_pypi_package }} --use-dev-dir=.
+{%- endif %}

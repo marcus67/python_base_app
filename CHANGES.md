@@ -6,6 +6,7 @@ This document lists all changes of `python_base_app` with the most recent change
 
 * Add pip3 calls for packages required during build and publish
 * Allow setting of user and URL for PyPi repository
+* Add publishing of PyPi packages to GitLab-CI configuration
 
 ## Version 0.2.29 (January 8th, 2022)
 
