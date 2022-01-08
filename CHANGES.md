@@ -2,6 +2,11 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.30 (January 8th, 2022)
+
+* Add pip3 calls for packages required during build and publish
+* Allow setting of user and URL for PyPi repository
+
 ## Version 0.2.29 (January 8th, 2022)
 
 * Add jinja2 templates to PIP package

@@ -53,6 +53,11 @@ mkdir -p ${TMP_DIR}
 mkdir -p ${ETC_DIR}
 {% endif %}
 
+echo "Installing PIP packages required for building..."
+{%- if var.setup.ci_stage_build_pip_dependencies|length > 0 %}
+pip3 install {%- for package in var.setup.ci_stage_build_pip_dependencies %} {{package}}{% endfor %}
+{%- endif %}
+
 {% for package in python_packages %}
 # Build PIP package {{ package[1] }}...
 pushd . > /dev/null

@@ -36,6 +36,9 @@ build_debian:
   image: {{ var.setup.docker_image_make_package }}
   stage: build
   script:
+  {%- if var.setup.ci_stage_build_pip_dependencies|length > 0 %}
+  pip3 install {%- for package in var.setup.ci_stage_build_pip_dependencies} {{package}}{% endfor %}
+  {%- endif %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
   artifacts:
     paths:

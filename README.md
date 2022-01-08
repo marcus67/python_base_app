@@ -5,7 +5,10 @@
 ## Overview
 
 `python_base_app` is a simple framework for Python applications with a web frontend using 
-[Flask](https://palletsprojects.com/p/flask/). It is used by [LitleBrother](https://github.com/marcus67/little_brother).
+[Flask](https://palletsprojects.com/p/flask/). It is used by 
+[LittleBrother](https://github.com/marcus67/little_brother),
+[LittleBrotherTaskbar](https://github.com/marcus67/little_brother_taskbar), and 
+[ProxyPing](https://github.com/marcus67/proxy_ping).
 
 ## Change History 
 
@@ -54,8 +57,8 @@ Note: The vulnerability status is derived from the Python PIP packages found in 
 *   Templates and generator (Jinja2) for creating
     *   Debian packages for Python applications,
     *   PIP packages (build, test, publish),
-    *   control files for continous integration platforms CircleCI and GitLab,
-    *   control file abalyzing test coverage using Python module `coverage`
+    *   control files for continuous integration platforms CircleCI and GitLab,
+    *   control file analyzing test coverage using Python module `coverage`
      
 ## Caveats
 
