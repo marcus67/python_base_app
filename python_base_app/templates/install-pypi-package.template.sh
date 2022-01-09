@@ -26,17 +26,10 @@
 set -e
 SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
+BIN_DIR=${BASE_DIR}/bin
+PIP3=${BIN_DIR}/pip3.sh
 
 cd ${BASE_DIR}
-
-if [ -x /usr/local/bin/pip3 ] ; then
-    # If there is a pip in /usr/local it has probably been in installed/upgraded by pip itself.
-    # We had better take this one...
-    PIP3=/usr/local/bin/pip3
-else
-    # Otherwise take the one that has been installed by the Debian package...
-    PIP3=/usr/bin/pip3
-fi
 
 #VIRTUAL_ENV_DIR="/var/lib/{{python_packages[0][3]['setup']['name']}}/virtualenv/bin"
 #PYTHON_BIN=$VIRTUAL_ENV_DIR/python3

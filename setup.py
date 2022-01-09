@@ -50,10 +50,16 @@ setup_params = {
 
 extended_setup_params = {
     # additional setup configuration used by CI stages
+
     "id": "python-base-app",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "publish_pypi_package": { 'release': ( 'PYPI_API_URL', 'PYPI_API_TOKEN' ),
+
+    # for Testing extra CI PIP dependencies
+    #"ci_pip_dependencies": { "some-package" },
+    #"extra_pypi_indexes": { "master": ["TEST_PYPI_EXTRA_INDEX"] },
+
+    "publish_pypi_package": { 'release': ( 'PYPI_API_URL', 'PYPI_API_TOKEN', 'TEST_PYPI_API_USER' ),
                               'master': ( 'TEST_PYPI_API_URL', 'TEST_PYPI_API_TOKEN', 'TEST_PYPI_API_USER' ) },
     "analyze": True
 }
