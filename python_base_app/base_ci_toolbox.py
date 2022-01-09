@@ -455,7 +455,7 @@ def generate_pip3_script(p_main_setup_module, p_template_env, p_arguments):
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="pip3 script",
                            p_output_filename=PIP3_SCRIPT_FILE, p_template_name=PIP3_SCRIPT_TEMPLATE,
-                           p_arguments=p_arguments, p_make_executable=True)
+                           p_arguments=p_arguments, p_make_executable=True, p_create_directory=True)
 
 
 def generate_codacy_configuration(p_main_setup_module, p_template_env):

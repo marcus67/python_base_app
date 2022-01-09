@@ -34,11 +34,13 @@ STAGE_PREPARE_FILES = [
     '.circleci/config.yml',
     '.gitlab-ci.yml',
     '.codacy.yml',
-    'a_package/git.py'
+    'a_package/git.py',
+    'bin/pip3.sh'
 ]
 
 STAGE_PREPARE_DIRS = [
     '.circleci',
+    'bin'
 ]
 
 STAGE_BUILD_FILES = [
