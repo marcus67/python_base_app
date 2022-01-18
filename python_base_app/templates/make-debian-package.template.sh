@@ -55,7 +55,7 @@ mkdir -p ${ETC_DIR}
 mkdir -p ${LIB_DIR}
 
 echo "Copying pip3.sh helper script..."
-cp ${BASE_DIR}/pip3.sh ${LIB_DIR}
+cp ${BASE_DIR}/bin/pip3.sh ${LIB_DIR}
 {% endif %}
 
 echo "Installing PIP packages required for building..."
