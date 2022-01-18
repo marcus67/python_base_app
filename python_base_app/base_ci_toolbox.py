@@ -986,6 +986,8 @@ def main(p_main_module_dir):
                 generate_debian_control(p_main_setup_module=main_setup_module, p_template_env=template_env)
                 generate_debian_postinst(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                          p_arguments=arguments)
+            generate_pip3_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                 p_arguments=arguments)
             generate_make_debian_package(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                          p_arguments=arguments)
             execute_make_debian_package_script(p_main_setup_module=main_setup_module)

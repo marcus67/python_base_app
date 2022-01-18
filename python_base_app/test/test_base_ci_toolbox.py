@@ -17,9 +17,8 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
-import tempfile
-
 import sys
+import tempfile
 
 import setuptools
 
@@ -44,14 +43,15 @@ STAGE_PREPARE_DIRS = [
 ]
 
 STAGE_BUILD_FILES = [
-    'bin/make-debian-package.sh',
     'a_package/translations/de/LC_MESSAGES/messages.mo',
     'a_package.egg-info/dependency_links.txt',
     'a_package.egg-info/PKG-INFO',
     'a_package.egg-info/requires.txt',
     'a_package.egg-info/SOURCES.txt',
     'a_package.egg-info/top_level.txt',
-    'dist/a_package-0.0.1.tar.gz'
+    'dist/a_package-0.0.1.tar.gz',
+    'bin/make-debian-package.sh',
+    'bin/pip3.sh'
 ]
 
 STAGE_BUILD_DIRS = [

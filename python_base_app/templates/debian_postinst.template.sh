@@ -24,7 +24,6 @@
 ##################################################################################
 
 
-TMP_DIR=/{{ var.setup.rel_tmp_dir }}
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
 LOG_DIR=/{{ var.setup.rel_log_dir }}
 SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
@@ -39,7 +38,8 @@ ROOT_DIR=
 SCRIPT_DIR=$(dirname ${BASH_SOURCE[0]})
 INSTALL_BASE_DIR=$(realpath $SCRIPT_DIR/..)
 BIN_DIR=${INSTALL_BASE_DIR}/bin
-PIP3=${BIN_DIR}/pip3.sh
+PIP3=${LIB_DIR}/pip3.sh
+chmod +x ${PIP3}
 
 {% if generic_script %}
 
@@ -50,10 +50,10 @@ if [ ! "$EUID" == "0" ] ; then
     exit 2
 fi
 
-echo "Checking if all Pip packages have been downloaded to $TMP_DIR..."
+echo "Checking if all Pip packages have been downloaded to $LIB_DIR..."
 {%- for package_name in python_packages %}
-if [ ! -f $TMP_DIR/{{ package_name[1] }} ] ; then
-  echo "ERROR: package {{ package_name[1] }} not found in $TMP_DIR!"
+if [ ! -f $LIB_DIR/{{ package_name[1] }} ] ; then
+  echo "ERROR: package {{ package_name[1] }} not found in $LIB_DIR!"
   echo "Download from test.pypi.org and execute again."
   exit 2
 else
@@ -210,9 +210,9 @@ echo "  * {{ package_name[1] }}"
 {%- endfor %}
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
 ${PIP3} install --upgrade --force-reinstall {% for package_name in python_packages %}\
-     ${TMP_DIR}/{{ package_name[1] }}{% endfor %}
+     ${LIB_DIR}/{{ package_name[1] }}{% endfor %}
 
 {% for package_name in python_packages %}
-echo "Removing installation file ${TMP_DIR}/{{ package_name[1] }}..."
-rm ${TMP_DIR}/{{ package_name[1] }}
+echo "Removing installation file ${LIB_DIR}/{{ package_name[1] }}..."
+rm ${LIB_DIR}/{{ package_name[1] }}
 {%- endfor %}
