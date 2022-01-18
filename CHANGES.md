@@ -2,6 +2,28 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.30 (January 8th, 2022)
+
+* Add pip3 calls for packages required during build and publish
+* Allow setting of user and URL for PyPi repository
+* Add publishing of PyPi packages to GitLab-CI configuration
+* Add generated `pip3.sh` script to download packages from private PyPi indexes 
+
+## Version 0.2.29 (January 8th, 2022)
+
+* Add jinja2 templates to PIP package
+
+## Version 0.2.28 (January 2nd, 2022)
+
+* Clean deployment to test.pypi.org
+
+## Version 0.2.27 (January 1st, 2022)
+
+* Cleanly handle stdout of ping command
+* Generate extra package dependencies in Debian control file 
+* Add CODE_OF_CONDUCT.md and CONTRIBUTING.md
+* Execute daemon reload in Debian post-install script
+
 ## Version 0.2.26 (October 12th, 2021)
 
 * Exclude .md files from Codacy checks

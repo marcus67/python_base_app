@@ -27,6 +27,7 @@ import requests
 from python_base_app import configuration
 from python_base_app import log_handling
 from python_base_app import tools
+from python_base_app.configuration import ConfigurationException
 
 SECTION_NAME = "Pinger"
 
@@ -118,11 +119,19 @@ class Pinger(object):
                 port=port,
                 remaining_url=remaining_url
             )
+            fmt = "Delegating to remote host using URL {url}"
+            self._logger.debug(fmt.format(url=url))
 
             r = requests.get(url, timeout=p_default_timeout)
-            delay = float(r.text)
 
-        except:
+            fmt = "Result of remote ping: {delay}"
+            self._logger.debug(fmt.format(delay=r.text))
+
+            delay = float(r.text.replace(',', '.'))
+
+        except Exception as e:
+            fmt = "Exception during remote ping: {msg}"
+            self._logger.error(fmt.format(msg=str(e)))
             return None
 
         return delay
@@ -130,8 +139,11 @@ class Pinger(object):
     # https://stackoverflow.com/questions/2953462/pinging-servers-in-python
     def local_ping(self, p_host):
         """
-        Returns True if host (str) responds to a ping request.
+        Checks if a host reacts to a ICMP ping request.
         Remember that a host may not respond to a ping (ICMP) request even if the host name is valid.
+
+        :param p_host: DNS or ip address of the host to be pinged
+        :return: the delay in milliseconds (as float) if the host responds, None otherwise
         """
 
         fmt = "{ping_command} {w_option} 1 {c_option} {host}"
@@ -147,10 +159,19 @@ class Pinger(object):
         fmt = "Executing command {cmd} in Popen"
         self._logger.debug(fmt.format(cmd=command))
 
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE)
+        proc = subprocess.run(command, stdout=subprocess.PIPE)
 
-        for line in proc.stdout:
-            result = self.ping_result_regex.match(line.decode("UTF-8"))
+        if proc.returncode >= 2:
+            fmt = "{cmd} returns exit code {exitcode}"
+            raise ConfigurationException(fmt.format(cmd=command, exitcode=proc.returncode))
+
+        stdout_string = proc.stdout.decode("UTF-8")
+
+        for line in stdout_string.split("\n"):
+            fmt = "ping output: {line}"
+            self._logger.debug(fmt.format(line=line))
+
+            result = self.ping_result_regex.match(line)
 
             if result:
                 delay = float(result.group(3))

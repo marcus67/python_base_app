@@ -28,12 +28,33 @@ SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 
 if [ "${{ python_packages[0][5] }}" == "" ] ; then
-    echo "ERROR: The API token for pypi.org must be provided in {{ python_packages[0][5] }}"
+    echo "ERROR: The API token for {{ python_packages[0][4] }} must be provided in {{ python_packages[0][5] }}"
     exit 1
+else
+    echo "INFO: The API token was provided in {{ python_packages[0][5] }}."
 fi
 
-echo "Publish PIP package {{ python_packages[0][1] }}..."
+if [ "${{ python_packages[0][6] }}" == "" ] ; then
+    echo "INFO: The API user for {{ python_packages[0][4] }} was not provided in {{ python_packages[0][6] }}, will default to '__token__'"
+    USER=__token__
+else
+    USER="${{ python_packages[0][6] }}"
+fi
+
+if [ "${{ python_packages[0][4] }}" == "" ] ; then
+    echo "INFO: The API URL was not provided in {{ python_packages[0][4] }}, will default to '{{ python_packages[0][7] }}'"
+    URL={{ python_packages[0][7] }}
+else
+    URL="${{ python_packages[0][4] }}"
+fi
+
+echo "Installing PIP packages required for publishing..."
+{%- if var.setup.ci_stage_publish_pip_package_pip_dependencies|length > 0 %}
+pip3 install {%- for package in var.setup.ci_stage_publish_pip_package_pip_dependencies %} {{package}}{% endfor %}
+{%- endif %}
+
+echo "Publish PIP package {{ python_packages[0][1] }} to $URL with user $USER ..."
 
 # See https://twine.readthedocs.io/en/latest/#using-twine
-twine upload --repository-url {{ python_packages[0][4] }} \
-    --username __token__ --password ${{ python_packages[0][5] }} dist/{{ python_packages[0][1] }}
+twine upload --repository-url $URL \
+    --username $USER --password ${{ python_packages[0][5] }} dist/{{ python_packages[0][1] }}

@@ -91,6 +91,9 @@ PUBLISH_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'publish-debian-package.template.sh'
 PUBLISH_PYPI_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/publish-pypi-package.sh'
 PUBLISH_PYPI_PACKAGE_SCRIPT_TEMPLATE = 'publish-pypi-package.template.sh'
 
+PIP3_SCRIPT_FILE = '{bin_dir}/pip3.sh'
+PIP3_SCRIPT_TEMPLATE = 'pip3.template.sh'
+
 TEST_APP_SCRIPT_FILE_PATH = '{bin_dir}/test-app.sh'
 TEST_APP_SCRIPT_TEMPLATE = 'test-app.template.sh'
 
@@ -111,8 +114,16 @@ PREDEFINED_ENV_VARIABLES = [
     VarStatus('MAX_CPUS', "Maximum number of parallel CPUs/threads to be used during build", "max_cpus"),
 ]
 
-DEFAULT_PYPI_REPOSITORY = "https://pypi.org"
+DEFAULT_PYPI_REPOSITORY = "https://upload.pypi.org/legacy/"
+DEFAULT_TEST_PYPI_REPOSITORY = "https://test.pypi.org/legacy/"
+
+DEFAULT_PYPI_URL_ENV_NAME = "PYPI_API_URL"
+DEFAULT_TEST_PYPI_URL_ENV_NAME = "TEST_PYPI_API_URL"
+
+DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME = "TEST_PYPI_EXTRA_INDEX"
+
 DEFAULT_PYPI_TOKEN_ENV_NAME = "PYPI_API_TOKEN"
+DEFAULT_PYPI_USER_ENV_NAME = "PYPI_API_USER"
 
 predefined_env_variables = None
 
@@ -122,6 +133,7 @@ default_setup = {
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "accso/docker-python-app:latest",
     "ci_toolbox_script": "ci_toolbox.py",
+    "ci_pip_dependencies": [ ],
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
@@ -131,6 +143,8 @@ default_setup = {
     "ci_stage_teardown": STAGE_TEARDOWN,
     "ci_stage_publish_package": STAGE_PUBLISH_PACKAGE,
     "ci_stage_publish_pypi_package": STAGE_PUBLISH_PYPI_PACKAGE,
+    "ci_stage_build_pip_dependencies": [ "babel" ],
+    "ci_stage_publish_pip_package_pip_dependencies": [ "twine" ],
     "require_teardown": False,
     "bin_dir": "bin",
     "test_dir": "test",
@@ -173,7 +187,8 @@ default_setup = {
     "contributing_setups": [],
     "publish_debian_package": [],
     "build_pypi_package": False,
-    "publish_pypi_package": [],
+    "publish_pypi_package": {},
+    "extra_pypi_indexes": {},
     "publish_docker_images": [],
     "publish_latest_docker_image": "",
     "docker_registry": "docker.io",
@@ -299,9 +314,14 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
             * 1: filename of the python pip package (excluding path)
             * 2: module name
             * 3: vars of the package
-            * 4: target PyPi repository URL
-            * 5: variable name containing token for target PyPi repository
+            * 4: variable name containing the target PyPi repository URL
+            * 5: variable name containing the token for the target PyPi repository
+            * 6: variable name containing the username for the target PyPi repository
+            * 7: default target PyPi repository URL
     """
+
+    if p_arguments is None:
+        return []
 
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
@@ -315,29 +335,50 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
     branch = var["setup"].get("GIT_BRANCH")
     branch_target_rep_map = var["setup"]["publish_pypi_package"]
+    branch_extra_pypi_indexes_map = var["setup"]["extra_pypi_indexes"]
 
-    target_rep = None
+    target_rep_url_env_name = None
     target_rep_token_env_name = None
+    target_rep_user_env_name = None
+    target_rep_extra_index_env_name = None
 
-    if isinstance(branch_target_rep_map, dict) and branch is not None:
-        target_rep_map_entry = branch_target_rep_map.get(branch)
+    if branch is not None:
+        if isinstance(branch_target_rep_map, dict):
+            target_rep_map_entry = branch_target_rep_map.get(branch)
 
-        if target_rep_map_entry is not None:
-            target_rep = target_rep_map_entry[0]
-            target_rep_token_env_name = target_rep_map_entry[1]
+            if target_rep_map_entry is not None:
+                target_rep_url_env_name = target_rep_map_entry[0]
+                target_rep_token_env_name = target_rep_map_entry[1]
+                target_rep_user_env_name = target_rep_map_entry[2]
 
-    if target_rep is None:
-        target_rep = DEFAULT_PYPI_REPOSITORY
+        if isinstance(branch_extra_pypi_indexes_map, dict):
+            target_extra_pypi_indexes_map_entry = branch_extra_pypi_indexes_map.get(branch)
+
+            if target_extra_pypi_indexes_map_entry is not None:
+                target_rep_extra_index_env_name = target_extra_pypi_indexes_map_entry[0]
+
+    if target_rep_url_env_name is None:
+        target_rep_url_env_name = DEFAULT_PYPI_URL_ENV_NAME
 
     if target_rep_token_env_name is None:
         target_rep_token_env_name = DEFAULT_PYPI_TOKEN_ENV_NAME
+
+    if target_rep_user_env_name is None:
+        target_rep_user_env_name = DEFAULT_PYPI_USER_ENV_NAME
+
+    if target_rep_url_env_name == DEFAULT_TEST_PYPI_URL_ENV_NAME:
+        target_rep_default_url = DEFAULT_TEST_PYPI_REPOSITORY
+
+    else:
+        target_rep_default_url = DEFAULT_PYPI_REPOSITORY
 
     contributing_setup_modules = load_contributing_setup_modules(p_main_setup_module)
 
     python_packages = []
 
     python_packages.append((app_dir, get_python_package_name(p_var=var), var["setup"]["module_name"], var,
-                            target_rep, target_rep_token_env_name))
+                            target_rep_url_env_name, target_rep_token_env_name, target_rep_user_env_name,
+                            target_rep_default_url, target_rep_extra_index_env_name))
 
     if p_include_contrib_packages:
         for contributing_setup_module in contributing_setup_modules:
@@ -351,13 +392,15 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
                 include_path = contrib_dir
 
             python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var,
-                                    target_rep, target_rep_token_env_name))
+                                    target_rep_url_env_name, target_rep_token_env_name, target_rep_user_env_name,
+                                    target_rep_default_url, target_rep_extra_index_env_name))
 
     return python_packages
 
 
 def generate_standard_file(p_main_setup_module, p_template_env, p_file_description,
-                           p_output_filename, p_template_name, p_create_directory=False):
+                           p_output_filename, p_template_name, p_create_directory=False,
+                           p_arguments=None, p_make_executable=False):
     global logger
 
     fmt = "Generate {file_description} for version {version} of app '{name}'"
@@ -367,7 +410,9 @@ def generate_standard_file(p_main_setup_module, p_template_env, p_file_descripti
 
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
-    output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.extended_setup_params))
+    output_text = template.render(var=get_vars(p_setup_params=p_main_setup_module.extended_setup_params),
+                                  python_packages=get_python_packages(p_main_setup_module=p_main_setup_module,
+                                                                      p_arguments=p_arguments))
 
     output_file_path = p_output_filename.format(**(var["setup"]))
 
@@ -380,8 +425,11 @@ def generate_standard_file(p_main_setup_module, p_template_env, p_file_descripti
     with open(filename, "w") as f:
         f.write(output_text)
 
-    fmt = "Wrote {file_description} file '{filename}'"
-    logger.info(fmt.format(filename=filename, file_description=p_file_description))
+    if p_make_executable:
+        os.chmod(filename, 0o755)
+
+    fmt = "Wrote {file_description} file '{filename}', executable bit: {executable}"
+    logger.info(fmt.format(filename=filename, file_description=p_file_description, executable=p_make_executable))
 
 
 def generate_git_python_file(p_main_setup_module, p_template_env):
@@ -390,17 +438,24 @@ def generate_git_python_file(p_main_setup_module, p_template_env):
                            p_output_filename=GIT_PY_FILE_PATH, p_template_name=GIT_PY_TEMPLATE)
 
 
-def generate_circle_ci_configuration(p_main_setup_module, p_template_env):
+def generate_circle_ci_configuration(p_main_setup_module, p_template_env, p_arguments):
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="Circle CI configuration",
                            p_output_filename=CIRCLE_CI_FILE, p_template_name=CIRCLE_CI_TEMPLATE,
-                           p_create_directory=True)
+                           p_create_directory=True, p_arguments=p_arguments)
 
 
-def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env):
+def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env, p_arguments):
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="GitLab CI configuration",
-                           p_output_filename=GITLAB_CI_FILE, p_template_name=GITLAB_CI_TEMPLATE)
+                           p_output_filename=GITLAB_CI_FILE, p_template_name=GITLAB_CI_TEMPLATE,
+                           p_arguments=p_arguments)
+
+def generate_pip3_script(p_main_setup_module, p_template_env, p_arguments):
+    generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
+                           p_file_description="pip3 script",
+                           p_output_filename=PIP3_SCRIPT_FILE, p_template_name=PIP3_SCRIPT_TEMPLATE,
+                           p_arguments=p_arguments, p_make_executable=True, p_create_directory=True)
 
 
 def generate_codacy_configuration(p_main_setup_module, p_template_env):
@@ -974,8 +1029,12 @@ def main(p_main_module_dir):
             execute_analyze_app_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_PREPARE:
-            generate_gitlab_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
-            generate_circle_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
+            generate_gitlab_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                             p_arguments=arguments)
+            generate_circle_ci_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                             p_arguments=arguments)
+            generate_pip3_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                 p_arguments=arguments)
             generate_codacy_configuration(p_main_setup_module=main_setup_module, p_template_env=template_env)
             generate_git_python_file(p_main_setup_module=main_setup_module, p_template_env=template_env)
 

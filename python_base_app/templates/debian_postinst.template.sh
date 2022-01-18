@@ -35,10 +35,14 @@ TMPFILE_DIR=/{{ var.setup.rel_tmpfile_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
 APPARMOR_DIR=/{{ var.setup.rel_apparmor_dir }}
 
-{% if generic_script %}
 ROOT_DIR=
 SCRIPT_DIR=$(dirname ${BASH_SOURCE[0]})
 INSTALL_BASE_DIR=$(realpath $SCRIPT_DIR/..)
+BIN_DIR=${INSTALL_BASE_DIR}/bin
+PIP3=${BIN_DIR}/pip3.sh
+
+{% if generic_script %}
+
 echo "Running generic installation script with base directory located in $INSTALL_BASE_DIR..."
 
 if [ ! "$EUID" == "0" ] ; then
@@ -60,6 +64,8 @@ fi
 {%- if var.setup.deploy_systemd_service %}
 mkdir -p ${SYSTEMD_DIR}
 cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+echo "Execute systemctl daemon-reload..."
+systemctl daemon-reload
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_conf %}
@@ -87,6 +93,7 @@ cp -f $INSTALL_BASE_DIR/{{ file_mapping[0] }} ${ROOT_DIR}/{{ file_mapping[1] }}
 {%- endfor %}
 {%- endif %}
 {% endfor %}
+# endif for if generic_script
 {%- endif %}
 
 {%- if var.setup.create_group %}
@@ -147,8 +154,6 @@ ln -fs ${VIRTUAL_ENV_DIR}/bin/{{ script }} /usr/local/bin/{{ script }}
 echo "Creating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
 
 virtualenv -p /usr/bin/python3 ${VIRTUAL_ENV_DIR}
-
-PIP3=${VIRTUAL_ENV_DIR}/bin/pip3
 
 echo "Setting ownership..."
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
