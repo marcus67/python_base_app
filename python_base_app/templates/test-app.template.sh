@@ -88,6 +88,16 @@ chrome -version
 chromedriver -version
 set -e
 
+{% if var.setup.activate_xvfb_for_tests %}
+XVFB_DISPLAY=:99
+echo "Activate xvfb support for X11 testing on DISPLAY ${XVFB_DISPLAY}..."
+Xvfb ${XVFB_DISPLAY} &
+XVFB_PID=$!
+echo "Server Xvfb started with process ID ${XVFB_PID}..."
+OLD_DISPLAY="$DISPLAY"
+DISPLAY=${XVFB_DISPLAY}
+{% endif %}
+
 if [ "${RUN_TEST_BIN}" == "" ] ; then
     echo "ERROR: Cannot find executable {{ var.setup.run_test_suite }} in PATH=${PATH}"
     exit 1
@@ -113,3 +123,10 @@ else
     echo "Running test script ${RUN_TEST_BIN}..."
     ${RUN_TEST_BIN}
 fi
+
+{% if var.setup.activate_xvfb_for_tests %}
+echo "Stopping server Xvfb..."
+kill ${XVFB_PID}
+echo "Restoring DISPLAY variable to '${OLD_DISPLAY}'..."
+DISPLAY=${OLD_DISPLAY}
+{% endif %}

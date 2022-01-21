@@ -203,6 +203,7 @@ default_setup = {
     "analyze_extra_coverage_exclusions": None,
     "analyze_extra_exclusions": None,
     "script_timeout": 600,
+    "activate_xvfb_for_tests" : False,
 }
 
 logger:logging.Logger = None

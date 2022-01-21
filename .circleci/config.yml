@@ -1,4 +1,4 @@
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -23,9 +23,6 @@
 
 version: 2.0
 
-environment:
-  PIP3: "./bin/pip3.sh"
-
 jobs:
   build_pypi:
     #working_directory: ~
@@ -40,11 +37,11 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python-base-app-0.2.31.tar.gz"
+          path: "dist/python-base-app-0.2.32.tar.gz"
       - persist_to_workspace:
           root: dist
           paths:
-            - "python-base-app-0.2.31.tar.gz"
+            - "python-base-app-0.2.32.tar.gz"
   install_pypi:
     #working_directory: ~
     docker:
