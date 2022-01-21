@@ -5,6 +5,7 @@ This document lists all changes of `python_base_app` with the most recent change
 ## Version 0.2.32 (January 21st, 2022)
 
 * Support `xvfb` for testing
+* Change test image to `marcusrickert/docker-python-app:latest`
 
 ## Version 0.2.31 (January 18th, 2022)
 

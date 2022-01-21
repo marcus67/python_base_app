@@ -129,7 +129,7 @@ predefined_env_variables = None
 
 default_setup = {
     "docker_image_make_package": "accso/docker-python-app:latest",
-    "docker_image_test": "accso/docker-python-app:latest",
+    "docker_image_test": "marcusrickert/docker-python-app:latest",
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "accso/docker-python-app:latest",
     "ci_toolbox_script": "ci_toolbox.py",
