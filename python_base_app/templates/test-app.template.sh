@@ -95,7 +95,7 @@ Xvfb ${XVFB_DISPLAY} &
 XVFB_PID=$!
 echo "Server Xvfb started with process ID ${XVFB_PID}..."
 OLD_DISPLAY="$DISPLAY"
-DISPLAY=${XVFB_DISPLAY}
+export DISPLAY=${XVFB_DISPLAY}
 {% endif %}
 
 if [ "${RUN_TEST_BIN}" == "" ] ; then
@@ -128,5 +128,5 @@ fi
 echo "Stopping server Xvfb..."
 kill ${XVFB_PID}
 echo "Restoring DISPLAY variable to '${OLD_DISPLAY}'..."
-DISPLAY=${OLD_DISPLAY}
+export DISPLAY=${OLD_DISPLAY}
 {% endif %}

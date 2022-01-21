@@ -6,6 +6,7 @@ This document lists all changes of `python_base_app` with the most recent change
 
 * Support `xvfb` for testing
 * Change test image to `marcusrickert/docker-python-app:latest`
+* Export env variable `DISPLAY`
 
 ## Version 0.2.31 (January 18th, 2022)
 
