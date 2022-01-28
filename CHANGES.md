@@ -2,6 +2,12 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.32 (January 21st, 2022)
+
+* Support `xvfb` for testing
+* Change test image to `marcusrickert/docker-python-app:latest`
+* Export env variable `DISPLAY`
+
 ## Version 0.2.31 (January 18th, 2022)
 
 * Put Debian installation packages into `/var/lib/<app-name>` in order to prevent collisions due to

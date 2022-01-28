@@ -129,7 +129,7 @@ predefined_env_variables = None
 
 default_setup = {
     "docker_image_make_package": "accso/docker-python-app:latest",
-    "docker_image_test": "accso/docker-python-app:latest",
+    "docker_image_test": "marcusrickert/docker-python-app:latest",
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "accso/docker-python-app:latest",
     "ci_toolbox_script": "ci_toolbox.py",
@@ -203,6 +203,7 @@ default_setup = {
     "analyze_extra_coverage_exclusions": None,
     "analyze_extra_exclusions": None,
     "script_timeout": 600,
+    "activate_xvfb_for_tests" : False,
 }
 
 logger:logging.Logger = None
