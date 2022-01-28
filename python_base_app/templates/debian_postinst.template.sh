@@ -203,7 +203,7 @@ chmod og-rwx {{ file_mapping[1] }}
 {%- endfor %}
 
 ${PIP3} --version
-${PIP3} install wheel setuptools
+${PIP3} install wheel # setuptools
 echo "Installing PIP packages..."
 {%- for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
