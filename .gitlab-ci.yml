@@ -46,7 +46,7 @@ build_pypi:
     GIT_SUBMODULE_STRATEGY: recursive
 
 install_pypi:
-  image: accso/docker-python-app:latest
+  image: marcusrickert/docker-python-app:latest
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
@@ -74,7 +74,7 @@ analyze:
     GIT_SUBMODULE_STRATEGY: recursive
 
 publish_pypi:
-  image: accso/docker-python-app:latest
+  image: marcusrickert/docker-python-app:latest
   stage: publish
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage PUBLISH-PYPI-PACKAGE --use-dev-dir=.

@@ -27,7 +27,7 @@ jobs:
   build_pypi:
     #working_directory: ~
     docker:
-      - image: accso/docker-python-app:latest
+      - image: marcusrickert/docker-python-app:latest
     steps:
       - checkout
 
@@ -45,7 +45,7 @@ jobs:
   install_pypi:
     #working_directory: ~
     docker:
-      - image: accso/docker-python-app:latest
+      - image: marcusrickert/docker-python-app:latest
     steps:
       - checkout
       - attach_workspace:
@@ -63,7 +63,7 @@ jobs:
   publish_pypi:
     #working_directory: ~
     docker:
-      - image: accso/docker-python-app:latest
+      - image: marcusrickert/docker-python-app:latest
     steps:
       - checkout
       - attach_workspace:

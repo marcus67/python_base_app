@@ -7,13 +7,13 @@ This document lists all changes of `python_base_app` with the most recent change
 * Support `xvfb` for testing
 * Change test image to `marcusrickert/docker-python-app:latest`
 * Export env variable `DISPLAY`
+* Closes #158 of `LittleBrother`, see [here](https://github.com/marcus67/little_brother/issues/158)
 
 ## Version 0.2.31 (January 18th, 2022)
 
 * Put Debian installation packages into `/var/lib/<app-name>` in order to prevent collisions due to
   several applications using the same packages
 * Use `pip3.sh` to retrieve packages during Debian post install to allow for download of development versions.
-* Closes #158 of `LittleBrother`, see [here](https://github.com/marcus67/little_brother/issues/158)
 
 ## Version 0.2.30 (January 8th, 2022)
 
