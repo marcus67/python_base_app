@@ -2,6 +2,11 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.33 (January 30th, 2022)
+
+* Improve testing of `Pinger`
+* Deactivate physical ping tests with environment variable `NO_PING`
+
 ## Version 0.2.32 (January 21st, 2022)
 
 * Support `xvfb` for testing
