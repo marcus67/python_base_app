@@ -4,6 +4,10 @@ This document lists all changes of `python_base_app` with the most recent change
 
 ## Version 0.2.33 (January 30th, 2022)
 
+* Upgrade package `alembic` to version 1.7.5 (see [here](https://github.com/marcus67/little_brother/issues/166))
+
+## Version 0.2.33 (January 30th, 2022)
+
 * Improve testing of `Pinger`
 * Deactivate physical ping tests with environment variable `NO_PING`
 
