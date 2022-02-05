@@ -23,7 +23,7 @@
 # but only to python_base_app/templates/publish-pypi-package.template.sh!        #
 ##################################################################################
 
-set -e
+set +e
 SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 
@@ -46,6 +46,42 @@ if [ "${{ python_packages[0][4] }}" == "" ] ; then
     URL={{ python_packages[0][7] }}
 else
     URL="${{ python_packages[0][4] }}"
+fi
+
+if [ ! "${{ python_packages[0][9] }}" == "" ] ; then
+    PACKAGE_LIST_URL="${{ python_packages[0][9] }}"
+    echo "INFO: Package deletion requested. Package list URL = ${PACKAGE_LIST_URL}."
+
+    PACKAGE_LIST=$(curl --header "PRIVATE-TOKEN: ${{ python_packages[0][5] }}" "${PACKAGE_LIST_URL}")
+    RETURN_CODE=$?
+
+    if [[ ${RETURN_CODE} -ne 0 ]] ; then
+        echo "ERROR: packages cannot be listed. Return code: ${RETURN_CODE}!"
+        exit 2
+    fi
+
+    ERROR_CODE=$(echo "${PACKAGE_LIST}" | jq '.error' 2> /dev/null)
+
+    if [ ! "${ERROR_CODE}" == "" ] ; then
+        echo "ERROR: PyPy server returns error ${ERROR_CODE}!"
+        exit 3
+    fi
+
+    DELETE_URL=$(echo "${PACKAGE_LIST}" | jq '.[] | select (.name == "{{ python_packages[0][10] }}" and .version == "{{ python_packages[0][11] }}" )._links.delete_api_path')
+    RETURN_CODE=$?
+
+    if [[ ( ${RETURN_CODE} -ne 0 ) || ( "${DELETE_URL}" == "" ) ]] ; then
+        echo "INFO: package '{{ python_packages[0][10] }}' in version '{{ python_packages[0][11] }}' does not seem to exist yet. Return code: ${RETURN_CODE}"
+    else
+        DELETE_URL=$(echo ${DELETE_URL}| tr -d '"')
+        echo "INFO: Issuing deletion command using URL ${DELETE_URL}..."
+        RESULT=$(curl --request DELETE --header "PRIVATE-TOKEN: ${{ python_packages[0][5] }}" ${DELETE_URL})
+        RETURN_CODE=$?
+
+        if [ ${RETURN_CODE} -gt 0 ] ; then
+            echo "WARNING: result code of deletion command = ${RETURN_CODE}"
+        fi
+    fi
 fi
 
 echo "Installing PIP packages required for publishing..."

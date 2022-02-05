@@ -121,6 +121,7 @@ DEFAULT_PYPI_URL_ENV_NAME = "PYPI_API_URL"
 DEFAULT_TEST_PYPI_URL_ENV_NAME = "TEST_PYPI_API_URL"
 
 DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME = "TEST_PYPI_EXTRA_INDEX"
+DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME = "TEST_PYPI_DELETE_PACKAGE"
 
 DEFAULT_PYPI_TOKEN_ENV_NAME = "PYPI_API_TOKEN"
 DEFAULT_PYPI_USER_ENV_NAME = "PYPI_API_USER"
@@ -319,6 +320,10 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
             * 5: variable name containing the token for the target PyPi repository
             * 6: variable name containing the username for the target PyPi repository
             * 7: default target PyPi repository URL
+            * 8: variable name for extra PyPi index repository URL
+            * 9: variable name containing the URL for listing PyPi packages for subsequent deletion
+            * 10: name of the PyPi package (no extension, no version)
+            * 11: version of the PyPi package
     """
 
     if p_arguments is None:
@@ -377,9 +382,18 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
     python_packages = []
 
-    python_packages.append((app_dir, get_python_package_name(p_var=var), var["setup"]["module_name"], var,
-                            target_rep_url_env_name, target_rep_token_env_name, target_rep_user_env_name,
-                            target_rep_default_url, target_rep_extra_index_env_name))
+    python_packages.append((app_dir,                                                            # 0
+                            get_python_package_name(p_var=var),                                 # 1
+                            var["setup"]["module_name"],                                        # 2
+                            var,                                                                # 3
+                            target_rep_url_env_name,                                            # 4
+                            target_rep_token_env_name,                                          # 5
+                            target_rep_user_env_name,                                           # 6
+                            target_rep_default_url,                                             # 7
+                            target_rep_extra_index_env_name,                                    # 8
+                            DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,                          # 9
+                            var["setup"]["name"],                                               # 10
+                            var["setup"]["version"]))                                           # 11
 
     if p_include_contrib_packages:
         for contributing_setup_module in contributing_setup_modules:
