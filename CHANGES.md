@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.35 (February 7th, 2022)
+
+* Switch all images for all staged to `marcusrickert/docker-python-app`
+
 ## Version 0.2.34 (February 5th, 2022)
 
 * Optionally delete existing PyPi packages on GitLab before uploading (effectively replacing them) 

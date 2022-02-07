@@ -31,7 +31,7 @@ stages:
   - publish
   
 build_pypi:
-  image: accso/docker-python-app:latest
+  image: marcusrickert/docker-python-app:latest
   stage: build
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
@@ -63,7 +63,7 @@ install_pypi:
     GIT_SUBMODULE_STRATEGY: recursive
 
 analyze:
-  image: accso/docker-python-app:latest
+  image: marcusrickert/docker-python-app:latest
   stage: analyze
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage ANALYZE --use-dev-dir=.
