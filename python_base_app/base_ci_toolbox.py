@@ -1077,7 +1077,7 @@ def main(p_main_module_dir):
 
     except Exception as e:
         fmt = "General exception of type {type}: {msg}"
-        logger.error(fmt.format(type=type(e), msg=str(e)))
+        logger.exception(fmt.format(type=type(e), msg=str(e)))
         exit_code = 2
 
     fmt = "Exiting with code {exit_code}"

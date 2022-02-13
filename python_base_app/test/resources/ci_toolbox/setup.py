@@ -53,9 +53,8 @@ extended_setup_params = {
     "id": "a_package",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "publish_pypi_package": {
-        "release": ('https://upload.pypi.org/legacy/', 'PYPI_API_TOKEN'),
-    },
+    "publish_pypi_package": {'release': ('PYPI_API_URL', 'PYPI_API_TOKEN', 'TEST_PYPI_API_USER'),
+                             'master': ('TEST_PYPI_API_URL', 'TEST_PYPI_API_TOKEN', 'TEST_PYPI_API_USER')},
     "git_metadata_file": None,
 }
 extended_setup_params.update(setup_params)

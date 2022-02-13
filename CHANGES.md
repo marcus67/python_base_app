@@ -2,6 +2,11 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.36 (February 13th, 2022)
+
+* Dump stack trace for all general exception in `base_ci_toolbox.py` (for debugging in Circle CI)
+* Fix configuration for `publish_pypi_package` in `setup.py` of test resources (triggered run time error in release builds) 
+
 ## Version 0.2.35 (February 7th, 2022)
 
 * Switch all images for all staged to `marcusrickert/docker-python-app`
