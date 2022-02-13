@@ -2,6 +2,15 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.35 (February 7th, 2022)
+
+* Switch all images for all staged to `marcusrickert/docker-python-app`
+* Use symbolic link for `requirements.txt` in test resources
+
+## Version 0.2.34 (February 5th, 2022)
+
+* Optionally delete existing PyPi packages on GitLab before uploading (effectively replacing them) 
+
 ## Version 0.2.33 (January 30th, 2022)
 
 * Upgrade package `alembic` to version 1.7.5 (see [here](https://github.com/marcus67/little_brother/issues/166))
