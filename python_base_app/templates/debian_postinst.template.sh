@@ -24,7 +24,6 @@
 ##################################################################################
 
 
-TMP_DIR=/{{ var.setup.rel_tmp_dir }}
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
 LOG_DIR=/{{ var.setup.rel_log_dir }}
 SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
@@ -35,10 +34,15 @@ TMPFILE_DIR=/{{ var.setup.rel_tmpfile_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
 APPARMOR_DIR=/{{ var.setup.rel_apparmor_dir }}
 
-{% if generic_script %}
 ROOT_DIR=
 SCRIPT_DIR=$(dirname ${BASH_SOURCE[0]})
 INSTALL_BASE_DIR=$(realpath $SCRIPT_DIR/..)
+BIN_DIR=${INSTALL_BASE_DIR}/bin
+PIP3=${LIB_DIR}/pip3.sh
+chmod +x ${PIP3}
+
+{% if generic_script %}
+
 echo "Running generic installation script with base directory located in $INSTALL_BASE_DIR..."
 
 if [ ! "$EUID" == "0" ] ; then
@@ -46,10 +50,10 @@ if [ ! "$EUID" == "0" ] ; then
     exit 2
 fi
 
-echo "Checking if all Pip packages have been downloaded to $TMP_DIR..."
+echo "Checking if all Pip packages have been downloaded to $LIB_DIR..."
 {%- for package_name in python_packages %}
-if [ ! -f $TMP_DIR/{{ package_name[1] }} ] ; then
-  echo "ERROR: package {{ package_name[1] }} not found in $TMP_DIR!"
+if [ ! -f $LIB_DIR/{{ package_name[1] }} ] ; then
+  echo "ERROR: package {{ package_name[1] }} not found in $LIB_DIR!"
   echo "Download from test.pypi.org and execute again."
   exit 2
 else
@@ -89,6 +93,7 @@ cp -f $INSTALL_BASE_DIR/{{ file_mapping[0] }} ${ROOT_DIR}/{{ file_mapping[1] }}
 {%- endfor %}
 {%- endif %}
 {% endfor %}
+# endif for if generic_script
 {%- endif %}
 
 {%- if var.setup.create_group %}
@@ -150,8 +155,6 @@ echo "Creating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
 
 virtualenv -p /usr/bin/python3 ${VIRTUAL_ENV_DIR}
 
-PIP3=${VIRTUAL_ENV_DIR}/bin/pip3
-
 echo "Setting ownership..."
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
 chown -R {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}
@@ -200,16 +203,16 @@ chmod og-rwx {{ file_mapping[1] }}
 {%- endfor %}
 
 ${PIP3} --version
-${PIP3} install wheel setuptools
+${PIP3} install wheel # setuptools
 echo "Installing PIP packages..."
 {%- for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
 {%- endfor %}
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
 ${PIP3} install --upgrade --force-reinstall {% for package_name in python_packages %}\
-     ${TMP_DIR}/{{ package_name[1] }}{% endfor %}
+     ${LIB_DIR}/{{ package_name[1] }}{% endfor %}
 
 {% for package_name in python_packages %}
-echo "Removing installation file ${TMP_DIR}/{{ package_name[1] }}..."
-rm ${TMP_DIR}/{{ package_name[1] }}
+echo "Removing installation file ${LIB_DIR}/{{ package_name[1] }}..."
+rm ${LIB_DIR}/{{ package_name[1] }}
 {%- endfor %}

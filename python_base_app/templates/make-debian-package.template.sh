@@ -43,6 +43,7 @@ if [ -d ${ROOT_DIR}/DEBIAN ] ; then
 fi
 
 TMP_DIR=${ROOT_DIR}/{{ var.setup.rel_tmp_dir }}
+LIB_DIR=${ROOT_DIR}/{{ var.setup.rel_lib_dir }}
 ETC_DIR=${ROOT_DIR}/{{ var.setup.rel_etc_dir }}
 SYSTEMD_DIR=${ROOT_DIR}/{{ var.setup.rel_systemd_dir }}
 TMPFILE_DIR=${ROOT_DIR}/{{ var.setup.rel_tmpfile_dir }}
@@ -51,7 +52,17 @@ APPARMOR_DIR=${ROOT_DIR}/{{ var.setup.rel_apparmor_dir }}
 
 mkdir -p ${TMP_DIR}
 mkdir -p ${ETC_DIR}
+mkdir -p ${LIB_DIR}
+
+echo "Copying pip3.sh helper script..."
+cp ${BASE_DIR}/bin/pip3.sh ${LIB_DIR}
 {% endif %}
+
+echo "Installing PIP packages required for building..."
+{%- if var.setup.ci_stage_build_pip_dependencies|length > 0 %}
+pip3 install {%- for package in var.setup.ci_stage_build_pip_dependencies %} {{package}}{% endfor %}
+{%- endif %}
+
 
 {% for package in python_packages %}
 # Build PIP package {{ package[1] }}...
@@ -82,7 +93,7 @@ pybabel compile -d {{ package[2] }}/{{ package[3].setup.babel_rel_directory }}
 python3 ./setup.py sdist
 
 {% if var.setup.build_debian_package -%}
-cp dist/{{ package[1] }} ${TMP_DIR}
+cp dist/{{ package[1] }} ${LIB_DIR}
 {% endif %}
 popd
 {% endfor %}

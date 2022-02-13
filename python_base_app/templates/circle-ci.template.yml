@@ -1,4 +1,4 @@
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -22,6 +22,7 @@
 ##################################################################################
 
 version: 2.0
+
 jobs:
   {%- if var.setup.build_debian_package %}
   build:
@@ -36,6 +37,9 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
 
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+      - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
   {%- if var.setup.run_test_suite %}
@@ -65,6 +69,9 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
 
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+      - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - store_artifacts:
           path: "dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
@@ -89,6 +96,9 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
 
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+      - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install_pypi_package }} --use-dev-dir=.
   {%- if var.setup.run_test_suite %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
@@ -113,6 +123,9 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
 
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+      - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_pypi_package }} --use-dev-dir=.
   {%- endif %}
 
@@ -141,6 +154,9 @@ jobs:
       - run: git submodule update --init
       - setup_remote_docker:
           docker_layer_caching: false
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+      - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }}
   {%- endif %}
 

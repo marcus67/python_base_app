@@ -2,6 +2,35 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.33 (January 30th, 2022)
+
+* Upgrade package `alembic` to version 1.7.5 (see [here](https://github.com/marcus67/little_brother/issues/166))
+
+## Version 0.2.33 (January 30th, 2022)
+
+* Improve testing of `Pinger`
+* Deactivate physical ping tests with environment variable `NO_PING`
+
+## Version 0.2.32 (January 21st, 2022)
+
+* Support `xvfb` for testing
+* Change test image to `marcusrickert/docker-python-app:latest`
+* Export env variable `DISPLAY`
+* Closes #158 of `LittleBrother`, see [here](https://github.com/marcus67/little_brother/issues/158)
+
+## Version 0.2.31 (January 18th, 2022)
+
+* Put Debian installation packages into `/var/lib/<app-name>` in order to prevent collisions due to
+  several applications using the same packages
+* Use `pip3.sh` to retrieve packages during Debian post install to allow for download of development versions.
+
+## Version 0.2.30 (January 8th, 2022)
+
+* Add pip3 calls for packages required during build and publish
+* Allow setting of user and URL for PyPi repository
+* Add publishing of PyPi packages to GitLab-CI configuration
+* Add generated `pip3.sh` script to download packages from private PyPi indexes 
+
 ## Version 0.2.29 (January 8th, 2022)
 
 * Add jinja2 templates to PIP package
