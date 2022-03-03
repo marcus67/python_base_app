@@ -357,12 +357,6 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
                 target_rep_token_env_name = target_rep_map_entry[1]
                 target_rep_user_env_name = target_rep_map_entry[2]
 
-        if isinstance(branch_extra_pypi_indexes_map, dict):
-            target_extra_pypi_indexes_map_entry = branch_extra_pypi_indexes_map.get(branch)
-
-            if target_extra_pypi_indexes_map_entry is not None:
-                target_rep_extra_index_env_name = target_extra_pypi_indexes_map_entry[0]
-
     if target_rep_url_env_name is None:
         target_rep_url_env_name = DEFAULT_PYPI_URL_ENV_NAME
 
@@ -390,7 +384,7 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
                             target_rep_token_env_name,                                          # 5
                             target_rep_user_env_name,                                           # 6
                             target_rep_default_url,                                             # 7
-                            target_rep_extra_index_env_name,                                    # 8
+                            DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,                             # 8
                             DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,                          # 9
                             var["setup"]["name"],                                               # 10
                             var["setup"]["version"]))                                           # 11
@@ -408,7 +402,8 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
             python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var,
                                     target_rep_url_env_name, target_rep_token_env_name, target_rep_user_env_name,
-                                    target_rep_default_url, target_rep_extra_index_env_name,
+                                    target_rep_default_url,
+                                    DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,
                                     DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,
                                     contrib_var["setup"]["name"],
                                     contrib_var["setup"]["version"]))

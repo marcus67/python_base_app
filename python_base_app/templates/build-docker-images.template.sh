@@ -9,9 +9,9 @@ DEBIAN_PACKAGE_BASE_NAME={{ var.setup.debian_package_name }}_{{ var.setup.versio
 DEBIAN_PACKAGE_NAME=${BASE_DIR}/{{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb
 
 if [ "${REPO_DOWNLOAD_BASE_URL}" == "" ] ; then
-  echo "Using URL ${REPO_DOWNLOAD_BASE_URL} for downloading zips from git repository..."
-else
   echo "WARNING: No download URL REPO_DOWNLOAD_BASE_URL found in environment. Some Docker images may not be built correctly!"
+else
+  echo "Using URL ${REPO_DOWNLOAD_BASE_URL} for downloading zips from git repository..."
 fi
 
 {% for (context, upload) in var.setup.docker_contexts %}
