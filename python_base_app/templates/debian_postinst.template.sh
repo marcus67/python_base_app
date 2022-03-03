@@ -185,11 +185,12 @@ chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
 chown {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}
 {%- endfor %}
-
+if [ "$RUNNING_IN_DOCKER" == "" ] ; then
 {%- if var.setup.deploy_systemd_service %}
-echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
-chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
-{% endif %}
+  echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
+  chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+{%- endif %}
+fi
 {%- if var.setup.deploy_tmpfile_service %}
 echo "    * ${TMPFILE_DIR}/{{ var.setup.name }}.conf"
 chown root.root ${TMPFILE_DIR}/{{ var.setup.name }}.conf
