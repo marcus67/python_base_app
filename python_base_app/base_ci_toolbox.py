@@ -408,7 +408,10 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
             python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var,
                                     target_rep_url_env_name, target_rep_token_env_name, target_rep_user_env_name,
-                                    target_rep_default_url, target_rep_extra_index_env_name))
+                                    target_rep_default_url, target_rep_extra_index_env_name,
+                                    DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,
+                                    contrib_var["setup"]["name"],
+                                    contrib_var["setup"]["version"]))
 
     return python_packages
 

@@ -8,6 +8,12 @@ BASE_DIR=$(realpath ${SCRIPT_DIR}/..)
 DEBIAN_PACKAGE_BASE_NAME={{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}
 DEBIAN_PACKAGE_NAME=${BASE_DIR}/{{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb
 
+if [ "${REPO_DOWNLOAD_BASE_URL}" == "" ] ; then
+  echo "Using URL ${REPO_DOWNLOAD_BASE_URL} for downloading zips from git repository..."
+else
+  echo "WARNING: No download URL REPO_DOWNLOAD_BASE_URL found in environment. Some Docker images may not be built correctly!"
+fi
+
 {% for (context, upload) in var.setup.docker_contexts %}
 echo "Build docker image in context directory '{{ context }}'..."
 CONTEXT_DIR=${BASE_DIR}/{{ var.setup.docker_context_dir }}/{{ context }}
@@ -26,6 +32,8 @@ fi
 
 docker build -t {{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISION} \
     --build-arg TAG=${REVISION} \
+    --build-arg BRANCH=${GIT_BRANCH} \
+    --build-arg REPO_DOWNLOAD_BASE_URL=${REPO_DOWNLOAD_BASE_URL} \
     --build-arg DOCKER_REGISTRY={{ var.setup.docker_registry}} \
     --build-arg DOCKER_REGISTRY_ORG_UNIT={{ var.setup.docker_registry_org_unit }} \
     ${CONTEXT_DIR}

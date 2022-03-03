@@ -2,6 +2,14 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.37 (March 3rd, 2022)
+
+* Supply metadata for all contribution packages in `base_ci_toolbox.py`
+* Provide new Docker image build arguments `BRANCH` and `REPO_DOWNLOAD_BASE_URL`
+* Fixes to `generic-install.sh`: 
+  * Use correct path to `pip3.sh` script
+  * Download Pip packages of project and all contribution libraries
+
 ## Version 0.2.36 (February 13th, 2022)
 
 * Dump stack trace for all general exception in `base_ci_toolbox.py` (for debugging in Circle CI)

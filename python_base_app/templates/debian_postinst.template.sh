@@ -43,12 +43,22 @@ chmod +x ${PIP3}
 
 {% if generic_script %}
 
+echo "Creating lib directories..."
+echo "    * ${LIB_DIR}"
+mkdir -p ${LIB_DIR}
+
 echo "Running generic installation script with base directory located in $INSTALL_BASE_DIR..."
 
 if [ ! "$EUID" == "0" ] ; then
     echo "ERROR: You have to be root to call this script."
     exit 2
 fi
+
+PIP3=${SCRIPT_DIR}/pip3.sh
+echo "Downloading Pip packages to $LIB_DIR..."
+{%- for package_name in python_packages %}
+${PIP3} download -d $LIB_DIR --no-deps {{ package_name[2] }}=={{ package_name[11] }}
+{% endfor %}
 
 echo "Checking if all Pip packages have been downloaded to $LIB_DIR..."
 {%- for package_name in python_packages %}
@@ -93,6 +103,10 @@ cp -f $INSTALL_BASE_DIR/{{ file_mapping[0] }} ${ROOT_DIR}/{{ file_mapping[1] }}
 {%- endfor %}
 {%- endif %}
 {% endfor %}
+
+{% else %}
+
+PIP3=${LIB_DIR}/pip3.sh
 # endif for if generic_script
 {%- endif %}
 
