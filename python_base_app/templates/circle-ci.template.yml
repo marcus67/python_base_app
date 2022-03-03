@@ -176,9 +176,14 @@ workflows:
   {%- for branch in var.setup.publish_debian_package %}
                   - {{ branch }}
   {%- endfor %}
-        - docker:
+  {%- if var.setup.build_debian_package and var.setup.docker_contexts|length > 0 %}
+        - docker
+  {%- endif %}
             requires:
               - build
+  {%- if var.setup.publish_pypi_package|length > 0 %}
+              - publish_pypi
+  {%- endif %}
   {%- endif %}
   {%- endif %}
 
@@ -191,9 +196,6 @@ workflows:
         - publish_pypi:
             requires:
               - install_pypi
-  {%- if var.setup.build_debian_package and var.setup.docker_contexts|length > 0 %}
-              - docker
-  {%- endif %}
             filters:
               branches:
                 only:

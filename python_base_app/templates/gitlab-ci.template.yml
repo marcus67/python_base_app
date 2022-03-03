@@ -30,11 +30,11 @@ stages:
   {% if var.setup.analyze -%}
   - analyze
   {% endif -%}
-  {% if var.setup.docker_contexts|length > 0 -%}
-  - deploy
-  {% endif -%}
   {% if var.setup.publish_pypi_package|length > 0 -%}
   - publish
+  {% endif -%}
+  {% if var.setup.docker_contexts|length > 0 -%}
+  - deploy
   {% endif -%}
 
 
@@ -133,6 +133,17 @@ analyze:
     GIT_SUBMODULE_STRATEGY: recursive
 {% endif %}
 
+{%- if var.setup.publish_pypi_package|length > 0 %}
+publish_pypi:
+  image: {{ var.setup.docker_image_test }}
+  stage: publish
+  script:
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_pypi_package }} --use-dev-dir=.
+{%- endif %}
+
 {%- if var.setup.build_debian_package and var.setup.docker_contexts|length > 0 %}
 docker:
   image: {{ var.setup.docker_image_docker }}
@@ -146,14 +157,3 @@ docker:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 {% endif %}
-
-{%- if var.setup.publish_pypi_package|length > 0 %}
-publish_pypi:
-  image: {{ var.setup.docker_image_test }}
-  stage: publish
-  script:
-  {%- if var.setup.ci_pip_dependencies|length > 0 %}
-    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
-  {%- endif %}
-    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_pypi_package }} --use-dev-dir=.
-{%- endif %}

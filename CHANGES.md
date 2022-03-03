@@ -9,6 +9,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Fixes to `generic-install.sh`: 
   * Use correct path to `pip3.sh` script
   * Download Pip packages of project and all contribution libraries
+* Swap deploy and docker stages in CI jobs
 
 ## Version 0.2.36 (February 13th, 2022)
 
