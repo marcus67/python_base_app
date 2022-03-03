@@ -71,10 +71,12 @@ fi
 {% endfor %}
 
 {%- if var.setup.deploy_systemd_service %}
-mkdir -p ${SYSTEMD_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
-echo "Execute systemctl daemon-reload..."
-systemctl daemon-reload
+if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+  mkdir -p ${SYSTEMD_DIR}
+  cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+  echo "Execute systemctl daemon-reload..."
+  systemctl daemon-reload
+fi
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_conf %}
@@ -216,7 +218,6 @@ echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
 chmod og-rwx {{ file_mapping[1] }}
 {%- endfor %}
 
-${PIP3} --version
 ${PIP3} install wheel # setuptools
 echo "Installing PIP packages..."
 {%- for package_name in python_packages %}
