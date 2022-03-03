@@ -34,6 +34,7 @@ docker build -t {{ var.setup.docker_registry_org_unit }}/{{ context }}:${REVISIO
     --build-arg TAG=${REVISION} \
     --build-arg BRANCH=${GIT_BRANCH} \
     --build-arg REPO_DOWNLOAD_BASE_URL=${REPO_DOWNLOAD_BASE_URL} \
+    --build-arg TEST_PYPI_EXTRA_INDEX=${TEST_PYPI_EXTRA_INDEX} \
     --build-arg DOCKER_REGISTRY={{ var.setup.docker_registry}} \
     --build-arg DOCKER_REGISTRY_ORG_UNIT={{ var.setup.docker_registry_org_unit }} \
     ${CONTEXT_DIR}

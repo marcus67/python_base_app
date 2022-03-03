@@ -38,8 +38,6 @@ ROOT_DIR=
 SCRIPT_DIR=$(dirname ${BASH_SOURCE[0]})
 INSTALL_BASE_DIR=$(realpath $SCRIPT_DIR/..)
 BIN_DIR=${INSTALL_BASE_DIR}/bin
-PIP3=${LIB_DIR}/pip3.sh
-chmod +x ${PIP3}
 
 {% if generic_script %}
 
@@ -55,6 +53,7 @@ if [ ! "$EUID" == "0" ] ; then
 fi
 
 PIP3=${SCRIPT_DIR}/pip3.sh
+chmod +x ${PIP3}
 echo "Downloading Pip packages to $LIB_DIR..."
 {%- for package_name in python_packages %}
 ${PIP3} download -d $LIB_DIR --no-deps {{ package_name[2] }}=={{ package_name[11] }}
@@ -107,6 +106,7 @@ cp -f $INSTALL_BASE_DIR/{{ file_mapping[0] }} ${ROOT_DIR}/{{ file_mapping[1] }}
 {% else %}
 
 PIP3=${LIB_DIR}/pip3.sh
+chmod +x ${PIP3}
 # endif for if generic_script
 {%- endif %}
 
