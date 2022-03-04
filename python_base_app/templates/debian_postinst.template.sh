@@ -1,6 +1,6 @@
 #! /bin/bash
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -22,6 +22,84 @@
 # Please, beware that this file has been generated! Do not make any changes here #
 # but only to python_base_app/templates/debian_postinst.template.sh!             #
 ##################################################################################
+
+##################################################################################
+# PARAMETERS                                                                     #
+##################################################################################
+# When set, will deactivate portions that are not applicable to Docker containers
+RUNNING_IN_DOCKER=${RUNNING_IN_DOCKER:-}
+
+# When set, contains an extra PIP index to download from
+TEST_PYPI_EXTRA_INDEX=${TEST_PYPI_EXTRA_INDEX:-https://github.com/marcus67/little_brother/archive/refs/heads}
+
+# When set, will create application user with a specific user id
+APP_UID=${APP_UID:-}
+
+# When set, will create application group with a specific group id
+APP_GID=${APP_UID:-}
+
+##################################################################################
+
+if [ -f /etc/os-release ] ; then
+  . /etc/os-release
+else
+  echo "Cannot read /etc/os-release!"
+  exit 2
+fi
+
+echo "Detected operating system architecture '${ID}'."
+
+function add_group() {
+  group_name=$1
+  group_id=$2
+
+  if [ "$ID" == "alpine" ] ; then
+    if [ "${group_id}" == "" ] ; then
+      addgroup ${group_name}
+    else
+      addgroup -g ${group_id} ${group_name}
+    fi
+  else
+    if [ "${group_id}" == "" ] ; then
+      groupadd {{ var.setup.group }}
+    else
+      groupadd --gid ${group_id} ${group_name}
+    fi
+
+  fi
+}
+
+function add_user() {
+  user_name=$1
+  group_name=$2
+  user_id=$3
+
+  if [ "$ID" == "alpine" ] ; then
+    if  [ "${user_id}" == "" ] ; then
+        adduser -G ${group_name} -g "" -H -D ${user_name}
+    else
+        adduser -G ${group_name} -u ${user_id} -g "" -H -D ${user_name}
+    fi
+  else
+    if  [ "${user_id}" == "" ] ; then
+        useradd --gid ${group_name} --no-create-home ${user_name}
+    else
+        useradd --gid ${group_name} --uid ${user_id} --no-create-home ${user_name}
+    fi
+  fi
+
+}
+
+function add_user_to_group() {
+  user_name=$1
+  group_name=$2
+
+  if [ "$ID" == "alpine" ] ; then
+    adduser ${user_name} ${group_name}
+  else
+    usermod -aG ${group_name} ${user_name}
+  fi
+}
 
 
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
@@ -117,11 +195,7 @@ if grep -q '{{ var.setup.group }}:' /etc/group ; then
     echo "Group '{{ var.setup.group }}' already exists. Skipping group creation."
 else
     #echo "Adding group '{{ var.setup.group }}'..."
-    if [ "${APP_GID}" == "" ] ; then
-        groupadd {{ var.setup.group }}
-    else
-	      groupadd --gid ${APP_GID} {{ var.setup.group }}
-    fi
+    add_group {{ var.setup.group }} ${APP_GID}
 fi
 {%- endif %}
 
@@ -129,20 +203,14 @@ fi
 if grep -q '{{ var.setup.user }}:' /etc/passwd ; then
     echo "User '{{ var.setup.user }}' already exists. Skipping user creation."
 else
-    if  [ "${APP_UID}" == "" ] ; then
-#        adduser --gid {{ var.setup.group }} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
-        useradd --gid {{ var.setup.group }} --no-create-home {{ var.setup.user }}
-    else
-#        adduser --gid {{ var.setup.group }} --uid ${APP_UID} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
-        useradd --gid {{ var.setup.group }} --uid ${APP_UID} --no-create-home {{ var.setup.user }}
-    fi
+    add_user {{ var.setup.user }} {{ var.setup.group }} ${APP_UID}
 fi
 {%- endif %}
 
 set -e
 
 {%- for mapping in user_group_mappings %}
-usermod -aG {{ mapping[1] }} {{ mapping[0] }}
+  add_user_to_group {{ mapping[0] }} {{ mapping[1] }}
 {% endfor %}
 
 echo "Creating directories..."
@@ -225,7 +293,7 @@ echo "Installing PIP packages..."
 echo "  * {{ package_name[1] }}"
 {%- endfor %}
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
-${PIP3} install --upgrade --force-reinstall {% for package_name in python_packages %}\
+${PIP3} install --upgrade {% for package_name in python_packages %}\
      ${LIB_DIR}/{{ package_name[1] }}{% endfor %}
 
 {% for package_name in python_packages %}
