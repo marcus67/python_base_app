@@ -101,12 +101,14 @@ function add_user_to_group() {
   fi
 }
 
+if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+export VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
+fi
 
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
 LOG_DIR=/{{ var.setup.rel_log_dir }}
 SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
 LIB_DIR=/{{ var.setup.rel_lib_dir }}
-VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
 SYSTEMD_DIR=/{{ var.setup.rel_systemd_dir }}
 TMPFILE_DIR=/{{ var.setup.rel_tmpfile_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
@@ -152,8 +154,6 @@ fi
 if [ "$RUNNING_IN_DOCKER" == "" ] ; then
   mkdir -p ${SYSTEMD_DIR}
   cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
-  echo "Execute systemctl daemon-reload..."
-  systemctl daemon-reload
 fi
 {%- endif %}
 
@@ -230,6 +230,7 @@ else
 fi
 {%- endfor %}
 
+if [ "${VIRTUAL_ENV_DIR}" != "" ] ; then
 {% for script in var.setup.scripts %}
 echo "Creating symbolic link /usr/local/bin/{{ script }} --> ${VIRTUAL_ENV_DIR}/bin/{{ script }}..."
 ln -fs ${VIRTUAL_ENV_DIR}/bin/{{ script }} /usr/local/bin/{{ script }}
@@ -238,6 +239,9 @@ ln -fs ${VIRTUAL_ENV_DIR}/bin/{{ script }} /usr/local/bin/{{ script }}
 echo "Creating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
 
 virtualenv -p /usr/bin/python3 ${VIRTUAL_ENV_DIR}
+echo "Activating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
+. ${VIRTUAL_ENV_DIR}/bin/activate
+fi
 
 echo "Setting ownership..."
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
@@ -253,12 +257,14 @@ chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
 chown {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}
 {%- endfor %}
-if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+
 {%- if var.setup.deploy_systemd_service %}
+  if [ "$RUNNING_IN_DOCKER" == "" ] ; then
   echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
   chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+  fi
 {%- endif %}
-fi
+
 {%- if var.setup.deploy_tmpfile_service %}
 echo "    * ${TMPFILE_DIR}/{{ var.setup.name }}.conf"
 chown root.root ${TMPFILE_DIR}/{{ var.setup.name }}.conf
@@ -300,3 +306,10 @@ ${PIP3} install --upgrade {% for package_name in python_packages %}\
 echo "Removing installation file ${LIB_DIR}/{{ package_name[1] }}..."
 rm ${LIB_DIR}/{{ package_name[1] }}
 {%- endfor %}
+
+{%- if var.setup.deploy_systemd_service %}
+if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+  echo "Execute systemctl daemon-reload..."
+  systemctl daemon-reload
+fi
+{%- endif %}

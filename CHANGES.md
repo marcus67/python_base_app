@@ -11,6 +11,8 @@ This document lists all changes of `python_base_app` with the most recent change
   * Download Pip packages of project and all contribution libraries
 * Swap deploy and docker stages in CI jobs
 * Do not output pip version (collides with wrapper script)
+* Closes [LittleBrother 170](https://github.com/marcus67/little_brother/issues/170)
+
 
 ## Version 0.2.36 (February 13th, 2022)
 
