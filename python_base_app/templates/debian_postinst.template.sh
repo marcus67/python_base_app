@@ -30,12 +30,14 @@
 RUNNING_IN_DOCKER=${RUNNING_IN_DOCKER:-}
 
 # When set, contains an extra PIP index to download from
-TEST_PYPI_EXTRA_INDEX=${TEST_PYPI_EXTRA_INDEX:-https://github.com/marcus67/little_brother/archive/refs/heads}
+# This will be required when trying to install the version of the `master` branch since the required PIP packages
+# may not be available ot pypi.org yet. In this case, add the extra index https://test.pypi.org/simple/
+TEST_PYPI_EXTRA_INDEX=${TEST_PYPI_EXTRA_INDEX:-}
 
-# When set, will create application user with a specific user id
+# When set, will create the application user with a specific user id
 APP_UID=${APP_UID:-}
 
-# When set, will create application group with a specific group id
+# When set, will create the application group with a specific group id
 APP_GID=${APP_UID:-}
 
 ##################################################################################

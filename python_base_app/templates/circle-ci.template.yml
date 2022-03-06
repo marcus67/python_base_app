@@ -177,7 +177,7 @@ workflows:
                   - {{ branch }}
   {%- endfor %}
   {%- if var.setup.build_debian_package and var.setup.docker_contexts|length > 0 %}
-        - docker
+        - docker:
   {%- endif %}
             requires:
               - build

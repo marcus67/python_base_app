@@ -2,6 +2,11 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.38 (March 6th, 2022)
+
+* Fix YAML syntax in circle-ci.yml
+* Set `TEST_PYPI_EXTRA_INDEX` correctly in generic installation script
+
 ## Version 0.2.37 (March 3rd, 2022)
 
 * Supply metadata for all contribution packages in `base_ci_toolbox.py`
