@@ -310,6 +310,8 @@ rm ${LIB_DIR}/{{ package_name[1] }}
 {%- if var.setup.deploy_systemd_service %}
 if [ "$RUNNING_IN_DOCKER" == "" ] ; then
   echo "Execute systemctl daemon-reload..."
+  set +e
   systemctl daemon-reload
+  set -e
 fi
 {%- endif %}
