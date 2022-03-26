@@ -19,6 +19,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import datetime
+import socket
 
 import pytest
 
@@ -135,3 +136,16 @@ def test_running_in_docker():
 
 def test_running_in_snap():
     assert not tools.running_in_snap()
+
+def test_get_ip_address_by_dns_name():
+    assert tools.get_ip_address_by_dns_name("localhost") == "127.0.0.1"
+    assert tools.get_ip_address_by_dns_name("111.111.111.111") == "111.111.111.111"
+    with pytest.raises(socket.gaierror):
+        tools.get_ip_address_by_dns_name("xyx.xyx.xyx")
+
+
+def test_get_dns_name_by_ip_address():
+    assert tools.get_dns_name_by_ip_address("127.0.0.1") == "localhost"
+    assert tools.get_dns_name_by_ip_address("111.111.111.111") == "111.111.111.111"
+    assert tools.get_dns_name_by_ip_address("0.0.0") == "0.0.0"
+
