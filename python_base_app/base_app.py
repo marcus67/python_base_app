@@ -74,13 +74,15 @@ class BaseAppConfigModel(configuration.ConfigModel):
 
 class RecurringTask(object):
 
-    def __init__(self, p_name, p_handler_method, p_interval=DEFAULT_TASK_INTERVAL, p_fixed_schedule=False):
+    def __init__(self, p_name, p_handler_method, p_interval=DEFAULT_TASK_INTERVAL, p_fixed_schedule=False,
+                 p_ignore_exceptions=False):
 
         self.name = p_name
         self.handler_method = p_handler_method
         self.interval = p_interval
         self.next_execution = None
         self.fixed_schedule = p_fixed_schedule
+        self.ignore_exceptions = p_ignore_exceptions
 
     def __lt__(self, p_other):
         return self.next_execution < p_other
@@ -368,7 +370,7 @@ class BaseApp(daemon.Daemon):
                     task_executed = True
 
                     while task_executed:
-                        task = self._recurring_tasks[0]
+                        task : RecurringTask = self._recurring_tasks[0]
                         now = datetime.datetime.utcnow()
 
                         if now > task:
@@ -379,7 +381,16 @@ class BaseApp(daemon.Daemon):
 
                             fmt = "Executing task {task} {secs:.3f} [s] behind schedule... *** START ***"
                             self._logger.debug(fmt.format(task=task.name, secs=delay))
-                            task.handler_method()
+
+                            try:
+                                task.handler_method()
+
+                            except Exception as e:
+                                self._logger.error(f"Exception {str(e)}  while executing task {task.name}")
+
+                                if not task.ignore_exceptions:
+                                    raise e
+
                             fmt = "Executing task {task} {secs:.3f} [s] behind schedule... *** END ***"
                             self._logger.debug(fmt.format(task=task.name, secs=delay))
 

@@ -5,6 +5,7 @@ This document lists all changes of `python_base_app` with the most recent change
 ## Version 0.2.39 (March 26th, 2022)
 
 * New method `tools.get_ip_address_by_dns_name`
+* Improve exception handling for `RecurringTask`
 
 ## Version 0.2.38 (March 6th, 2022)
 

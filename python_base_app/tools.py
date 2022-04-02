@@ -53,7 +53,7 @@ FORMAT_JSON_DATETIME = "%Y-%m-%d %H:%M:%S"
 REGEX_DURATION = re.compile("^ *(([0-9]+) *[h|H])? *(([0-9]+) *[m|M])? *(([0-9]+) *[s|S])? *$")
 REGEX_TIME = re.compile("^ *([0-9]+)( *: *([0-9]+))?( *: *([0-9]+))? *$")
 
-PATTERN_IP_ADDRESS = "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}"
+PATTERN_IP_ADDRESS = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"
 
 REGEX_IP_ADDRESS = re.compile(PATTERN_IP_ADDRESS)
 
@@ -512,6 +512,16 @@ def get_ip_address_by_dns_name(p_dns_name:str):
         return p_dns_name.strip()
 
     return socket.gethostbyname(p_dns_name)
+
+
+def is_valid_ip_address_or_dns_name(p_dns_name:str) -> bool:
+
+    try:
+        get_ip_address_by_dns_name(p_dns_name)
+        return True
+
+    except Exception:
+        return False
 
 
 def objects_are_equal(p_object1: object, p_object2: object, p_logger=None):
