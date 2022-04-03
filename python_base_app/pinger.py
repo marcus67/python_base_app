@@ -17,7 +17,7 @@
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
+import os
 import re
 import shlex
 import subprocess
@@ -159,7 +159,11 @@ class Pinger(object):
         fmt = "Executing command {cmd} in Popen"
         self._logger.debug(fmt.format(cmd=command))
 
-        proc = subprocess.run(command, stdout=subprocess.PIPE)
+        # make sure we get floating points and not commas!
+        run_env = os.environ.copy()
+        run_env["LANG"] = "en_US"
+
+        proc = subprocess.run(command, stdout=subprocess.PIPE, env=run_env)
 
         if proc.returncode >= 2:
             fmt = "{cmd} returns exit code {exitcode}"

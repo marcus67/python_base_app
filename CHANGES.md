@@ -6,6 +6,7 @@ This document lists all changes of `python_base_app` with the most recent change
 
 * New method `tools.get_ip_address_by_dns_name`
 * Improve exception handling for `RecurringTask`
+* Explicitly set `LANG` when calling `ping`
 
 ## Version 0.2.38 (March 6th, 2022)
 
