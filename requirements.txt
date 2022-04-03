@@ -15,3 +15,4 @@ secure>=0.3.0
 some-flask-helpers>=0.2.2
 urllib3>=1.26.2
 WTForms>=3.0.0a1
+Werkzeug<=1.0.1
