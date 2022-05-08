@@ -20,6 +20,7 @@
 
 import abc
 import configparser
+import importlib
 import re
 
 from python_base_app import log_handling
@@ -176,16 +177,23 @@ class ConfigModel(object):
 
         pass
 
+class OptionalSectionHandlerDefinition:
+
+    def __init__(self):
+
+        self.section_name = None
+        self.package_name = None
+        self.module_name = None
+        self.config_model_class_name = None
 
 class Configuration(object):
 
     def __init__(self):
 
-        #super().__init__(p_section_name="_Configuration_")
-
         self._sections = {}
         self._logger = log_handling.get_logger(self.__class__.__name__)
         self._section_handlers = []
+        self._optional_section_handler_definitions : dict[str, OptionalSectionHandlerDefinition] = {}
         self.config = configparser.ConfigParser(strict=False)
 
     def add_section(self, p_section):
@@ -201,10 +209,23 @@ class Configuration(object):
         self._section_handlers.append(p_section_handler)
         p_section_handler.set_configuration(p_configuration=self)
 
-    def __getitem__(self, p_key):
+    def register_optional_section_handler_definition(
+            self, p_optional_section_handler_definition: OptionalSectionHandlerDefinition):
+
+        if p_optional_section_handler_definition.section_name in self._optional_section_handler_definitions:
+            msg = f"Handler for optional section '{p_optional_section_handler_definition.section_name}' already defined"
+            raise ConfigurationException(msg)
+
+        self._optional_section_handler_definitions[p_optional_section_handler_definition.section_name] = \
+            p_optional_section_handler_definition
+
+    def section_exists(self, p_key:str):
+        return p_key in self._sections
+
+    def __getitem__(self, p_key:str):
 
         if p_key not in self._sections:
-            raise ConfigurationException("No section '%s' configured in class %s" % (p_key, self.__class__.__name__))
+            return None
 
         return self._sections[p_key]
 
@@ -262,6 +283,44 @@ class Configuration(object):
         else:
             setattr(section, p_option, value)
 
+    def load_optional_section_handler(self, p_section_name: str):
+
+        if p_section_name not in self._optional_section_handler_definitions:
+
+            msg = f"No optional section handler definition found for section name '{p_section_name}'"
+            raise ConfigurationException(msg)
+
+        definition =  self._optional_section_handler_definitions[p_section_name]
+        module_name = definition.package_name + "." + definition.module_name
+
+        try:
+            module = importlib.import_module(module_name)
+
+        except Exception as e:
+            msg = f"Exception '{str(e)}' while importing module '{module_name}' for " + \
+                  f"optional config section '{p_section_name}'!"
+            raise ConfigurationException(msg)
+
+        msg = f"Imported package '{definition.package_name}' for handling optional section '{p_section_name}'."
+        self._logger.info(msg)
+
+        try:
+            my_class = getattr(module, definition.config_model_class_name)
+            section = my_class()
+
+        except Exception as e:
+            msg = f"Exception '{str(e)} while instantiating class '{definition.config_model_class_name}' " + \
+                  f"for optional config section '{p_section_name}'"
+            raise ConfigurationException(msg)
+
+        msg = f"Instantiated config model class '{definition.config_model_class_name}' " +\
+              f"for optional config section '{p_section_name}'..."
+        self._logger.info(msg)
+
+        self._sections[p_section_name] = section
+
+        return section
+
     def scan_section(self, p_section_name):
 
         section = self._sections.get(p_section_name)
@@ -285,6 +344,11 @@ class Configuration(object):
             if p_section_name.startswith(section_handler.section_prefix):
                 section_handler.handle_section(p_section_name=p_section_name)
                 return
+
+        section = self.load_optional_section_handler(p_section_name=p_section_name)
+
+        if section is not None:
+            return
 
         if p_ignore_invalid_sections:
             if p_warn_about_invalid_sections:
