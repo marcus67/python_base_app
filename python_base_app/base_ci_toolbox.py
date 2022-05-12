@@ -251,7 +251,11 @@ def expand_vars(p_vars):
 
         for (key, value) in p_vars.items():
             if isinstance(value, str):
-                new_value = value.format(**p_vars)
+                try:
+                    new_value = value.format(**p_vars)
+
+                except Exception:
+                    new_value = value
 
                 if new_value != value:
                     change_done = True
