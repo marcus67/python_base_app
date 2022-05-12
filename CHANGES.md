@@ -8,6 +8,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Improve exception handling for `RecurringTask`
 * Explicitly set `LANG` when calling `ping`
 * Extract LDAP functionality into a repository of its own
+* Add support for `VulScan`
 
 ## Version 0.2.38 (March 6th, 2022)
 

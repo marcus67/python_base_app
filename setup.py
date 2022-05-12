@@ -54,6 +54,7 @@ extended_setup_params = {
     "id": "python-base-app",
     "build_debian_package": False,
     "build_pypi_package": True,
+    "owasp": True,
 
     # for Testing extra CI PIP dependencies
     #"ci_pip_dependencies": { "some-package" },

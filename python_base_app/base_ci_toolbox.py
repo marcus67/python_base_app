@@ -26,10 +26,10 @@ import os
 import os.path
 import stat
 import subprocess
-import sys
-import time
 
 import jinja2
+import sys
+import time
 
 import python_base_app
 from python_base_app import exceptions
@@ -133,6 +133,8 @@ default_setup = {
     "docker_image_test": "marcusrickert/docker-python-app:latest",
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "marcusrickert/docker-python-app:latest",
+    "docker_image_owasp": "registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest",
+    "owasp_additional_params": "--enableExperimental",
     "ci_toolbox_script": "ci_toolbox.py",
     "ci_pip_dependencies": [ ],
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
@@ -146,6 +148,7 @@ default_setup = {
     "ci_stage_publish_pypi_package": STAGE_PUBLISH_PYPI_PACKAGE,
     "ci_stage_build_pip_dependencies": [ "babel" ],
     "ci_stage_publish_pip_package_pip_dependencies": [ "twine" ],
+    "owasp": False,
     "require_teardown": False,
     "bin_dir": "bin",
     "test_dir": "test",
