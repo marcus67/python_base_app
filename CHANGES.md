@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.40 (March 26th, 2022)
+
+* Add dependency on `python_google_speak` again
+
 ## Version 0.2.39 (March 26th, 2022)
 
 * New method `tools.get_ip_address_by_dns_name`
