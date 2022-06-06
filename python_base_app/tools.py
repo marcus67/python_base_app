@@ -24,7 +24,6 @@ import io
 import json
 import os
 import platform
-import pwd
 import re
 import socket
 import stat
@@ -214,13 +213,16 @@ def test_mode(p_filename, p_app_owner, p_executable=False, p_writable=False, p_i
     info = os.stat(p_filename)
 
     if p_app_owner is not None:
-        owner_name = pwd.getpwuid(info.st_uid).pw_name
+        if not is_windows():
+            import pwd
 
-        if owner_name != p_app_owner:
-            raise exceptions.InstallationException(
-                "File/directory '%s' must be owned by '%s'!" % (p_filename, p_app_owner))
+            owner_name = pwd.getpwuid(info.st_uid).pw_name
 
-        logger.info("File/directory '%s' is owned by '%s' -> OK" % (p_filename, p_app_owner))
+            if owner_name != p_app_owner:
+                raise exceptions.InstallationException(
+                    "File/directory '%s' must be owned by '%s'!" % (p_filename, p_app_owner))
+
+            logger.info("File/directory '%s' is owned by '%s' -> OK" % (p_filename, p_app_owner))
 
     if info.st_mode & stat.S_IRUSR == 0:
         raise exceptions.InstallationException("File/directory '%s' must be readable by owner!" % p_filename)
