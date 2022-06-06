@@ -299,7 +299,8 @@ class BaseApp(daemon.Daemon):
         for signal_id in self._active_signals:
             signal.signal(signal_id, self.handle_signal)
 
-        signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
+        if not tools.is_windows():
+            signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
 
     def prepare_services(self, p_full_startup=True):
 
@@ -345,7 +346,9 @@ class BaseApp(daemon.Daemon):
                         fmt = "Sleeping for {seconds} seconds (or until next signal)"
                         self._logger.debug(fmt.format(seconds=wait_in_seconds))
 
-                        signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
+                        if not tools.is_windows():
+                            signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
+
                         time.sleep(wait_in_seconds)
 
                     except exceptions.SignalHangUp as e:
