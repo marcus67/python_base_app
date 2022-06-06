@@ -5,7 +5,9 @@ This document lists all changes of `python_base_app` with the most recent change
 ## Version 0.2.40 (March 26th, 2022)
 
 * Add dependency on `python_google_speak` again
-* Temporarily deactivate OWASP checks 
+* Temporarily deactivate OWASP checks
+* Refrain from importing module `pwd` on Windows systems 
+* Refrain from using `signal.SIGHUP`  on Windows systems
 
 ## Version 0.2.39 (March 26th, 2022)
 

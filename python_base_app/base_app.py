@@ -149,6 +149,10 @@ class BaseApp(daemon.Daemon):
         self._latest_request = None
         self._partial_basic_init_executed = False
         self._full_basic_init_executed = False
+        self._active_signals = [signal.SIGTERM, signal.SIGINT]
+
+        if not tools.is_windows():
+            self._active_signals.append(signal.SIGHUP)
 
         if self._languages is None:
             self._languages = DEFAULT_LANGUAGES
@@ -282,7 +286,7 @@ class BaseApp(daemon.Daemon):
     def reevaluate_configuration(self):
         pass
 
-    def handle_sighup(self, p_signum, p_stackframe):
+    def handle_signal(self, p_signum, p_stackframe):
 
         fmt = "Received signal %d" % p_signum
         _ = p_stackframe
@@ -292,10 +296,10 @@ class BaseApp(daemon.Daemon):
 
     def install_handlers(self):
 
-        signal.signal(signal.SIGTERM, self.handle_sighup)
-        signal.signal(signal.SIGHUP, self.handle_sighup)
-        signal.signal(signal.SIGINT, self.handle_sighup)  # CTRL-C
-        signal.pthread_sigmask(signal.SIG_UNBLOCK, [signal.SIGTERM, signal.SIGHUP, signal.SIGINT])
+        for signal_id in self._active_signals:
+            signal.signal(signal_id, self.handle_signal)
+
+        signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
 
     def prepare_services(self, p_full_startup=True):
 
@@ -341,7 +345,7 @@ class BaseApp(daemon.Daemon):
                         fmt = "Sleeping for {seconds} seconds (or until next signal)"
                         self._logger.debug(fmt.format(seconds=wait_in_seconds))
 
-                        signal.pthread_sigmask(signal.SIG_UNBLOCK, [signal.SIGTERM, signal.SIGHUP])
+                        signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
                         time.sleep(wait_in_seconds)
 
                     except exceptions.SignalHangUp as e:
