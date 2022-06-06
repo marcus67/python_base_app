@@ -8,6 +8,10 @@ This document lists all changes of `python_base_app` with the most recent change
 * Temporarily deactivate OWASP checks
 * Refrain from importing module `pwd` on Windows systems 
 * Refrain from using `signal.SIGHUP` and `pthread_sigmask`  on Windows systems
+* Derive path of temporary directory in a platform independent way 
+* Support command line pattern for calling audio playback executable (e.g. vlc)
+* Added some debugging output
+* Build URLs in a platform independent way 
 
 ## Version 0.2.39 (March 26th, 2022)
 

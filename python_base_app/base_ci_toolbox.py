@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -26,6 +26,7 @@ import os
 import os.path
 import stat
 import subprocess
+import re
 
 import jinja2
 import sys
@@ -302,14 +303,23 @@ def load_contributing_setup_modules(p_main_setup_module):
 
 
 def get_site_packages_dir():
-    suffixes = ("python{}.{}/dist-packages".format(sys.version_info[0], sys.version_info[1]),
-                "python{}.{}/site-packages".format(sys.version_info[0], sys.version_info[1]))
-    site_packages_dirs = [p for p in sys.path if p.endswith(suffixes)]
+
+    major_version = sys.version_info[0]
+    minor_version = sys.version_info[1]
+
+    if tools.is_windows():
+        pattern = f".+Python\.{major_version}\.{minor_version}.+\\\\lib$"
+
+    else:
+        pattern = f".+python{major_version}\.{minor_version}/(site|dist)-packages$"
+
+    regex = re.compile(pattern)
+
+    site_packages_dirs = [p for p in sys.path if regex.match(p)]
 
     if len(site_packages_dirs) != 1:
-        raise Exception(
-            "Cannot determine unique site-package dir with suffix '{}'! Candidates {} remaining from {}".format(
-                suffixes, site_packages_dirs, sys.path))
+        msg = f"Cannot determine unique site-package dir with pattern '{pattern}'! Candidates {site_packages_dirs} remaining from {sys.path}"
+        raise Exception(msg)
 
     return site_packages_dirs[0]
 

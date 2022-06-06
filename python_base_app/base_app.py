@@ -150,6 +150,7 @@ class BaseApp(daemon.Daemon):
         self._partial_basic_init_executed = False
         self._full_basic_init_executed = False
         self._active_signals = [signal.SIGTERM, signal.SIGINT]
+        self._done = False
 
         if not tools.is_windows():
             self._active_signals.append(signal.SIGHUP)
@@ -291,6 +292,7 @@ class BaseApp(daemon.Daemon):
         fmt = "Received signal %d" % p_signum
         _ = p_stackframe
         self._logger.info(fmt)
+        self._done = True
 
         raise exceptions.SignalHangUp()
 
@@ -328,6 +330,7 @@ class BaseApp(daemon.Daemon):
     def event_queue(self):
 
         self._done = False
+        self._logger.info("Entering event queue...")
 
         while not self._done:
             try:
@@ -429,6 +432,8 @@ class BaseApp(daemon.Daemon):
 
             if self._arguments.single_run:
                 self._done = True
+
+        self._logger.info("Leaving event queue...")
 
     def track_downtime(self, p_downtime):
 
