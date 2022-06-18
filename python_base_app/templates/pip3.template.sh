@@ -42,7 +42,7 @@ if [ "${PIP3}" == "" ] ; then
   exit 1
 fi
 
-EXTRA_INDEX_URL="{% if python_packages[0][8] %}${{ python_packages[0][8] }}{% endif %}"
+EXTRA_INDEX_URL="${{ python_packages[0][8] }}"
 
 
 if [ "${EXTRA_INDEX_URL}" == "" ] ; then

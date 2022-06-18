@@ -21,6 +21,7 @@ import locale
 import os.path
 import shlex
 import subprocess
+import tempfile
 
 from python_base_app import configuration
 from python_base_app import mpg123_audio_player
@@ -31,7 +32,7 @@ DEFAULT_SPEECH_GENERATOR_CMD_LINE = '/usr/bin/festival --tts --language american
     pattern=notification_handler.REPLACE_PATTERN_AUDIO_TEXT_FILENAME)
 DEFAULT_AUDIO_MIXER_BIN = '/usr/bin/amixer'
 DEFAULT_AUDIO_FILE_PREFIX = "python-base-app-speech-"
-DEFAULT_SPOOL_DIRECTORY = "/tmp"
+DEFAULT_SPOOL_DIRECTORY = tempfile.gettempdir()
 DEFAULT_SPEECH_WORDS_PER_MINUTE = 100
 
 SECTION_NAME = "AudioHandler"
@@ -64,6 +65,7 @@ class AudioHandlerConfigModel(notification_handler.NotificationHandlerConfigMode
         self.speech_generator_cmd_line = DEFAULT_SPEECH_GENERATOR_CMD_LINE
         self.audio_player = DEFAULT_AUDIO_PLAYER
         self.mpg123_binary = DEFAULT_MPG123_binary
+        self.play_command_pattern = mpg123_audio_player.DEFAULT_PLAY_COMMAND_PATTERN
 
     def is_active(self):
         return self.speech_engine is not None
@@ -93,17 +95,17 @@ class AudioHandler(notification_handler.NotificationHandler):
                 self._audio_player = pyglet_audio_player.PygletAudioPlayer()
 
             elif self._config.audio_player == AUDIO_PLAYER_MPG123:
-                self._audio_player = mpg123_audio_player.Mpg123AudioPlayer(self._config.mpg123_binary)
+                self._audio_player = mpg123_audio_player.Mpg123AudioPlayer(
+                    self._config.mpg123_binary, self._config.play_command_pattern)
 
             else:
-                fmt = "Invalid audio player '{player}'"
-                self._logger.error(fmt.format(player=self._config.audio_player))
-                raise configuration.ConfigurationException(fmt)
+                msg = f"Invalid audio player '{self._config.audio_player}'"
+                raise configuration.ConfigurationException(msg)
 
-        except Exception:
-            fmt = "Cannot load audio player '{player}'"
-            self._logger.error(fmt.format(player=self._config.audio_player))
-            raise configuration.ConfigurationException(fmt)
+        except Exception as e:
+            msg = f"Cannot load audio player '{self._config.audio_player}': {str(e)}"
+            self._logger.error(msg)
+            raise configuration.ConfigurationException(msg)
 
     def init_engine_google(self):
 

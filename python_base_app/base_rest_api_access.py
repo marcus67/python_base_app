@@ -20,7 +20,8 @@
 
 import json
 import logging
-from os.path import join
+#from os.path import join
+from urllib.parse import urljoin
 
 import requests
 
@@ -63,12 +64,12 @@ class BaseRestAPIAccess(object):
     def _get_api_url(self, p_command=None):
 
         if p_command is not None:
-            return self._config.host_url + join(self._api_base_url, p_command)
+            return self._config.host_url + urljoin(self._api_base_url, p_command)
 
         else:
             return self._config.host_url + self._api_base_url
 
-    def _handle_runtime_exception(self, p_status_code, p_exception, p_artifact_path='UNKNOWN', p_login='UNKOWN',
+    def _handle_runtime_exception(self, p_status_code, p_exception, p_artifact_path='UNKNOWN', p_login='UNKNOWN',
                                   p_result_document=None, p_key=None):
 
         error_code = p_status_code

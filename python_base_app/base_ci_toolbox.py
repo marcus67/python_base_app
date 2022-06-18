@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -26,10 +26,11 @@ import os
 import os.path
 import stat
 import subprocess
-import sys
-import time
+import re
 
 import jinja2
+import sys
+import time
 
 import python_base_app
 from python_base_app import exceptions
@@ -133,6 +134,8 @@ default_setup = {
     "docker_image_test": "marcusrickert/docker-python-app:latest",
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "marcusrickert/docker-python-app:latest",
+    "docker_image_owasp": "registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest",
+    "owasp_additional_params": "--enableExperimental",
     "ci_toolbox_script": "ci_toolbox.py",
     "ci_pip_dependencies": [ ],
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
@@ -146,6 +149,7 @@ default_setup = {
     "ci_stage_publish_pypi_package": STAGE_PUBLISH_PYPI_PACKAGE,
     "ci_stage_build_pip_dependencies": [ "babel" ],
     "ci_stage_publish_pip_package_pip_dependencies": [ "twine" ],
+    "owasp": False,
     "require_teardown": False,
     "bin_dir": "bin",
     "test_dir": "test",
@@ -248,7 +252,11 @@ def expand_vars(p_vars):
 
         for (key, value) in p_vars.items():
             if isinstance(value, str):
-                new_value = value.format(**p_vars)
+                try:
+                    new_value = value.format(**p_vars)
+
+                except Exception:
+                    new_value = value
 
                 if new_value != value:
                     change_done = True
@@ -295,14 +303,23 @@ def load_contributing_setup_modules(p_main_setup_module):
 
 
 def get_site_packages_dir():
-    suffixes = ("python{}.{}/dist-packages".format(sys.version_info[0], sys.version_info[1]),
-                "python{}.{}/site-packages".format(sys.version_info[0], sys.version_info[1]))
-    site_packages_dirs = [p for p in sys.path if p.endswith(suffixes)]
+
+    major_version = sys.version_info[0]
+    minor_version = sys.version_info[1]
+
+    if tools.is_windows():
+        pattern = f".+Python\.{major_version}\.{minor_version}.+\\\\lib$"
+
+    else:
+        pattern = f".+python{major_version}\.{minor_version}/(site|dist)-packages$"
+
+    regex = re.compile(pattern)
+
+    site_packages_dirs = [p for p in sys.path if regex.match(p)]
 
     if len(site_packages_dirs) != 1:
-        raise Exception(
-            "Cannot determine unique site-package dir with suffix '{}'! Candidates {} remaining from {}".format(
-                suffixes, site_packages_dirs, sys.path))
+        msg = f"Cannot determine unique site-package dir with pattern '{pattern}'! Candidates {site_packages_dirs} remaining from {sys.path}"
+        raise Exception(msg)
 
     return site_packages_dirs[0]
 
@@ -357,12 +374,6 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
                 target_rep_token_env_name = target_rep_map_entry[1]
                 target_rep_user_env_name = target_rep_map_entry[2]
 
-        if isinstance(branch_extra_pypi_indexes_map, dict):
-            target_extra_pypi_indexes_map_entry = branch_extra_pypi_indexes_map.get(branch)
-
-            if target_extra_pypi_indexes_map_entry is not None:
-                target_rep_extra_index_env_name = target_extra_pypi_indexes_map_entry[0]
-
     if target_rep_url_env_name is None:
         target_rep_url_env_name = DEFAULT_PYPI_URL_ENV_NAME
 
@@ -390,7 +401,7 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
                             target_rep_token_env_name,                                          # 5
                             target_rep_user_env_name,                                           # 6
                             target_rep_default_url,                                             # 7
-                            target_rep_extra_index_env_name,                                    # 8
+                            DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,                             # 8
                             DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,                          # 9
                             var["setup"]["name"],                                               # 10
                             var["setup"]["version"]))                                           # 11
@@ -408,7 +419,11 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
             python_packages.append((include_path, get_python_package_name(p_var=contrib_var), module_name, contrib_var,
                                     target_rep_url_env_name, target_rep_token_env_name, target_rep_user_env_name,
-                                    target_rep_default_url, target_rep_extra_index_env_name))
+                                    target_rep_default_url,
+                                    DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,
+                                    DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,
+                                    contrib_var["setup"]["name"],
+                                    contrib_var["setup"]["version"]))
 
     return python_packages
 

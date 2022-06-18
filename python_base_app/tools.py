@@ -24,7 +24,6 @@ import io
 import json
 import os
 import platform
-import pwd
 import re
 import socket
 import stat
@@ -52,6 +51,10 @@ FORMAT_JSON_DATETIME = "%Y-%m-%d %H:%M:%S"
 
 REGEX_DURATION = re.compile("^ *(([0-9]+) *[h|H])? *(([0-9]+) *[m|M])? *(([0-9]+) *[s|S])? *$")
 REGEX_TIME = re.compile("^ *([0-9]+)( *: *([0-9]+))?( *: *([0-9]+))? *$")
+
+PATTERN_IP_ADDRESS = r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+
+REGEX_IP_ADDRESS = re.compile(PATTERN_IP_ADDRESS)
 
 EMPTY_DURATION = "-"
 EMPTY_TIME = "-"
@@ -210,13 +213,16 @@ def test_mode(p_filename, p_app_owner, p_executable=False, p_writable=False, p_i
     info = os.stat(p_filename)
 
     if p_app_owner is not None:
-        owner_name = pwd.getpwuid(info.st_uid).pw_name
+        if not is_windows():
+            import pwd
 
-        if owner_name != p_app_owner:
-            raise exceptions.InstallationException(
-                "File/directory '%s' must be owned by '%s'!" % (p_filename, p_app_owner))
+            owner_name = pwd.getpwuid(info.st_uid).pw_name
 
-        logger.info("File/directory '%s' is owned by '%s' -> OK" % (p_filename, p_app_owner))
+            if owner_name != p_app_owner:
+                raise exceptions.InstallationException(
+                    "File/directory '%s' must be owned by '%s'!" % (p_filename, p_app_owner))
+
+            logger.info("File/directory '%s' is owned by '%s' -> OK" % (p_filename, p_app_owner))
 
     if info.st_mode & stat.S_IRUSR == 0:
         raise exceptions.InstallationException("File/directory '%s' must be readable by owner!" % p_filename)
@@ -500,6 +506,24 @@ def get_dns_name_by_ip_address(p_ip_address):
 
     except Exception:
         return p_ip_address
+
+
+def get_ip_address_by_dns_name(p_dns_name:str):
+
+    if REGEX_IP_ADDRESS.match(p_dns_name.strip()):
+        return p_dns_name.strip()
+
+    return socket.gethostbyname(p_dns_name)
+
+
+def is_valid_ip_address_or_dns_name(p_dns_name:str) -> bool:
+
+    try:
+        get_ip_address_by_dns_name(p_dns_name)
+        return True
+
+    except Exception:
+        return False
 
 
 def objects_are_equal(p_object1: object, p_object2: object, p_logger=None):

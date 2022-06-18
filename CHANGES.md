@@ -2,6 +2,42 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.40 (March 26th, 2022)
+
+* Add dependency on `python_google_speak` again
+* Temporarily deactivate OWASP checks
+* Refrain from importing module `pwd` on Windows systems 
+* Refrain from using `signal.SIGHUP` and `pthread_sigmask`  on Windows systems
+* Derive path of temporary directory in a platform independent way 
+* Support command line pattern for calling audio playback executable (e.g. vlc)
+* Added some debugging output
+* Build URLs in a platform independent way 
+
+## Version 0.2.39 (March 26th, 2022)
+
+* New method `tools.get_ip_address_by_dns_name`
+* Improve exception handling for `RecurringTask`
+* Explicitly set `LANG` when calling `ping`
+* Extract LDAP functionality into a repository of its own
+* Add support for `VulScan`
+
+## Version 0.2.38 (March 6th, 2022)
+
+* Fix YAML syntax in circle-ci.yml
+* Set `TEST_PYPI_EXTRA_INDEX` correctly in generic installation script
+
+## Version 0.2.37 (March 3rd, 2022)
+
+* Supply metadata for all contribution packages in `base_ci_toolbox.py`
+* Provide new Docker image build arguments `BRANCH` and `REPO_DOWNLOAD_BASE_URL`
+* Fixes to `generic-install.sh`: 
+  * Use correct path to `pip3.sh` script
+  * Download Pip packages of project and all contribution libraries
+* Swap deploy and docker stages in CI jobs
+* Do not output pip version (collides with wrapper script)
+* Closes [LittleBrother 170](https://github.com/marcus67/little_brother/issues/170)
+
+
 ## Version 0.2.36 (February 13th, 2022)
 
 * Dump stack trace for all general exception in `base_ci_toolbox.py` (for debugging in Circle CI)

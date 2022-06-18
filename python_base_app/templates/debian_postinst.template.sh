@@ -1,6 +1,6 @@
 #! /bin/bash
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -23,12 +23,94 @@
 # but only to python_base_app/templates/debian_postinst.template.sh!             #
 ##################################################################################
 
+##################################################################################
+# PARAMETERS                                                                     #
+##################################################################################
+# When set, will deactivate portions that are not applicable to Docker containers
+RUNNING_IN_DOCKER=${RUNNING_IN_DOCKER:-}
+
+# When set, contains an extra PIP index to download from
+# This will be required when trying to install the version of the `master` branch since the required PIP packages
+# may not be available ot pypi.org yet. In this case, add the extra index https://test.pypi.org/simple/
+TEST_PYPI_EXTRA_INDEX=${TEST_PYPI_EXTRA_INDEX:-}
+
+# When set, will create the application user with a specific user id
+APP_UID=${APP_UID:-}
+
+# When set, will create the application group with a specific group id
+APP_GID=${APP_UID:-}
+
+##################################################################################
+
+if [ -f /etc/os-release ] ; then
+  . /etc/os-release
+else
+  echo "Cannot read /etc/os-release!"
+  exit 2
+fi
+
+echo "Detected operating system architecture '${ID}'."
+
+function add_group() {
+  group_name=$1
+  group_id=$2
+
+  if [ "$ID" == "alpine" ] ; then
+    if [ "${group_id}" == "" ] ; then
+      addgroup ${group_name}
+    else
+      addgroup -g ${group_id} ${group_name}
+    fi
+  else
+    if [ "${group_id}" == "" ] ; then
+      groupadd {{ var.setup.group }}
+    else
+      groupadd --gid ${group_id} ${group_name}
+    fi
+
+  fi
+}
+
+function add_user() {
+  user_name=$1
+  group_name=$2
+  user_id=$3
+
+  if [ "$ID" == "alpine" ] ; then
+    if  [ "${user_id}" == "" ] ; then
+        adduser -G ${group_name} -g "" -H -D ${user_name}
+    else
+        adduser -G ${group_name} -u ${user_id} -g "" -H -D ${user_name}
+    fi
+  else
+    if  [ "${user_id}" == "" ] ; then
+        useradd --gid ${group_name} --no-create-home ${user_name}
+    else
+        useradd --gid ${group_name} --uid ${user_id} --no-create-home ${user_name}
+    fi
+  fi
+
+}
+
+function add_user_to_group() {
+  user_name=$1
+  group_name=$2
+
+  if [ "$ID" == "alpine" ] ; then
+    adduser ${user_name} ${group_name}
+  else
+    usermod -aG ${group_name} ${user_name}
+  fi
+}
+
+if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+export VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
+fi
 
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
 LOG_DIR=/{{ var.setup.rel_log_dir }}
 SPOOL_DIR=/{{ var.setup.rel_spool_dir }}
 LIB_DIR=/{{ var.setup.rel_lib_dir }}
-VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
 SYSTEMD_DIR=/{{ var.setup.rel_systemd_dir }}
 TMPFILE_DIR=/{{ var.setup.rel_tmpfile_dir }}
 SUDOERS_DIR=/{{ var.setup.rel_sudoers_dir }}
@@ -38,10 +120,12 @@ ROOT_DIR=
 SCRIPT_DIR=$(dirname ${BASH_SOURCE[0]})
 INSTALL_BASE_DIR=$(realpath $SCRIPT_DIR/..)
 BIN_DIR=${INSTALL_BASE_DIR}/bin
-PIP3=${LIB_DIR}/pip3.sh
-chmod +x ${PIP3}
 
 {% if generic_script %}
+
+echo "Creating lib directories..."
+echo "    * ${LIB_DIR}"
+mkdir -p ${LIB_DIR}
 
 echo "Running generic installation script with base directory located in $INSTALL_BASE_DIR..."
 
@@ -49,6 +133,13 @@ if [ ! "$EUID" == "0" ] ; then
     echo "ERROR: You have to be root to call this script."
     exit 2
 fi
+
+PIP3=${SCRIPT_DIR}/pip3.sh
+chmod +x ${PIP3}
+echo "Downloading Pip packages to $LIB_DIR..."
+{%- for package_name in python_packages %}
+${PIP3} download -d $LIB_DIR --no-deps {{ package_name[2] }}=={{ package_name[11] }}
+{% endfor %}
 
 echo "Checking if all Pip packages have been downloaded to $LIB_DIR..."
 {%- for package_name in python_packages %}
@@ -62,10 +153,10 @@ fi
 {% endfor %}
 
 {%- if var.setup.deploy_systemd_service %}
-mkdir -p ${SYSTEMD_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
-echo "Execute systemctl daemon-reload..."
-systemctl daemon-reload
+if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+  mkdir -p ${SYSTEMD_DIR}
+  cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+fi
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_conf %}
@@ -93,6 +184,11 @@ cp -f $INSTALL_BASE_DIR/{{ file_mapping[0] }} ${ROOT_DIR}/{{ file_mapping[1] }}
 {%- endfor %}
 {%- endif %}
 {% endfor %}
+
+{% else %}
+
+PIP3=${LIB_DIR}/pip3.sh
+chmod +x ${PIP3}
 # endif for if generic_script
 {%- endif %}
 
@@ -101,11 +197,7 @@ if grep -q '{{ var.setup.group }}:' /etc/group ; then
     echo "Group '{{ var.setup.group }}' already exists. Skipping group creation."
 else
     #echo "Adding group '{{ var.setup.group }}'..."
-    if [ "${APP_GID}" == "" ] ; then
-        groupadd {{ var.setup.group }}
-    else
-	      groupadd --gid ${APP_GID} {{ var.setup.group }}
-    fi
+    add_group {{ var.setup.group }} ${APP_GID}
 fi
 {%- endif %}
 
@@ -113,20 +205,14 @@ fi
 if grep -q '{{ var.setup.user }}:' /etc/passwd ; then
     echo "User '{{ var.setup.user }}' already exists. Skipping user creation."
 else
-    if  [ "${APP_UID}" == "" ] ; then
-#        adduser --gid {{ var.setup.group }} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
-        useradd --gid {{ var.setup.group }} --no-create-home {{ var.setup.user }}
-    else
-#        adduser --gid {{ var.setup.group }} --uid ${APP_UID} --gecos "" --no-create-home --disabled-password {{ var.setup.user }}
-        useradd --gid {{ var.setup.group }} --uid ${APP_UID} --no-create-home {{ var.setup.user }}
-    fi
+    add_user {{ var.setup.user }} {{ var.setup.group }} ${APP_UID}
 fi
 {%- endif %}
 
 set -e
 
 {%- for mapping in user_group_mappings %}
-usermod -aG {{ mapping[1] }} {{ mapping[0] }}
+  add_user_to_group {{ mapping[0] }} {{ mapping[1] }}
 {% endfor %}
 
 echo "Creating directories..."
@@ -146,6 +232,7 @@ else
 fi
 {%- endfor %}
 
+if [ "${VIRTUAL_ENV_DIR}" != "" ] ; then
 {% for script in var.setup.scripts %}
 echo "Creating symbolic link /usr/local/bin/{{ script }} --> ${VIRTUAL_ENV_DIR}/bin/{{ script }}..."
 ln -fs ${VIRTUAL_ENV_DIR}/bin/{{ script }} /usr/local/bin/{{ script }}
@@ -154,6 +241,9 @@ ln -fs ${VIRTUAL_ENV_DIR}/bin/{{ script }} /usr/local/bin/{{ script }}
 echo "Creating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
 
 virtualenv -p /usr/bin/python3 ${VIRTUAL_ENV_DIR}
+echo "Activating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
+. ${VIRTUAL_ENV_DIR}/bin/activate
+fi
 
 echo "Setting ownership..."
 echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
@@ -171,9 +261,12 @@ chown {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}
 {%- endfor %}
 
 {%- if var.setup.deploy_systemd_service %}
-echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
-chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
-{% endif %}
+  if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+  echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
+  chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+  fi
+{%- endif %}
+
 {%- if var.setup.deploy_tmpfile_service %}
 echo "    * ${TMPFILE_DIR}/{{ var.setup.name }}.conf"
 chown root.root ${TMPFILE_DIR}/{{ var.setup.name }}.conf
@@ -202,17 +295,25 @@ echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
 chmod og-rwx {{ file_mapping[1] }}
 {%- endfor %}
 
-${PIP3} --version
 ${PIP3} install wheel # setuptools
 echo "Installing PIP packages..."
 {%- for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
 {%- endfor %}
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
-${PIP3} install --upgrade --force-reinstall {% for package_name in python_packages %}\
+${PIP3} install --upgrade {% for package_name in python_packages %}\
      ${LIB_DIR}/{{ package_name[1] }}{% endfor %}
 
 {% for package_name in python_packages %}
 echo "Removing installation file ${LIB_DIR}/{{ package_name[1] }}..."
 rm ${LIB_DIR}/{{ package_name[1] }}
 {%- endfor %}
+
+{%- if var.setup.deploy_systemd_service %}
+if [ "$RUNNING_IN_DOCKER" == "" ] ; then
+  echo "Execute systemctl daemon-reload..."
+  set +e
+  systemctl daemon-reload
+  set -e
+fi
+{%- endif %}

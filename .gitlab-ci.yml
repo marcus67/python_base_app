@@ -40,7 +40,7 @@ build_pypi:
   artifacts:
       when: always
       paths:
-        - dist/python-base-app-0.2.36.tar.gz
+        - dist/python-base-app-0.2.40.tar.gz
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
@@ -72,6 +72,8 @@ analyze:
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
+
+
 
 publish_pypi:
   image: marcusrickert/docker-python-app:latest

@@ -1,17 +1,18 @@
-alembic>=1.7.5
 coverage>=5.4
-fakeldap>=0.6.2
-Flask>=1.1.2
 Flask-WTF>=0.14.3
 flask-login>=0.5.0
 Jinja2>=2.11.2
 MarkupSafe>=1.1.1
 pytest>=6.1.2
 python-dateutil>=2.8.1
-python-google-speak>=0.1
-python-ldap>=3.3.1
 requests>=2.25.0
 secure>=0.3.0
 some-flask-helpers>=0.2.2
 urllib3>=1.26.2
 WTForms>=3.0.0a1
+python-google-speak>=0.2
+
+# Fixed to old versions due to missing shutdown method in newer versions of werkzeug
+Flask<=1.1.4
+Werkzeug<=1.0.1
+markupsafe<=1.1.1
