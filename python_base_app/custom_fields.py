@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -29,10 +29,14 @@ class BaseCustomField(wtforms.Field):
     extra_css_classes = ""
 
     def _value(self):
-       return self.data
+       if self.data is None:
+           return ""
+
+       else:
+           return self.data
 
     def process_formdata(self, valuelist):
-        if valuelist:
+        if valuelist and valuelist[0] is not None:
             self.data = valuelist[0]
         else:
             self.data = None
