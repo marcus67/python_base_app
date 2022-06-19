@@ -28,6 +28,15 @@ _ = lambda x: x
 class BaseCustomField(wtforms.Field):
     extra_css_classes = ""
 
+    def _value(self):
+       return self.data
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            self.data = valuelist[0]
+        else:
+            self.data = None
+
 
 class DurationField(BaseCustomField):
     widget = wtforms.widgets.TextInput()
@@ -95,6 +104,11 @@ class TimeField(BaseCustomField):
         else:
             self.data = None
             self.invalid_data = None
+
+
+class TextArea(BaseCustomField):
+    widget = wtforms.widgets.TextArea()
+    extra_css_classes = "text-field-lock-width"
 
 
 class BooleanField(BaseCustomField):

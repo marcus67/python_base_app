@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.41 (June 19th, 2022)
+
+* Add field `TextArea` with lockable width
+
 ## Version 0.2.40 (March 26th, 2022)
 
 * Add dependency on `python_google_speak` again
