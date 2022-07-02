@@ -508,7 +508,7 @@ def get_dns_name_by_ip_address(p_ip_address):
         return p_ip_address
 
 
-def get_ip_address_by_dns_name(p_dns_name:str):
+def get_ip_address_by_dns_name(p_dns_name:str) -> str:
 
     if REGEX_IP_ADDRESS.match(p_dns_name.strip()):
         return p_dns_name.strip()

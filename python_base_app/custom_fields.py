@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -27,6 +27,19 @@ _ = lambda x: x
 
 class BaseCustomField(wtforms.Field):
     extra_css_classes = ""
+
+    def _value(self):
+       if self.data is None:
+           return ""
+
+       else:
+           return self.data
+
+    def process_formdata(self, valuelist):
+        if valuelist and valuelist[0] is not None:
+            self.data = valuelist[0]
+        else:
+            self.data = None
 
 
 class DurationField(BaseCustomField):
@@ -95,6 +108,11 @@ class TimeField(BaseCustomField):
         else:
             self.data = None
             self.invalid_data = None
+
+
+class TextArea(BaseCustomField):
+    widget = wtforms.widgets.TextArea()
+    extra_css_classes = "text-field-lock-width"
 
 
 class BooleanField(BaseCustomField):

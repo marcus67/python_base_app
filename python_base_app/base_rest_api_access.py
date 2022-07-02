@@ -20,7 +20,7 @@
 
 import json
 import logging
-#from os.path import join
+# from os.path import join
 from urllib.parse import urljoin
 
 import requests
@@ -30,6 +30,7 @@ from python_base_app import exceptions
 from python_base_app import log_handling
 from python_base_app import tools
 
+DEFAULT_REQUEST_TIMEOUT = 5
 
 class BaseRestAPIAccessConfigModel(configuration.ConfigModel):
 
@@ -43,6 +44,7 @@ class BaseRestAPIAccessConfigModel(configuration.ConfigModel):
         self.access_token = configuration.NONE_STRING
         self.admin_login = configuration.NONE_STRING
         self.admin_password = configuration.NONE_STRING
+        self.request_timeout = DEFAULT_REQUEST_TIMEOUT
 
     def is_active(self):
         return self.host_url is not None
@@ -173,10 +175,10 @@ class BaseRestAPIAccess(object):
 
     def _get_auth(self, p_requires_admin=False):
         if p_requires_admin:
-            return tuple(self._config.admin_login, self._config.admin_password)
+            return (self._config.admin_login, self._config.admin_password)
 
         else:
-            return tuple(self._config.login, self._config.password)
+            return (self._config.login, self._config.password)
 
     def execute_api_call(self, p_url, p_requires_authorization=False,
                          p_requires_admin=False,
@@ -207,16 +209,20 @@ class BaseRestAPIAccess(object):
             self._logger.debug(fmt)
 
             if p_method == "GET":
-                r = requests.get(p_url, auth=auth, stream=False, headers=headers, params=p_parameters)
+                r = requests.get(p_url, auth=auth, stream=False, headers=headers, params=p_parameters,
+                                 timeout=self._config.request_timeout)
 
             elif p_method == "PUT":
-                r = requests.put(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters)
+                r = requests.put(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters,
+                                 timeout=self._config.request_timeout)
 
             elif p_method == "POST":
-                r = requests.post(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters)
+                r = requests.post(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters,
+                                  timeout=self._config.request_timeout)
 
             elif p_method == "DELETE":
-                r = requests.delete(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters)
+                r = requests.delete(p_url, auth=auth, data=p_data, headers=headers, params=p_parameters,
+                                    timeout=self._config.request_timeout)
 
             else:
                 raise NotImplementedError("Invalid method '%s'" % p_method)

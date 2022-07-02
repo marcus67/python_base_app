@@ -318,6 +318,7 @@ class Configuration(object):
         self._logger.info(msg)
 
         self._sections[p_section_name] = section
+        self.scan_section(p_section_name)
 
         return section
 
