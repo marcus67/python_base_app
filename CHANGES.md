@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.42 (July 2nd, 2022)
+
+* Add `tools.get_ip_addresses_by_dns_name`
+
 ## Version 0.2.41 (June 29th, 2022)
 
 * Add field `TextArea` with lockable width
