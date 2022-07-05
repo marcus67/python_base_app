@@ -2,6 +2,11 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.43 (July 5th, 2022)
+
+* Upgrade to package `Flask` > 2
+* Upgrade to `some-flask-helpers` 0.2.3
+
 ## Version 0.2.42 (July 2nd, 2022)
 
 * Add `tools.get_ip_addresses_by_dns_name`

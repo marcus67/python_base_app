@@ -11,8 +11,4 @@ some-flask-helpers>=0.2.2
 urllib3>=1.26.9
 WTForms>=3.0.0a1
 python-google-speak>=0.2
-
-# Fixed to old versions due to missing shutdown method in newer versions of werkzeug
-Flask<=1.1.4
-Werkzeug<=1.0.1
-markupsafe<=1.1.1
+Flask>2
