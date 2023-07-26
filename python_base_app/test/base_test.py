@@ -205,7 +205,7 @@ class BaseTestCase(unittest.TestCase):
 
         return join(self._test_data_base_dir, p_rel_path)
 
-    def execute_pytest(self, p_base_dir=None, p_rel_path="pytest"):
+    def execute_pytest(self, p_base_dir=None, p_rel_path="pytests"):
 
         if p_base_dir is None:
             p_base_dir = os.path.dirname(__file__)

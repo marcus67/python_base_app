@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.45 (July 26th, 2023)
+
+* Rename pytest folder to `pytests` (see https://stackoverflow.com/questions/62581901/attribute-error-module-pytest-has-no-attribute-hookimpl/69062733#69062733)
+
 ## Version 0.2.44 (July 23rd, 2023)
 
 * General update of all libraries:
