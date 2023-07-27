@@ -301,7 +301,7 @@ echo "Installing PIP packages..."
 echo "  * {{ package_name[1] }}"
 {%- endfor %}
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
-${PIP3} install --upgrade {% for package_name in python_packages %}\
+${PIP3} install --upgrade --ignore-installed {% for package_name in python_packages %}\
      ${LIB_DIR}/{{ package_name[1] }}{% endfor %}
 
 {% for package_name in python_packages %}
