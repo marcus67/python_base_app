@@ -143,6 +143,15 @@ def test_get_ip_address_by_dns_name():
     with pytest.raises(socket.gaierror):
         tools.get_ip_address_by_dns_name("xyx.xyx.xyx")
 
+def test_get_all_ip_address_by_dns_name():
+    addresses = tools.get_ip_addresses_by_dns_name("localhost")
+    assert len(addresses) == 1
+    assert "127.0.0.1" in addresses
+
+    addresses = tools.get_ip_addresses_by_dns_name("127.0.0.1")
+    assert len(addresses) == 1
+    assert "127.0.0.1" in addresses
+
 
 def test_get_dns_name_by_ip_address():
     assert tools.get_dns_name_by_ip_address("127.0.0.1") == "localhost"

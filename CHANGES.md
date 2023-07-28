@@ -2,6 +2,37 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.2.45 (July 26th, 2023)
+
+* Rename pytest folder to `pytests` (see https://stackoverflow.com/questions/62581901/attribute-error-module-pytest-has-no-attribute-hookimpl/69062733#69062733)
+
+## Version 0.2.44 (July 23rd, 2023)
+
+* General update of all libraries:
+  * Flask-WTF>=1.1.1
+  * Flask>=2.3.2
+  * Jinja2>=3.1.2
+  * MarkupSafe>=2.1.3
+  * WTForms>=3.0.1
+  * coverage>=7.2.7
+  * flask-login>=0.6.2
+  * pytest>=7.4.0
+  * python-dateutil>=2.8.2
+  * python-google-speak>=0.2.1
+  * requests>=2.31.0
+  * secure>=0.3.0
+  * some-flask-helpers>=0.2.3
+  * urllib3>=2.0.4
+
+## Version 0.2.43 (July 5th, 2022)
+
+* Upgrade to package `Flask` > 2
+* Upgrade to `some-flask-helpers` 0.2.3
+
+## Version 0.2.42 (July 2nd, 2022)
+
+* Add `tools.get_ip_addresses_by_dns_name`
+
 ## Version 0.2.41 (June 29th, 2022)
 
 * Add field `TextArea` with lockable width

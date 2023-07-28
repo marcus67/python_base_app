@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019-2021  Marcus Rickert
+#    Copyright (C) 2019-2022  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -508,16 +508,21 @@ def get_dns_name_by_ip_address(p_ip_address):
         return p_ip_address
 
 
-def get_ip_address_by_dns_name(p_dns_name:str) -> str:
-
+def get_ip_address_by_dns_name(p_dns_name: str) -> str:
     if REGEX_IP_ADDRESS.match(p_dns_name.strip()):
         return p_dns_name.strip()
 
     return socket.gethostbyname(p_dns_name)
 
 
-def is_valid_ip_address_or_dns_name(p_dns_name:str) -> bool:
+def get_ip_addresses_by_dns_name(p_dns_name: str) -> set[str]:
+    if REGEX_IP_ADDRESS.match(p_dns_name.strip()):
+        return {p_dns_name.strip()}
 
+    return set(socket.gethostbyname_ex(p_dns_name)[2])
+
+
+def is_valid_ip_address_or_dns_name(p_dns_name: str) -> bool:
     try:
         get_ip_address_by_dns_name(p_dns_name)
         return True
@@ -575,6 +580,7 @@ def value_or_not_set(p_value):
 
 def running_in_docker():
     return os.getenv("RUNNING_IN_DOCKER") is not None
+
 
 def running_in_snap():
     return os.getenv("RUNNING_IN_SNAP") is not None
