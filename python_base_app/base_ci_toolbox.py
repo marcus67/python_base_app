@@ -18,17 +18,17 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import os.path
+
 import argparse
 import collections
 import copy
+import jinja2
 import logging
 import os
-import os.path
+import re
 import stat
 import subprocess
-import re
-
-import jinja2
 import sys
 import time
 
@@ -311,7 +311,7 @@ def get_site_packages_dir():
         pattern = f".+Python\.{major_version}\.{minor_version}.+\\\\lib$"
 
     else:
-        pattern = f".+python{major_version}\.{minor_version}/(site|dist)-packages$"
+        pattern = f".+[python|pypy]{major_version}\.{minor_version}/(site|dist)-packages$"
 
     regex = re.compile(pattern)
 
