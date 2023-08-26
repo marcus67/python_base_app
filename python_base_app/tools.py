@@ -18,6 +18,8 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from os.path import dirname
+
 import datetime
 import inspect
 import io
@@ -32,7 +34,7 @@ import threading
 import time
 import traceback
 import urllib.parse
-from os.path import dirname
+from typing import Set
 
 from python_base_app import configuration
 from python_base_app import exceptions
@@ -515,7 +517,7 @@ def get_ip_address_by_dns_name(p_dns_name: str) -> str:
     return socket.gethostbyname(p_dns_name)
 
 
-def get_ip_addresses_by_dns_name(p_dns_name: str) -> set[str]:
+def get_ip_addresses_by_dns_name(p_dns_name: str) -> Set[str]:
     if REGEX_IP_ADDRESS.match(p_dns_name.strip()):
         return {p_dns_name.strip()}
 

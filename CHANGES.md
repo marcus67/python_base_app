@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+# Version 0.2.46 (August 26th, 2023)
+  * Remove incompatibility with Python 3.8 in `tools.py`
+  * Support for `pypy` Python versions supplied by `asdf`
+
 ## Version 0.2.45 (July 26th, 2023)
 
 * Rename pytest folder to `pytests` (see https://stackoverflow.com/questions/62581901/attribute-error-module-pytest-has-no-attribute-hookimpl/69062733#69062733)
