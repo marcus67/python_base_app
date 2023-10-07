@@ -103,9 +103,7 @@ function add_user_to_group() {
   fi
 }
 
-if [ "$RUNNING_IN_DOCKER" == "" ] ; then
 export VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
-fi
 
 ETC_DIR=/{{ var.setup.rel_etc_dir }}
 LOG_DIR=/{{ var.setup.rel_log_dir }}
