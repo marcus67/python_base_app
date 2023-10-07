@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+# Version 0.2.47 (October 7th, 2023)
+  * Remove incompatibility with version 3.* of package `werkzeug`; fix version at 2.3.*
+  * Fix all other packages at minor release
+
 # Version 0.2.46 (August 26th, 2023)
   * Remove incompatibility with Python 3.8 in `tools.py`
   * Support for `pypy` Python versions supplied by `asdf`
