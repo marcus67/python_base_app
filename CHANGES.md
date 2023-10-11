@@ -2,6 +2,9 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+# Version 0.2.48 (October 11th, 2023)
+  * Optionally define `scan_id` to be used as id when calling the vulnerability scanner
+
 # Version 0.2.47 (October 7th, 2023)
   * Remove incompatibility with version 3.* of package `werkzeug`; fix version at 2.3.*
   * Fix all other packages at minor release
