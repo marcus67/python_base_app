@@ -11,5 +11,5 @@ python-google-speak==0.2.1
 requests==2.31.0
 secure==0.3.0
 some-flask-helpers==0.2.4
-urllib3==2.0.6
+urllib3==1.26
 werkzeug==2.3.7
