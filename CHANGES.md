@@ -2,6 +2,9 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+# Version 0.2.49 (October 13th, 2023)
+* Bump `some_flask_helpers` to 0.2.4
+
 # Version 0.2.48 (October 11th, 2023)
   * Optionally define `scan_id` to be used as id when calling the vulnerability scanner
 
