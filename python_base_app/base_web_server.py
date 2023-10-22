@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019-2021  Marcus Rickert
+#    Copyright (C) 2019-2023  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -27,10 +27,10 @@ from os.path import join
 import flask.globals
 import flask.wrappers
 import flask_login
+import some_flask_helpers
 from flask_wtf import CSRFProtect
 from secure import Secure
 
-import some_flask_helpers
 from python_base_app import actuator
 from python_base_app import auth_view_handler
 from python_base_app import configuration
@@ -40,7 +40,10 @@ from python_base_app import tools
 DEFAULT_BASE_URL = ''
 DEFAULT_INTERNAL_BASE_URL = ''
 
-_ = lambda x: x
+
+def _(x):
+    return x
+
 
 DUMMY_SECTION_NAME = "BaseWebServer"
 
@@ -79,9 +82,9 @@ class BaseWebServer(object):
     def __init__(self, p_name, p_config, p_package_name, p_user_handler=None,
                  p_login_view=None, p_logged_out_endpoint=None):
 
+        self._process = None
         self._login_manager = None
         self._flask_stopper = None
-        self._auth_view_handler = None
         self._server_started = False
         self._user_handler = p_user_handler
         self._csrf = None
@@ -89,6 +92,7 @@ class BaseWebServer(object):
         self._name = p_name
         self._config = p_config
         self._login_view = p_login_view
+        self._view_handlers = []
 
         if p_package_name is None:
             raise configuration.ConfigurationException("HttpServer: p_package_name must not be None")
@@ -112,11 +116,11 @@ class BaseWebServer(object):
         if self._user_handler is not None:
             tools.check_config_value(p_config=self._config, p_config_attribute_name="app_secret")
 
-            self._auth_view_handler = auth_view_handler.AuthViewHandler(
+            self.register_view_handler(auth_view_handler.AuthViewHandler(
                 p_user_handler=self._user_handler,
                 p_app=self._app, p_logged_out_endpoint=p_logged_out_endpoint,
                 p_url_prefix=self._config.base_url,
-                p_login_view=p_login_view)
+                p_login_view=p_login_view))
 
             # Activate CSRF protection
             self._app.config.update(SECRET_KEY=self._config.app_secret)
@@ -126,8 +130,8 @@ class BaseWebServer(object):
         self._server_exception = None
 
         # Install the actuator handler for the health check
-        self._actuator_view_handler = actuator.ActuatorViewHandler(p_app=self._app,
-                                                                   p_url_prefix=self._config.internal_base_url)
+        self.register_view_handler(actuator.ActuatorViewHandler(p_app=self._app,
+                                                                p_url_prefix=self._config.internal_base_url))
 
         logger = log_handling.get_logger("werkzeug")
         logger.setLevel(logging.WARNING)
@@ -135,12 +139,16 @@ class BaseWebServer(object):
         logger = log_handling.get_logger("sqlalchemy.engine")
         logger.setLevel(logging.WARNING)
 
-    def destroy(self):
-        self._actuator_view_handler.destroy()
-        self._flask_stopper.destroy()
+    @property
+    def app(self):
+        return self._app
 
-        if self._auth_view_handler is not None:
-            self._auth_view_handler.destroy()
+    def register_view_handler(self, p_view_handler):
+        self._view_handlers.append(p_view_handler)
+
+    def destroy(self):
+        for handler in self._view_handlers:
+            handler.destroy()
 
     def add_url_rule(self, p_rel_url, p_endpoint, p_view_method, p_blueprint,
                      p_methods=None,
