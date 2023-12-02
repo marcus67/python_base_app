@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
+import datetime
 import json
 from json import JSONDecodeError
 
 import flask
 import flask.wrappers
-import flask_login
 import some_flask_helpers
-from flask import jsonify
+from flask import jsonify, request
 
 import python_base_app
+from python_base_app.base_token_handler import BaseTokenHandler
+from python_base_app.base_user_handler import BaseUserHandler
 
 # Copyright (C) 2019-2023  Marcus Rickert
 #
@@ -24,6 +26,7 @@ import python_base_app
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
 # Ideas taken from https://realpython.com/handling-user-authentication-with-angular-and-flask/
 
 ANGULAR_AUTH_BLUEPRINT_NAME = 'angular_auth'
@@ -43,32 +46,13 @@ def _(x):
 _('Please log in to access this page.')
 
 
-class User(flask_login.UserMixin):
-
-    def __init__(self, p_username):
-        self.username = p_username
-        self.id = p_username
-
-    def get_id(self):
-        return self.id
-
-
 class AngularAuthViewHandler(object):
 
-    def __init__(self, p_user_handler, p_app, p_url_prefix,
-                 p_logged_out_endpoint=ANGULAR_LOGIN_ENDPOINT_NAME):
+    def __init__(self, p_user_handler:BaseUserHandler, p_app, p_url_prefix, p_token_handler:BaseTokenHandler):
 
         self._user_handler = p_user_handler
-        self._logged_out_endpoint = p_logged_out_endpoint
+        self._token_handler = p_token_handler
         self._url_prefix = p_url_prefix
-
-        self._login_manager = flask_login.LoginManager()
-        self._login_manager.init_app(app=p_app)
-        self._login_manager.login_view = ANGULAR_AUTH_BLUEPRINT_NAME + '.' + ANGULAR_LOGIN_ENDPOINT_NAME
-        self._login_manager.user_loader(self.load_user)
-
-        # See https://flask-login.readthedocs.io/en/latest/#how-it-works
-        self._login_manager.session_protection = "strong"
 
         self._blueprint = flask.Blueprint(ANGULAR_AUTH_BLUEPRINT_NAME, python_base_app.__name__)
         ANGULAR_AUTH_BLUEPRINT_ADAPTER.assign_view_handler_instance(p_blueprint=self._blueprint,
@@ -77,58 +61,60 @@ class AngularAuthViewHandler(object):
 
         p_app.register_blueprint(self._blueprint, url_prefix=p_url_prefix)
 
-    def load_user(self, p_user_id):
-
-        if self._user_handler.is_admin(p_user_id):
-            return User(p_username=p_user_id)
-
-        else:
-            return None
 
     def check_user(self, p_username, p_password):
 
-        if self._user_handler.authenticate(p_username=p_username, p_password=p_password):
-            return User(p_username=p_username)
-
-        else:
-            return None
+        return self._user_handler.authenticate(p_username=p_username, p_password=p_password)
 
     @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGIN_REL_URL, endpoint=ANGULAR_LOGIN_ENDPOINT_NAME,
                                                  methods=["POST"])
     def login(self):
 
-        auth_status: bool = False
-        error = None
+        status = "OK"
+        auth_token: str = "NOT SET"
         error_details = None
         request = flask.globals.request
         http_status = 200
 
         try:
-            payload = json.loads(request.json)
+            if not request.is_json:
+                error_details = "No JSON found"
 
-            username = payload['username']
-            password = payload['password']
+            else:
+                payload = json.loads(request.json)
 
-            user = self.check_user(p_username=username, p_password=password)
+                username = payload['username']
+                password = payload['password']
 
-            if user is not None:
-                flask_login.login_user(user)
-                auth_status = True
+                login_valid = self.check_user(p_username=username, p_password=password)
 
-        except JSONDecodeError as e:
-            error = "Invalid JSON"
-            error_details = str(e)
+                if login_valid:
+                    auth_token = self._token_handler.create_token(p_id=username)
+
+                else:
+                    error_details = f"User {username} not found or wrong password"
+                    http_status = 401
+
+        except (JSONDecodeError, TypeError) as e:
+            error_details = f"Invalid JSON: {str(e)}"
+            http_status = 400
 
         except KeyError as e:
-            error = "Parameter missing"
-            error_details = str(e)
-
-        result = {'result': auth_status}
-
-        if error is not None:
-            result['error'] = error
-            result['error_details'] = error_details
+            error_details = f"Parameter missing {str(e)}"
             http_status = 400
+
+        except Exception as e:
+            error_details = f"Exception during login: {str(e)}"
+            http_status = 503
+
+        result = {
+            'status': status,
+            'auth_token': auth_token
+        }
+
+        if error_details is not None:
+            result['status'] = "ERROR"
+            result['error_details'] = error_details
 
         return jsonify(result), http_status
 
@@ -136,8 +122,38 @@ class AngularAuthViewHandler(object):
                                                  methods=["POST"])
     def logout(self):
 
-        flask_login.logout_user()
-        return flask.redirect(flask.url_for(self._logged_out_endpoint))
+        http_status = 200
+        error_details = None
+        result = {
+            'status': "OK",
+            'message': 'Successfully logged out.'
+        }
+
+        auth_header = request.headers.get('Authorization')
+
+        if auth_header:
+            auth_token = auth_header.split(" ")[1]
+        else:
+            auth_token = ''
+
+        try:
+            if auth_token:
+                self._token_handler.decode_auth_token(auth_token)
+                self._token_handler.delete_token(p_token=auth_token, p_reference_time=datetime.datetime.utcnow())
+
+            else:
+                http_status = 403
+                error_details = "Provide a valid auth token."
+
+        except Exception as e:
+            http_status = 403
+            error_details = str(e)
+
+        if error_details is not None:
+            result['status'] = "ERROR"
+            result['error_details'] = error_details
+
+        return jsonify(result), http_status
 
     def destroy(self):
         ANGULAR_AUTH_BLUEPRINT_ADAPTER.unassign_view_handler_instances()

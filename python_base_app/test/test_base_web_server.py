@@ -27,8 +27,10 @@ from requests import Session
 from python_base_app import base_app
 from python_base_app import base_web_server
 from python_base_app.angular_auth_view_handler import ANGULAR_LOGIN_REL_URL, AngularAuthViewHandler
+from python_base_app.base_token_handler import BaseTokenHandlerConfigModel
 from python_base_app.base_web_server import BaseWebServer
 from python_base_app.index_view_handler import IndexViewHandler
+from python_base_app.simple_token_handler import SimpleTokenHandler
 from python_base_app.test import base_test
 from python_base_app.test.test_unix_user_handler import ADMIN_USER, ADMIN_PASSWORD
 from python_base_app.test.test_unix_user_handler import TestUnixUserHandler
@@ -49,10 +51,13 @@ class TestBaseWebServer(base_test.BaseTestCase):
         p_config.app_secret = "SOME-GIBBERISH"
 
         user_handler = TestUnixUserHandler.create_dummy_unix_user_handler()
+        token_handler_config = BaseTokenHandlerConfigModel()
+        token_handler = SimpleTokenHandler(p_config=token_handler_config, p_secret_key="SOME_SEC_RET")
 
         server = BaseWebServer(p_config=p_config, p_name="BaseWebServer", p_user_handler=user_handler,
                                p_package_name=base_app.PACKAGE_NAME)
         _login_view_handler = AngularAuthViewHandler(p_user_handler=user_handler,
+                                                     p_token_handler=token_handler,
                                                      p_app=server.app, p_url_prefix=p_config.base_url)
         server.register_view_handler(_login_view_handler)
         _index_view_handler = IndexViewHandler(p_app=server.app, p_url_prefix=p_config.base_url)
@@ -107,10 +112,10 @@ class TestBaseWebServer(base_test.BaseTestCase):
 
             self.assertIsNotNone(r.json())
             payload = r.json()
-            self.assertEqual(payload['result'], False)
-            self.assertIn('error', payload)
-            error = payload['error']
-            self.assertIn('Invalid JSON', error)
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('Invalid JSON', error_details)
 
         except Exception as e:
             raise e
@@ -143,10 +148,10 @@ class TestBaseWebServer(base_test.BaseTestCase):
 
             self.assertIsNotNone(r.json())
             payload = r.json()
-            self.assertEqual(payload['result'], False)
-            self.assertIn('error', payload)
-            error = payload['error']
-            self.assertIn("Parameter missing", error)
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('Parameter missing', error_details)
 
         except Exception as e:
             raise e
@@ -179,7 +184,7 @@ class TestBaseWebServer(base_test.BaseTestCase):
 
             self.assertIsNotNone(r.json())
             payload = r.json()
-            self.assertEqual(payload['result'], True)
+            self.assertEqual(payload['status'], "OK")
 
         except Exception as e:
             raise e
@@ -209,11 +214,14 @@ class TestBaseWebServer(base_test.BaseTestCase):
 
             r = session.post(url, json=payload, headers=new_headers)
 
-            self.assertEqual(200, r.status_code, "Status code is 200")
+            self.assertEqual(401, r.status_code, "Status code is 200")
 
             self.assertIsNotNone(r.json())
             payload = r.json()
-            self.assertEqual(payload['result'], False)
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('wrong password', error_details)
 
         except Exception as e:
             raise e

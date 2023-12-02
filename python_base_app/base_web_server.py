@@ -39,7 +39,8 @@ from python_base_app import tools
 
 DEFAULT_BASE_URL = ''
 DEFAULT_INTERNAL_BASE_URL = ''
-
+DEFAULT_WERKZEUG_LOG_LEVEL = "WARNING"
+DEFAULT_SQLALCHEMY_LOG_LEVEL = "WARNING"
 
 def _(x):
     return x
@@ -68,10 +69,12 @@ class BaseWebServerConfigModel(configuration.ConfigModel):
         self.base_url = DEFAULT_BASE_URL
         self.internal_base_url = DEFAULT_INTERNAL_BASE_URL
         self.health_url = None
-
+        self.use_csrf = True
         self.admin_username = "admin"
         self.admin_password = configuration.NONE_STRING
         self.app_secret = configuration.NONE_STRING
+        self.werkzeug_log_level = DEFAULT_WERKZEUG_LOG_LEVEL
+        self.sqlalchemy_log_level = DEFAULT_SQLALCHEMY_LOG_LEVEL
 
     def is_active(self):
         return self.port is not None
@@ -124,8 +127,19 @@ class BaseWebServer(object):
 
             # Activate CSRF protection
             self._app.config.update(SECRET_KEY=self._config.app_secret)
-            self._csrf = CSRFProtect()
-            self._csrf.init_app(self._app)
+
+            if self._config.use_csrf:
+                self._csrf = CSRFProtect()
+                self._csrf.init_app(self._app)
+
+            else:
+                self._logger.warn("")
+                self._logger.warn("**********************************************************************************")
+                self._logger.warn("**********************************************************************************")
+                self._logger.warn("******** WARNING: CSRF DEACTIVATED! DO NOT USE IN PRODUCTION! ********************")
+                self._logger.warn("**********************************************************************************")
+                self._logger.warn("**********************************************************************************")
+                self._logger.warn("")
 
         self._server_exception = None
 
@@ -134,10 +148,10 @@ class BaseWebServer(object):
                                                                 p_url_prefix=self._config.internal_base_url))
 
         logger = log_handling.get_logger("werkzeug")
-        logger.setLevel(logging.WARNING)
+        logger.setLevel(self._config.werkzeug_log_level)
 
         logger = log_handling.get_logger("sqlalchemy.engine")
-        logger.setLevel(logging.WARNING)
+        logger.setLevel(self._config.sqlalchemy_log_level)
 
     @property
     def app(self):
