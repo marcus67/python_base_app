@@ -167,7 +167,7 @@ owasp_upload:
     REPORT_FILE_NAME: dependency-check-report.xml
     FILE_FORMAT: xml
     TOOL_NAME: owasp
-    PROJECT_ID: "{{ var.setup.name }}"
+    PROJECT_ID: "{{ var.setup.scan_id or var.setup.name }}"
     PROJECT_NAME: "{{ var.setup.name }}"
   script:
     - echo "Analysis successful."
