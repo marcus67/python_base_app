@@ -28,8 +28,7 @@ SECRET_KEY = "SOME_SEC_RET"
 
 class TestBaseTokenHandler(base_test.BaseTestCase):
 
-    @staticmethod
-    def getDefaultTokenHandler(p_max_token_age_in_days = 365, p_token_life_in_minutes = 60) -> BaseTokenHandler:
+    def getDefaultTokenHandler(self, p_max_token_age_in_days = 365, p_token_life_in_minutes = 60) -> BaseTokenHandler:
         token_handler_config = BaseTokenHandlerConfigModel()
         token_handler_config.token_life_in_minutes = p_token_life_in_minutes
         token_handler_config.max_token_age_in_days = p_max_token_age_in_days
@@ -146,7 +145,7 @@ class TestBaseTokenHandler(base_test.BaseTestCase):
         self.assertIsNotNone(result)
         self.assertEqual(id, result)
 
-        token_handler.delete_token(p_token=token, p_reference_time=deletion_time)
+        token_handler.delete_token(p_token=token, p_deletion_time=deletion_time)
 
         count = token_handler.cleanup(p_reference_time=reference_time)
 
@@ -176,7 +175,7 @@ class TestBaseTokenHandler(base_test.BaseTestCase):
         self.assertIsNotNone(result)
         self.assertEqual(id, result)
 
-        token_handler.delete_token(p_token=token, p_reference_time=deletion_time)
+        token_handler.delete_token(p_token=token, p_deletion_time=deletion_time)
 
         count = token_handler.cleanup(p_reference_time=reference_time)
 

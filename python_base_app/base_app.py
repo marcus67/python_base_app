@@ -236,6 +236,8 @@ class BaseApp(daemon.Daemon):
 
     def add_recurring_task(self, p_recurring_task):
 
+        self._logger.info(f"Adding recurring task '{p_recurring_task.name}' every {p_recurring_task.interval} seconds.")
+
         p_recurring_task.compute_next_execution_time()
         heapq.heappush(self._recurring_tasks, p_recurring_task.get_heap_entry())
 

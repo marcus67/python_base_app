@@ -33,12 +33,12 @@ class SimpleTokenHandler(BaseTokenHandler):
 
         self._token_store = {}
 
-    def _store_blacklisted_token(self,p_token:str, p_reference_time:datetime.datetime=None):
+    def _store_blacklisted_token(self, p_token:str, p_deletion_time:datetime.datetime=None):
 
-        if p_reference_time is None:
-            p_reference_time = datetime.datetime.utcnow()
+        if p_deletion_time is None:
+            p_deletion_time = datetime.datetime.utcnow()
 
-        self._token_store[p_token] = p_reference_time
+        self._token_store[p_token] = p_deletion_time
 
 
     def _is_token_blacklisted(self, p_token:str) -> bool:

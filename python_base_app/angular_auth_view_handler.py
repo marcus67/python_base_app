@@ -48,7 +48,7 @@ _('Please log in to access this page.')
 
 class AngularAuthViewHandler(object):
 
-    def __init__(self, p_user_handler:BaseUserHandler, p_app, p_url_prefix, p_token_handler:BaseTokenHandler):
+    def __init__(self, p_user_handler:BaseUserHandler, p_app, p_url_prefix:str, p_token_handler:BaseTokenHandler):
 
         self._user_handler = p_user_handler
         self._token_handler = p_token_handler
@@ -139,7 +139,7 @@ class AngularAuthViewHandler(object):
         try:
             if auth_token:
                 self._token_handler.decode_auth_token(auth_token)
-                self._token_handler.delete_token(p_token=auth_token, p_reference_time=datetime.datetime.utcnow())
+                self._token_handler.delete_token(p_token=auth_token, p_deletion_time=datetime.datetime.utcnow())
 
             else:
                 http_status = 403

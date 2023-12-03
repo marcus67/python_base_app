@@ -35,8 +35,9 @@ class BaseTokenHandlerConfigModel(configuration.ConfigModel):
         super().__init__(p_section_name=p_section_name)
 
         self.algorithm = "HS256"
-        self.max_token_age_in_days = 365
+        self.max_token_age_in_days = 7
         self.token_life_in_minutes = 60
+        self.token_cleanup_interval_in_hours = 1
 
 class BaseTokenHandler():
 
@@ -63,10 +64,10 @@ class BaseTokenHandler():
         }
         return jwt.encode(payload, self._secret_key, algorithm=self._config.algorithm)
 
-    def delete_token(self, p_token:str, p_reference_time:datetime.datetime=None):
+    def delete_token(self, p_token:str, p_deletion_time:datetime.datetime=None):
 
         self._logger.info(f"Blacklisting token {p_token}.")
-        self._store_blacklisted_token(p_token=p_token, p_reference_time=p_reference_time)
+        self._store_blacklisted_token(p_token=p_token, p_deletion_time=p_deletion_time)
 
 
     def decode_auth_token(self, p_token):
@@ -98,7 +99,7 @@ class BaseTokenHandler():
 
 
     @abc.abstractmethod
-    def _store_blacklisted_token(self, p_token:str, p_reference_time:datetime.datetime=None):
+    def _store_blacklisted_token(self, p_token:str, p_deletion_time:datetime.datetime=None):
         pass
 
 
