@@ -119,11 +119,12 @@ class BaseWebServer(object):
         if self._user_handler is not None:
             tools.check_config_value(p_config=self._config, p_config_attribute_name="app_secret")
 
-            self.register_view_handler(auth_view_handler.AuthViewHandler(
-                p_user_handler=self._user_handler,
-                p_app=self._app, p_logged_out_endpoint=p_logged_out_endpoint,
-                p_url_prefix=self._config.base_url,
-                p_login_view=p_login_view))
+            if p_login_view is not None:
+                self.register_view_handler(auth_view_handler.AuthViewHandler(
+                    p_user_handler=self._user_handler,
+                    p_app=self._app, p_logged_out_endpoint=p_logged_out_endpoint,
+                    p_url_prefix=self._config.base_url,
+                    p_login_view=p_login_view))
 
             # Activate CSRF protection
             self._app.config.update(SECRET_KEY=self._config.app_secret)

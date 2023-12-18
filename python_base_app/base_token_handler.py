@@ -74,7 +74,7 @@ class BaseTokenHandler():
         """
         Validates the auth token
         :param auth_token:
-        :return: integer|string
+        :return: id that the token was created for
         """
 
         try:

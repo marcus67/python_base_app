@@ -1,17 +1,4 @@
 # -*- coding: utf-8 -*-
-import datetime
-import json
-from json import JSONDecodeError
-
-import flask
-import flask.wrappers
-import some_flask_helpers
-from flask import jsonify, request
-
-import python_base_app
-from python_base_app.base_token_handler import BaseTokenHandler
-from python_base_app.base_user_handler import BaseUserHandler
-
 # Copyright (C) 2019-2023  Marcus Rickert
 #
 # See https://github.com/marcus67/python_base_app
@@ -29,13 +16,29 @@ from python_base_app.base_user_handler import BaseUserHandler
 #
 # Ideas taken from https://realpython.com/handling-user-authentication-with-angular-and-flask/
 
+import datetime
+from json import JSONDecodeError
+
+import flask
+import flask.wrappers
+import some_flask_helpers
+from flask import jsonify, request
+
+import python_base_app
+from python_base_app.base_token_handler import BaseTokenHandler, TokenException
+from python_base_app.base_user_handler import BaseUserHandler
+
 ANGULAR_AUTH_BLUEPRINT_NAME = 'angular_auth'
 ANGULAR_AUTH_BLUEPRINT_ADAPTER = some_flask_helpers.BlueprintAdapter()
 
 ANGULAR_LOGIN_ENDPOINT_NAME = "angular-login"
 ANGULAR_LOGOUT_ENDPOINT_NAME = "angular-logout"
+ANGULAR_STATUS_ENDPOINT_NAME = "angular-status"
 
-ANGULAR_LOGIN_REL_URL = '/angular-api/login'
+ANGULAR_BASE_URL = '/angular-api'
+ANGULAR_LOGIN_REL_URL = '/login'
+ANGULAR_LOGOUT_REL_URL = '/logout'
+ANGULAR_STATUS_REL_URL = '/status'
 
 
 def _(x):
@@ -48,7 +51,7 @@ _('Please log in to access this page.')
 
 class AngularAuthViewHandler(object):
 
-    def __init__(self, p_user_handler:BaseUserHandler, p_app, p_url_prefix:str, p_token_handler:BaseTokenHandler):
+    def __init__(self, p_user_handler: BaseUserHandler, p_app, p_url_prefix: str, p_token_handler: BaseTokenHandler):
 
         self._user_handler = p_user_handler
         self._token_handler = p_token_handler
@@ -61,27 +64,28 @@ class AngularAuthViewHandler(object):
 
         p_app.register_blueprint(self._blueprint, url_prefix=p_url_prefix)
 
-
     def check_user(self, p_username, p_password):
 
         return self._user_handler.authenticate(p_username=p_username, p_password=p_password)
 
-    @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGIN_REL_URL, endpoint=ANGULAR_LOGIN_ENDPOINT_NAME,
+    @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGIN_REL_URL,
+                                                 endpoint=ANGULAR_LOGIN_ENDPOINT_NAME,
                                                  methods=["POST"])
     def login(self):
 
         status = "OK"
         auth_token: str = "NOT SET"
         error_details = None
-        request = flask.globals.request
+        a_request = flask.globals.request
         http_status = 200
 
         try:
-            if not request.is_json:
-                error_details = "No JSON found"
+            if not a_request.is_json:
+                error_details = "No JSON found (wrong content type?)"
+                http_status = 400
 
             else:
-                payload = json.loads(request.json)
+                payload = a_request.json
 
                 username = payload['username']
                 password = payload['password']
@@ -105,20 +109,75 @@ class AngularAuthViewHandler(object):
 
         except Exception as e:
             error_details = f"Exception during login: {str(e)}"
-            http_status = 503
+            http_status = 400
 
         result = {
             'status': status,
-            'auth_token': auth_token
         }
 
-        if error_details is not None:
+        if error_details is None:
+            result['auth_token'] = auth_token
+
+        else:
             result['status'] = "ERROR"
             result['error_details'] = error_details
 
         return jsonify(result), http_status
 
-    @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule='/logout', endpoint=ANGULAR_LOGOUT_ENDPOINT_NAME,
+    @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_STATUS_REL_URL,
+                                                 endpoint=ANGULAR_STATUS_ENDPOINT_NAME,
+                                                 methods=["GET"])
+    def status(self):
+
+        http_status = 200
+        error_details = None
+        result = {
+            'status': "OK",
+        }
+
+        # get the auth token
+        auth_header = request.headers.get('Authorization')
+
+        if auth_header:
+            try:
+                auth_token = auth_header.split(" ")[1]
+
+                if auth_token is not None:
+                    username = self._token_handler.decode_auth_token(p_token=auth_token)
+                    uid = self._user_handler.get_uid(username)
+
+                    if uid is not None:
+                        result['data'] = {
+                            'uid': uid,
+                            'username': username,
+                        }
+                    else:
+                        http_status = 401
+                        error_details = f"username '{username} not found found"
+
+                else:
+                    http_status = 401
+                    error_details = 'auth token not valid'
+
+            except TokenException as e:
+                http_status = 401
+                error_details = str(e)
+
+            except IndexError:
+                http_status = 401
+                error_details = 'bearer token malformed'
+        else:
+            http_status = 401
+            error_details = 'bearer token missing'
+
+
+        if error_details is not None:
+            result['status'] = 'ERROR'
+            result['error_details'] = error_details
+
+        return jsonify(result), http_status
+
+    @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGOUT_REL_URL, endpoint=ANGULAR_LOGOUT_ENDPOINT_NAME,
                                                  methods=["POST"])
     def logout(self):
 
@@ -126,7 +185,6 @@ class AngularAuthViewHandler(object):
         error_details = None
         result = {
             'status': "OK",
-            'message': 'Successfully logged out.'
         }
 
         auth_header = request.headers.get('Authorization')
@@ -140,10 +198,11 @@ class AngularAuthViewHandler(object):
             if auth_token:
                 self._token_handler.decode_auth_token(auth_token)
                 self._token_handler.delete_token(p_token=auth_token, p_deletion_time=datetime.datetime.utcnow())
+                result['message'] = 'Successfully logged out.'
 
             else:
                 http_status = 403
-                error_details = "Provide a valid auth token."
+                error_details = "auth token is invalid"
 
         except Exception as e:
             http_status = 403

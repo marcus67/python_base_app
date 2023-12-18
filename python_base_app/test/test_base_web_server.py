@@ -26,7 +26,9 @@ from requests import Session
 
 from python_base_app import base_app
 from python_base_app import base_web_server
-from python_base_app.angular_auth_view_handler import ANGULAR_LOGIN_REL_URL, AngularAuthViewHandler
+from python_base_app.angular_auth_view_handler \
+    import ANGULAR_LOGIN_REL_URL, ANGULAR_STATUS_REL_URL, AngularAuthViewHandler, ANGULAR_BASE_URL, \
+    ANGULAR_LOGOUT_REL_URL
 from python_base_app.base_token_handler import BaseTokenHandlerConfigModel
 from python_base_app.base_web_server import BaseWebServer
 from python_base_app.index_view_handler import IndexViewHandler
@@ -101,12 +103,15 @@ class TestBaseWebServer(base_test.BaseTestCase):
             session = Session()
 
             new_headers = self.get_csrf_header(default_server, session)
+            new_headers["Content-Type"] = "application/json"
 
             url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGIN_REL_URL}"
             payload = dumps({'username': ADMIN_USER, 'password': ADMIN_PASSWORD})
-            invalid_payload = "{" + payload
 
-            r = session.post(url, json=invalid_payload, headers=new_headers)
+            # corrupt JSON
+            payload = payload.replace(",", ";")
+
+            r = session.post(url, data=payload, headers=new_headers)
 
             self.assertEqual(400, r.status_code, "Status code is 400")
 
@@ -115,7 +120,44 @@ class TestBaseWebServer(base_test.BaseTestCase):
             self.assertEqual(payload['status'], "ERROR")
             self.assertIn('error_details', payload)
             error_details = payload['error_details']
-            self.assertIn('Invalid JSON', error_details)
+            self.assertIn('Exception during login', error_details)
+
+        except Exception as e:
+            raise e
+
+        finally:
+            if default_server is not None:
+                default_server.stop_server()
+                default_server.destroy()
+
+    def test_auth_missing_angular_auth_json(self):
+
+        default_server = None
+
+        try:
+            config = base_web_server.BaseWebServerConfigModel()
+
+            default_server = self.server_with_config(p_config=config)
+            default_server.start_server()
+
+            session = Session()
+
+            new_headers = self.get_csrf_header(default_server, session)
+            new_headers["Content-Type"] = "text/plain"
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGIN_REL_URL}"
+            payload = dumps({'username': ADMIN_USER, 'password': ADMIN_PASSWORD})
+
+            r = session.post(url, data=payload, headers=new_headers)
+
+            self.assertEqual(400, r.status_code, "Status code is 400")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('No JSON found', error_details)
 
         except Exception as e:
             raise e
@@ -140,7 +182,7 @@ class TestBaseWebServer(base_test.BaseTestCase):
             new_headers = self.get_csrf_header(default_server, session)
 
             url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGIN_REL_URL}"
-            payload = dumps({'username': ADMIN_USER, 'x' + 'password': ADMIN_PASSWORD})
+            payload = {'username': ADMIN_USER, 'x' + 'password': ADMIN_PASSWORD}
 
             r = session.post(url, json=payload, headers=new_headers)
 
@@ -176,7 +218,7 @@ class TestBaseWebServer(base_test.BaseTestCase):
             new_headers = self.get_csrf_header(default_server, session)
 
             url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGIN_REL_URL}"
-            payload = dumps({'username': ADMIN_USER, 'password': ADMIN_PASSWORD})
+            payload = {'username': ADMIN_USER, 'password': ADMIN_PASSWORD}
 
             r = session.post(url, json=payload, headers=new_headers)
 
@@ -185,6 +227,7 @@ class TestBaseWebServer(base_test.BaseTestCase):
             self.assertIsNotNone(r.json())
             payload = r.json()
             self.assertEqual(payload['status'], "OK")
+            self.assertIn('auth_token', payload)
 
         except Exception as e:
             raise e
@@ -210,11 +253,11 @@ class TestBaseWebServer(base_test.BaseTestCase):
             new_headers = self.get_csrf_header(default_server, session)
 
             url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGIN_REL_URL}"
-            payload = dumps({'username': ADMIN_USER, 'password': ADMIN_PASSWORD + "x"})
+            payload = {'username': ADMIN_USER, 'password': ADMIN_PASSWORD + "x"}
 
             r = session.post(url, json=payload, headers=new_headers)
 
-            self.assertEqual(401, r.status_code, "Status code is 200")
+            self.assertEqual(401, r.status_code, "Status code is 401")
 
             self.assertIsNotNone(r.json())
             payload = r.json()
@@ -222,6 +265,254 @@ class TestBaseWebServer(base_test.BaseTestCase):
             self.assertIn('error_details', payload)
             error_details = payload['error_details']
             self.assertIn('wrong password', error_details)
+
+        except Exception as e:
+            raise e
+
+        finally:
+            if default_server is not None:
+                default_server.stop_server()
+                default_server.destroy()
+
+    def test_status_no_bearer_token(self):
+
+        default_server = None
+
+        try:
+            config = base_web_server.BaseWebServerConfigModel()
+
+            default_server = self.server_with_config(p_config=config)
+
+            default_server.start_server()
+
+            session = Session()
+
+            new_headers = self.get_csrf_header(default_server, session)
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_STATUS_REL_URL}"
+
+            r = session.get(url, headers=new_headers)
+
+            self.assertEqual(401, r.status_code, "Status code is 401")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('bearer token missing', error_details)
+
+
+        except Exception as e:
+            raise e
+
+        finally:
+            if default_server is not None:
+                default_server.stop_server()
+                default_server.destroy()
+
+    def test_status_bearer_token_is_malformed(self):
+
+        default_server = None
+
+        try:
+            config = base_web_server.BaseWebServerConfigModel()
+
+            default_server = self.server_with_config(p_config=config)
+
+            default_server.start_server()
+
+            session = Session()
+
+            new_headers = self.get_csrf_header(default_server, session)
+
+            new_headers['Authorization'] = "hallo"
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_STATUS_REL_URL}"
+
+            r = session.get(url, headers=new_headers)
+
+            self.assertEqual(401, r.status_code, "Status code is 401")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('bearer token malformed', error_details)
+
+        except Exception as e:
+            raise e
+
+        finally:
+            if default_server is not None:
+                default_server.stop_server()
+                default_server.destroy()
+
+    def test_status_bearer_token_is_invalid(self):
+
+        default_server = None
+
+        try:
+            config = base_web_server.BaseWebServerConfigModel()
+
+            default_server = self.server_with_config(p_config=config)
+
+            default_server.start_server()
+
+            session = Session()
+
+            new_headers = self.get_csrf_header(default_server, session)
+
+            new_headers['Authorization'] = "Bearer hallo"
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_STATUS_REL_URL}"
+
+            r = session.get(url, headers=new_headers)
+
+            self.assertEqual(401, r.status_code, "Status code is 401")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('Invalid token', error_details)
+
+        except Exception as e:
+            raise e
+
+        finally:
+            if default_server is not None:
+                default_server.stop_server()
+                default_server.destroy()
+
+
+    def test_status_with_valid_login(self):
+
+        default_server = None
+
+        try:
+            config = base_web_server.BaseWebServerConfigModel()
+
+            default_server = self.server_with_config(p_config=config)
+            default_server.start_server()
+
+            session = Session()
+
+            new_headers = self.get_csrf_header(default_server, session)
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGIN_REL_URL}"
+            payload = {'username': ADMIN_USER, 'password': ADMIN_PASSWORD}
+
+            r = session.post(url, json=payload, headers=new_headers)
+
+            self.assertEqual(200, r.status_code, "Status code is 200")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "OK")
+            self.assertIn('auth_token', payload)
+
+            auth_token = payload['auth_token']
+
+            new_headers = self.get_csrf_header(default_server, session)
+
+            new_headers['Authorization'] = f"Bearer {auth_token}"
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_STATUS_REL_URL}"
+
+            r = session.get(url, headers=new_headers)
+
+            self.assertEqual(200, r.status_code, "Status code is 200")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "OK")
+
+
+
+        except Exception as e:
+            raise e
+
+        finally:
+            if default_server is not None:
+                default_server.stop_server()
+                default_server.destroy()
+
+    def test_status_after_logout(self):
+
+        default_server = None
+
+        try:
+            config = base_web_server.BaseWebServerConfigModel()
+
+            default_server = self.server_with_config(p_config=config)
+            default_server.start_server()
+
+            session = Session()
+
+            # Login
+            new_headers = self.get_csrf_header(default_server, session)
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGIN_REL_URL}"
+            payload = {'username': ADMIN_USER, 'password': ADMIN_PASSWORD}
+
+            r = session.post(url, json=payload, headers=new_headers)
+
+            self.assertEqual(200, r.status_code, "Status code is 200")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "OK")
+            self.assertIn('auth_token', payload)
+
+            auth_token = payload['auth_token']
+
+            new_headers = self.get_csrf_header(default_server, session)
+
+            # Check status after valid login
+            new_headers['Authorization'] = f"Bearer {auth_token}"
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_STATUS_REL_URL}"
+
+            r = session.get(url, headers=new_headers)
+
+            self.assertEqual(200, r.status_code, "Status code is 200")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "OK")
+
+            # Logout
+            new_headers = self.get_csrf_header(default_server, session)
+            new_headers['Authorization'] = f"Bearer {auth_token}"
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_LOGOUT_REL_URL}"
+
+            r = session.post(url, headers=new_headers)
+
+            self.assertEqual(200, r.status_code, "Status code is 200")
+
+            # Check status after logout (MUST fail!)
+            new_headers = self.get_csrf_header(default_server, session)
+
+            new_headers['Authorization'] = f"Bearer {auth_token}"
+
+            url = f"http://localhost:{default_server._config.port}{ANGULAR_STATUS_REL_URL}"
+
+            r = session.get(url, headers=new_headers)
+
+            self.assertEqual(401, r.status_code, "Status code is 401")
+
+            self.assertIsNotNone(r.json())
+            payload = r.json()
+            self.assertEqual(payload['status'], "ERROR")
+            self.assertIn('error_details', payload)
+            error_details = payload['error_details']
+            self.assertIn('blacklisted', error_details)
+
+
+
 
         except Exception as e:
             raise e
