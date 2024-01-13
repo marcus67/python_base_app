@@ -68,6 +68,56 @@ class AngularAuthViewHandler(object):
 
         return self._user_handler.authenticate(p_username=p_username, p_password=p_password)
 
+    def check_authorization(self, p_request):
+
+        http_status = 200
+        error_details = None
+        result = {
+            'status': "OK",
+        }
+
+        # get the auth token
+        auth_header = p_request.headers.get('Authorization')
+
+        if auth_header:
+            try:
+                auth_token = auth_header.split(" ")[1]
+
+                if auth_token is not None:
+                    username = self._token_handler.decode_auth_token(p_token=auth_token)
+                    uid = self._user_handler.get_uid(username)
+
+                    if uid is not None:
+                        result['authorization'] = {
+                            'uid': uid,
+                            'username': username,
+                        }
+                    else:
+                        http_status = 401
+                        error_details = f"username '{username} not found found"
+
+                else:
+                    http_status = 401
+                    error_details = 'auth token not valid'
+
+            except TokenException as e:
+                http_status = 401
+                error_details = str(e)
+
+            except IndexError:
+                http_status = 401
+                error_details = 'bearer token malformed'
+        else:
+            http_status = 401
+            error_details = 'bearer token missing'
+
+        if error_details is not None:
+            result['status'] = 'ERROR'
+            result['error_details'] = error_details
+
+        return result, http_status
+
+
     @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGIN_REL_URL,
                                                  endpoint=ANGULAR_LOGIN_ENDPOINT_NAME,
                                                  methods=["POST"])
@@ -96,7 +146,7 @@ class AngularAuthViewHandler(object):
                     auth_token = self._token_handler.create_token(p_id=username)
 
                 else:
-                    error_details = f"User {username} not found or wrong password"
+                    error_details = f"User '{username}' not found or wrong password"
                     http_status = 401
 
         except (JSONDecodeError, TypeError) as e:
@@ -104,7 +154,7 @@ class AngularAuthViewHandler(object):
             http_status = 400
 
         except KeyError as e:
-            error_details = f"Parameter missing {str(e)}"
+            error_details = f"Parameter missing: {str(e)}"
             http_status = 400
 
         except Exception as e:
@@ -129,52 +179,7 @@ class AngularAuthViewHandler(object):
                                                  methods=["GET"])
     def status(self):
 
-        http_status = 200
-        error_details = None
-        result = {
-            'status': "OK",
-        }
-
-        # get the auth token
-        auth_header = request.headers.get('Authorization')
-
-        if auth_header:
-            try:
-                auth_token = auth_header.split(" ")[1]
-
-                if auth_token is not None:
-                    username = self._token_handler.decode_auth_token(p_token=auth_token)
-                    uid = self._user_handler.get_uid(username)
-
-                    if uid is not None:
-                        result['data'] = {
-                            'uid': uid,
-                            'username': username,
-                        }
-                    else:
-                        http_status = 401
-                        error_details = f"username '{username} not found found"
-
-                else:
-                    http_status = 401
-                    error_details = 'auth token not valid'
-
-            except TokenException as e:
-                http_status = 401
-                error_details = str(e)
-
-            except IndexError:
-                http_status = 401
-                error_details = 'bearer token malformed'
-        else:
-            http_status = 401
-            error_details = 'bearer token missing'
-
-
-        if error_details is not None:
-            result['status'] = 'ERROR'
-            result['error_details'] = error_details
-
+        result, http_status = self.check_authorization(p_request=request)
         return jsonify(result), http_status
 
     @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGOUT_REL_URL, endpoint=ANGULAR_LOGOUT_ENDPOINT_NAME,
