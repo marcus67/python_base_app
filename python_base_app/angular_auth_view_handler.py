@@ -38,7 +38,7 @@ ANGULAR_STATUS_ENDPOINT_NAME = "angular-status"
 ANGULAR_BASE_URL = '/angular-api'
 ANGULAR_LOGIN_REL_URL = '/login'
 ANGULAR_LOGOUT_REL_URL = '/logout'
-ANGULAR_STATUS_REL_URL = '/status'
+ANGULAR_STATUS_REL_URL = '/login-status'
 
 
 def _(x):
