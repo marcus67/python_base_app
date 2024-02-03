@@ -129,15 +129,14 @@ class BaseWebServer(object):
             # Activate CSRF protection
             self._app.config.update(SECRET_KEY=self._config.app_secret)
 
-            if self._config.use_csrf:
-                self._csrf = CSRFProtect()
-                self._csrf.init_app(self._app)
+            self._csrf = CSRFProtect()
+            self._csrf.init_app(self._app)
 
-            else:
+            if not self._config.use_csrf:
                 self._logger.warn("")
                 self._logger.warn("**********************************************************************************")
                 self._logger.warn("**********************************************************************************")
-                self._logger.warn("******** WARNING: CSRF DEACTIVATED! DO NOT USE IN PRODUCTION! ********************")
+                self._logger.warn("******** WARNING: CSRF DEACTIVATED FOR API! DO NOT USE IN PRODUCTION! ************")
                 self._logger.warn("**********************************************************************************")
                 self._logger.warn("**********************************************************************************")
                 self._logger.warn("")

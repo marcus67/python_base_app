@@ -64,6 +64,10 @@ class AngularAuthViewHandler(object):
 
         p_app.register_blueprint(self._blueprint, url_prefix=p_url_prefix)
 
+    @property
+    def blueprint(self):
+        return self._blueprint
+
     def check_user(self, p_username, p_password):
 
         return self._user_handler.authenticate(p_username=p_username, p_password=p_password)
