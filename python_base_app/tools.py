@@ -106,6 +106,15 @@ def get_today():
     return datetime.datetime(year=today.year, month=today.month, day=today.day)
 
 
+def get_datetime_in_iso_8601(a_time: datetime.datetime) -> str | None:
+
+    if a_time is None:
+        return None
+
+    else:
+        return a_time.isoformat(timespec='seconds')
+
+
 def get_date_as_string(p_date, p_short=False):
     if p_date is not None:
         if p_short:
