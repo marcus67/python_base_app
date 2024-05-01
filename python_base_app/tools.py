@@ -50,6 +50,7 @@ FORMAT_DURATION_WITH_SECONDS = "%dh%02dm%02ds"
 FORMAT_DURATION = "%dh%02dm"
 
 FORMAT_JSON_DATETIME = "%Y-%m-%d %H:%M:%S"
+FORMAT_JSON_TIME = "%H:%M:%S"
 
 REGEX_DURATION = re.compile("^ *(([0-9]+) *[h|H])? *(([0-9]+) *[m|M])? *(([0-9]+) *[s|S])? *$")
 REGEX_TIME = re.compile("^ *([0-9]+)( *: *([0-9]+))?( *: *([0-9]+))? *$")
@@ -106,17 +107,26 @@ def get_today():
     return datetime.datetime(year=today.year, month=today.month, day=today.day)
 
 
-def get_datetime_in_iso_8601(a_time: datetime.datetime|datetime.date) -> str | None:
+def get_datetime_in_iso_8601(a_time: datetime.datetime | datetime.date) -> str | None:
 
     if a_time is None:
         return None
 
-    else:
-        if isinstance(a_time, datetime.date):
-            return a_time.isoformat()
+    elif isinstance(a_time, datetime.date):
+        return a_time.isoformat()
 
-        else:
-            return a_time.isoformat(timespec='seconds')
+    elif isinstance(a_time, datetime.time):
+        return datetime.datetime.combine(datetime.date(1900, 1, 1), a_time).isoformat()
+
+    else:
+        return a_time.isoformat(timespec='seconds')
+
+
+def get_time_from_iso_8601(datetime_in_iso8061: str) -> datetime.time | None:
+    if datetime_in_iso8061 is None:
+        return None
+
+    return datetime.datetime.fromisoformat(datetime_in_iso8061).time()
 
 
 def get_date_as_string(p_date, p_short=False):
@@ -363,9 +373,12 @@ def handle_fatal_exception(p_exception, p_logger=None):
         sys.stderr.write(str(p_exception))
 
 
-def objectify_dict(p_dict, p_class, p_attribute_classes=None):
+def objectify_dict(p_dict, p_class, p_attribute_classes=None, p_attribute_readers=None):
     if p_attribute_classes is None:
         p_attribute_classes = {}
+
+    if p_attribute_readers is None:
+        p_attribute_readers = {}
 
     instance = p_class()
 
@@ -375,6 +388,9 @@ def objectify_dict(p_dict, p_class, p_attribute_classes=None):
 
             if attr_class == datetime.datetime:
                 attr_value = datetime.datetime.strptime(attr_value, FORMAT_JSON_DATETIME)
+
+        elif attr_value is not None and attr_name in p_attribute_readers:
+            attr_value = p_attribute_readers[attr_name](attr_value)
 
         setattr(instance, attr_name, attr_value)
 

@@ -1,4 +1,4 @@
-#    Copyright (C) 2019-2021  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -33,13 +33,15 @@ USER_1_PASSWORD = "$ecret"
 
 USER_2_UID_NUMBER = "1001"
 USER_2_UID = "non-admin"
-USER_2_PASSWORD = "0ther$ecret"
+USER_2_PASSWORD = "0ther$ecret1"
 
 USER_3_UID_NUMBER = "100"
 USER_3_UID = "special-user"
-USER_3_PASSWORD = "0ther$ecret"
+USER_3_PASSWORD = "0ther$ecret2"
 
 CONFIG_USER_LIST = USER_1_UID + ":" + USER_1_UID_NUMBER + "," + USER_2_UID + ":" + USER_2_UID_NUMBER
+CONFIG_USER_LIST_WITH_PASSWORDS = (USER_1_UID + ":" + USER_1_UID_NUMBER + ":" + USER_1_PASSWORD + "," +
+                                   USER_2_UID + ":" + USER_2_UID_NUMBER + ":" + USER_2_PASSWORD)
 
 
 class FakePasswordEntry(object):
@@ -170,6 +172,18 @@ class TestUnixUserHandler(base_test.BaseTestCase):
         handler = unix_user_handler.UnixUserHandler(p_config=self.get_config(p_user_list=CONFIG_USER_LIST))
 
         self.assertFalse(handler.authenticate(p_username=USER_2_UID, p_password=USER_2_PASSWORD))
+
+    def test_authenticate_non_admin_user_with_valid_password(self):
+        handler = unix_user_handler.UnixUserHandler(
+            p_config=self.get_config(p_user_list=CONFIG_USER_LIST_WITH_PASSWORDS))
+
+        self.assertTrue(handler.authenticate(p_username=USER_2_UID, p_password=USER_2_PASSWORD))
+
+    def test_authenticate_non_admin_user_with_invalid_password(self):
+        handler = unix_user_handler.UnixUserHandler(
+            p_config=self.get_config(p_user_list=CONFIG_USER_LIST_WITH_PASSWORDS))
+
+        self.assertFalse(handler.authenticate(p_username=USER_2_UID, p_password=USER_2_PASSWORD + "x"))
 
     def test_authenticate_admin_valid_password(self):
         handler = unix_user_handler.UnixUserHandler(p_config=self.get_config(p_user_list=CONFIG_USER_LIST))

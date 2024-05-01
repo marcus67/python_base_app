@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2019-2023  Marcus Rickert
+# Copyright (C) 2019-2024  Marcus Rickert
 #
 # See https://github.com/marcus67/python_base_app
 # This program is free software; you can redistribute it and/or modify
@@ -72,7 +72,7 @@ class AngularAuthViewHandler(object):
 
         return self._user_handler.authenticate(p_username=p_username, p_password=p_password)
 
-    def check_authorization(self, p_request):
+    def check_authorization(self, p_request, p_admin_required=True):
 
         http_status = 200
         error_details = None
@@ -92,13 +92,19 @@ class AngularAuthViewHandler(object):
                     uid = self._user_handler.get_uid(username)
 
                     if uid is not None:
-                        result['authorization'] = {
-                            'uid': uid,
-                            'username': username,
-                        }
+                        is_admin = self._user_handler.is_admin(username)
+                        if is_admin or not p_admin_required:
+                            result['authorization'] = {
+                                'uid': uid,
+                                'username': username,
+                                'is_admin': is_admin
+                            }
+                        else:
+                            http_status = 401
+                            error_details = f"username '{username}' is not in admin group"
                     else:
                         http_status = 401
-                        error_details = f"username '{username} not found found"
+                        error_details = f"username '{username} not found"
 
                 else:
                     http_status = 401
@@ -120,7 +126,6 @@ class AngularAuthViewHandler(object):
             result['error_details'] = error_details
 
         return result, http_status
-
 
     @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGIN_REL_URL,
                                                  endpoint=ANGULAR_LOGIN_ENDPOINT_NAME,
@@ -183,7 +188,7 @@ class AngularAuthViewHandler(object):
                                                  methods=["GET"])
     def status(self):
 
-        result, http_status = self.check_authorization(p_request=request)
+        result, http_status = self.check_authorization(p_request=request, p_admin_required=False)
         return jsonify(result), http_status
 
     @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_LOGOUT_REL_URL, endpoint=ANGULAR_LOGOUT_ENDPOINT_NAME,
