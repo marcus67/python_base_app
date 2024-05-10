@@ -22,9 +22,10 @@ from json import JSONDecodeError
 import flask
 import flask.wrappers
 import some_flask_helpers
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 
 import python_base_app
+from python_base_app import log_handling
 from python_base_app.base_token_handler import BaseTokenHandler, TokenException
 from python_base_app.base_user_handler import BaseUserHandler
 
@@ -34,12 +35,15 @@ ANGULAR_AUTH_BLUEPRINT_ADAPTER = some_flask_helpers.BlueprintAdapter()
 ANGULAR_LOGIN_ENDPOINT_NAME = "angular-login"
 ANGULAR_LOGOUT_ENDPOINT_NAME = "angular-logout"
 ANGULAR_STATUS_ENDPOINT_NAME = "angular-status"
+ANGULAR_REFRESH_ENDPOINT_NAME = "angular-refresh"
 
 ANGULAR_BASE_URL = '/angular-api'
 ANGULAR_LOGIN_REL_URL = '/login'
 ANGULAR_LOGOUT_REL_URL = '/logout'
 ANGULAR_STATUS_REL_URL = '/login-status'
+ANGULAR_REFRESH_REL_URL = '/refresh'
 
+REFRESH_COOKIE_NAME = "refreshCookie"
 
 def _(x):
     return x
@@ -49,13 +53,15 @@ def _(x):
 _('Please log in to access this page.')
 
 
-class AngularAuthViewHandler(object):
+class AngularAuthViewHandler:
 
     def __init__(self, p_user_handler: BaseUserHandler, p_app, p_url_prefix: str, p_token_handler: BaseTokenHandler):
 
         self._user_handler = p_user_handler
         self._token_handler = p_token_handler
         self._url_prefix = p_url_prefix
+
+        self._logger = log_handling.get_logger(self.__class__.__name__)
 
         self._blueprint = flask.Blueprint(ANGULAR_AUTH_BLUEPRINT_NAME, python_base_app.__name__)
         ANGULAR_AUTH_BLUEPRINT_ADAPTER.assign_view_handler_instance(p_blueprint=self._blueprint,
@@ -88,7 +94,7 @@ class AngularAuthViewHandler(object):
                 auth_token = auth_header.split(" ")[1]
 
                 if auth_token is not None:
-                    username = self._token_handler.decode_auth_token(p_token=auth_token)
+                    username = self._token_handler.decode_auth_token(p_token=auth_token, p_is_refresh=False)
                     uid = self._user_handler.get_uid(username)
 
                     if uid is not None:
@@ -134,6 +140,7 @@ class AngularAuthViewHandler(object):
 
         status = "OK"
         auth_token: str = "NOT SET"
+        refresh_token: str = "NOT SET"
         error_details = None
         a_request = flask.globals.request
         http_status = 200
@@ -153,9 +160,11 @@ class AngularAuthViewHandler(object):
 
                 if login_valid:
                     auth_token = self._token_handler.create_token(p_id=username)
+                    refresh_token = self._token_handler.create_token(p_id=username, p_is_refresh=True)
 
                 else:
                     error_details = f"User '{username}' not found or wrong password"
+                    self._logger.warn(error_details)
                     http_status = 401
 
         except (JSONDecodeError, TypeError) as e:
@@ -176,6 +185,52 @@ class AngularAuthViewHandler(object):
 
         if error_details is None:
             result['auth_token'] = auth_token
+            self._logger.info("User {username} logged in successfully.")
+
+        else:
+            result['status'] = "ERROR"
+            result['error_details'] = error_details
+
+        response = make_response(jsonify(result), http_status)
+
+        if refresh_token is not None:
+            response.set_cookie(key=REFRESH_COOKIE_NAME, value=refresh_token, httponly=True)
+
+        return response
+
+    @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_REFRESH_REL_URL,
+                                                 endpoint=ANGULAR_REFRESH_ENDPOINT_NAME,
+                                                 methods=["POST"])
+    def refresh(self):
+
+        status = "OK"
+        access_token: str = "NOT SET"
+        error_details = None
+        username: str = "NOT SET"
+        http_status = 200
+
+        refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
+
+        if not refresh_token:
+            error_details = "No refresh cookie found"
+            http_status = 400
+
+        else:
+            try:
+                username = self._token_handler.decode_auth_token(refresh_token, p_is_refresh=True)
+                access_token = self._token_handler.create_token(p_id=username, p_is_refresh=False)
+
+            except TokenException as e:
+                error_details = f"Exception '{e!s}' while checking refresh token!"
+                http_status = 400
+
+        result = {
+            'status': status,
+        }
+
+        if error_details is None:
+            result['access_token'] = access_token
+            self._logger.debug(f"Refreshed access token for user '{username}'.")
 
         else:
             result['status'] = "ERROR"
@@ -202,6 +257,7 @@ class AngularAuthViewHandler(object):
         }
 
         auth_header = request.headers.get('Authorization')
+        refresh_token = request.cookies.get('httpOnly')
 
         if auth_header:
             auth_token = auth_header.split(" ")[1]
@@ -210,8 +266,22 @@ class AngularAuthViewHandler(object):
 
         try:
             if auth_token:
-                self._token_handler.decode_auth_token(auth_token)
-                self._token_handler.delete_token(p_token=auth_token, p_deletion_time=datetime.datetime.utcnow())
+                try:
+                    self._token_handler.decode_auth_token(auth_token)
+                    self._token_handler.delete_token(p_token=auth_token, p_deletion_time=datetime.datetime.utcnow())
+
+                except TokenException as e:
+                    self._logger.warn(f"Exception '{e!s}' while deleting access token {auth_token}")
+
+                if refresh_token is not None:
+                    try:
+                        self._token_handler.decode_auth_token(refresh_token, p_is_refresh=True)
+                        self._token_handler.delete_token(p_token=refresh_token,
+                                                         p_deletion_time=datetime.datetime.utcnow())
+
+                    except TokenException as e:
+                        self._logger.warn(f"Exception '{e!s}' while deleting refresh token {refresh_token}")
+
                 result['message'] = 'Successfully logged out.'
 
             else:
