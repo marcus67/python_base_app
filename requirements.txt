@@ -8,7 +8,7 @@ flask-login==0.6.3
 pytest==7.4.2
 python-dateutil==2.8.2
 python-google-speak==0.2.1
-requests==2.31.0
+requests==2.32.0
 secure==0.3.0
 some-flask-helpers==0.2.5
 urllib3==2.1.0
