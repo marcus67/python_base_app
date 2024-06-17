@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-import abc
-import datetime
-
-import jwt
-
-from python_base_app import configuration, log_handling
-
 #    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
@@ -23,6 +16,13 @@ from python_base_app import configuration, log_handling
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+import abc
+import datetime
+
+import jwt
+
+from python_base_app import configuration, log_handling
 
 SECTION_NAME = "TokenHandler"
 
@@ -62,15 +62,19 @@ class BaseTokenHandler:
         if p_reference_time is None:
             p_reference_time = datetime.datetime.utcnow()
 
+        life_in_minutes = self._config.refresh_token_life_in_minutes \
+            if p_is_refresh else self._config.token_life_in_minutes
+        expiry_time = p_reference_time + datetime.timedelta(minutes=life_in_minutes)
+
         # See https://stackoverflow.com/questions/27726066/jwt-refresh-token-flow
         payload = {
-            'exp': p_reference_time + datetime.timedelta(
-                minutes=self._config.refresh_token_life_in_minutes
-                if p_is_refresh else self._config.token_life_in_minutes),
+            'exp': expiry_time,
             'iat': p_reference_time,
             'sub': p_id,
             'is_refresh': p_is_refresh
         }
+        self._logger.debug(f"Created token (refresh:{p_is_refresh}) for {p_id} with "
+                           f"{life_in_minutes} minutes lifetime until {expiry_time}")
         return jwt.encode(payload, self._secret_key, algorithm=self._config.algorithm)
 
     def delete_token(self, p_token: str, p_deletion_time: datetime.datetime = None):
@@ -98,7 +102,10 @@ class BaseTokenHandler:
                 raise TokenException("Token is blacklisted. Login in again.")
 
         except jwt.ExpiredSignatureError:
-            raise TokenException("Signature expired. Please log in again.")
+            if p_is_refresh:
+                raise TokenException("Signature expired. Please log in again.")
+            else:
+                raise TokenException("Signature expired. Please refresh token or log in again.")
 
         except jwt.InvalidTokenError:
             raise TokenException("Invalid token. Please log in again.")

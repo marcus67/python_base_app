@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019-2023  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -18,7 +18,6 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import logging
 import threading
 import time
 import urllib.parse
@@ -41,6 +40,7 @@ DEFAULT_BASE_URL = ''
 DEFAULT_INTERNAL_BASE_URL = ''
 DEFAULT_WERKZEUG_LOG_LEVEL = "WARNING"
 DEFAULT_SQLALCHEMY_LOG_LEVEL = "WARNING"
+
 
 def _(x):
     return x
@@ -93,7 +93,7 @@ class BaseWebServer(object):
         self._csrf = None
 
         self._name = p_name
-        self._config = p_config
+        self._config: BaseWebServerConfigModel = p_config
         self._login_view = p_login_view
         self._view_handlers = []
 
@@ -110,6 +110,7 @@ class BaseWebServer(object):
 
         # see https://stackoverflow.com/questions/62992831/python-session-samesite-none-not-being-set
         # see https://flask.palletsprojects.com/en/2.0.x/security/#security-cookie
+        # noinspection SpellCheckingInspection
         self._app.config['SESSION_COOKIE_SAMESITE'] = "Strict"
 
         self._flask_stopper = some_flask_helpers.FlaskStopper(p_app=self._app, p_logger=self._logger)
@@ -128,18 +129,8 @@ class BaseWebServer(object):
 
             # Activate CSRF protection
             self._app.config.update(SECRET_KEY=self._config.app_secret)
-
             self._csrf = CSRFProtect()
             self._csrf.init_app(self._app)
-
-            if not self._config.use_csrf:
-                self._logger.warn("")
-                self._logger.warn("**********************************************************************************")
-                self._logger.warn("**********************************************************************************")
-                self._logger.warn("******** WARNING: CSRF DEACTIVATED FOR API! DO NOT USE IN PRODUCTION! ************")
-                self._logger.warn("**********************************************************************************")
-                self._logger.warn("**********************************************************************************")
-                self._logger.warn("")
 
         self._server_exception = None
 
@@ -160,6 +151,10 @@ class BaseWebServer(object):
     def register_view_handler(self, p_view_handler):
         self._view_handlers.append(p_view_handler)
 
+    def csrf_exempt_blueprint(self, p_blueprint):
+        if self._csrf is not None:
+            self._csrf.exempt(p_blueprint)
+
     def destroy(self):
         for handler in self._view_handlers:
             handler.destroy()
@@ -176,6 +171,7 @@ class BaseWebServer(object):
                                  p_view_method,
                                  methods=p_methods)
 
+    # noinspection PyUnusedLocal
     def get_url(self, p_rel_url='', p_internal=False, p_simple=False):
 
         return urllib.parse.urlunsplit(
@@ -224,7 +220,7 @@ class BaseWebServer(object):
         self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
                                      base_url=self._config.base_url))
 
-        # See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
+# See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
         try:
             self._app.run(port=self._config.port, host=self._config.host, threaded=True)
 

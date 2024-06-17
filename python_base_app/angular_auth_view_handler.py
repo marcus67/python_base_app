@@ -43,7 +43,9 @@ ANGULAR_LOGOUT_REL_URL = '/logout'
 ANGULAR_STATUS_REL_URL = '/login-status'
 ANGULAR_REFRESH_REL_URL = '/refresh'
 
+AUTH_COOKIE_NAME = "authCookie"
 REFRESH_COOKIE_NAME = "refreshCookie"
+
 
 def _(x):
     return x
@@ -78,7 +80,7 @@ class AngularAuthViewHandler:
 
         return self._user_handler.authenticate(p_username=p_username, p_password=p_password)
 
-    def check_authorization(self, p_request, p_admin_required=True):
+    def check_authorization(self, p_request, p_admin_required=True) -> tuple[any, int]:
 
         http_status = 200
         error_details = None
@@ -87,49 +89,40 @@ class AngularAuthViewHandler:
         }
 
         # get the auth token
-        auth_header = p_request.headers.get('Authorization')
+        auth_cookie = p_request.cookies.get(AUTH_COOKIE_NAME)
 
-        if auth_header:
+        if auth_cookie:
             try:
-                auth_token = auth_header.split(" ")[1]
+                username = self._token_handler.decode_auth_token(p_token=auth_cookie, p_is_refresh=False)
+                uid = self._user_handler.get_uid(username)
 
-                if auth_token is not None:
-                    username = self._token_handler.decode_auth_token(p_token=auth_token, p_is_refresh=False)
-                    uid = self._user_handler.get_uid(username)
-
-                    if uid is not None:
-                        is_admin = self._user_handler.is_admin(username)
-                        if is_admin or not p_admin_required:
-                            result['authorization'] = {
-                                'uid': uid,
-                                'username': username,
-                                'is_admin': is_admin
-                            }
-                        else:
-                            http_status = 401
-                            error_details = f"username '{username}' is not in admin group"
+                if uid is not None:
+                    is_admin = self._user_handler.is_admin(username)
+                    if is_admin or not p_admin_required:
+                        result['authorization'] = {
+                            'uid': uid,
+                            'username': username,
+                            'is_admin': is_admin
+                        }
                     else:
                         http_status = 401
-                        error_details = f"username '{username} not found"
-
+                        error_details = f"username '{username}' is not in admin group"
                 else:
                     http_status = 401
-                    error_details = 'auth token not valid'
+                    error_details = f"username '{username} not found"
 
             except TokenException as e:
                 http_status = 401
                 error_details = str(e)
 
-            except IndexError:
-                http_status = 401
-                error_details = 'bearer token malformed'
         else:
             http_status = 401
-            error_details = 'bearer token missing'
+            error_details = 'auth cookie missing'
 
         if error_details is not None:
             result['status'] = 'ERROR'
             result['error_details'] = error_details
+            self._logger.warn(error_details)
 
         return result, http_status
 
@@ -138,9 +131,10 @@ class AngularAuthViewHandler:
                                                  methods=["POST"])
     def login(self):
 
+        result = {}
         status = "OK"
-        auth_token: str = "NOT SET"
-        refresh_token: str = "NOT SET"
+        auth_token: str | None = None
+        refresh_token: str | None = None
         error_details = None
         a_request = flask.globals.request
         http_status = 200
@@ -159,8 +153,12 @@ class AngularAuthViewHandler:
                 login_valid = self.check_user(p_username=username, p_password=password)
 
                 if login_valid:
+                    is_admin = self._user_handler.is_admin(username)
+                    result["is_admin"] = is_admin
+                    result["username"] = username
                     auth_token = self._token_handler.create_token(p_id=username)
                     refresh_token = self._token_handler.create_token(p_id=username, p_is_refresh=True)
+                    self._logger.info(f"User {username} logged in successfully.")
 
                 else:
                     error_details = f"User '{username}' not found or wrong password"
@@ -168,30 +166,28 @@ class AngularAuthViewHandler:
                     http_status = 401
 
         except (JSONDecodeError, TypeError) as e:
-            error_details = f"Invalid JSON: {str(e)}"
+            error_details = f"Invalid JSON: {e!s}"
             http_status = 400
 
         except KeyError as e:
-            error_details = f"Parameter missing: {str(e)}"
+            error_details = f"Parameter missing: {e!s}"
             http_status = 400
 
         except Exception as e:
-            error_details = f"Exception during login: {str(e)}"
+            error_details = f"General exception during login: {e!s}"
             http_status = 400
 
-        result = {
-            'status': status,
-        }
-
         if error_details is None:
-            result['auth_token'] = auth_token
-            self._logger.info("User {username} logged in successfully.")
+            result['status'] = "OK"
 
         else:
             result['status'] = "ERROR"
             result['error_details'] = error_details
 
         response = make_response(jsonify(result), http_status)
+
+        if auth_token is not None:
+            response.set_cookie(key=AUTH_COOKIE_NAME, value=auth_token, httponly=True)
 
         if refresh_token is not None:
             response.set_cookie(key=REFRESH_COOKIE_NAME, value=refresh_token, httponly=True)
@@ -229,14 +225,19 @@ class AngularAuthViewHandler:
         }
 
         if error_details is None:
-            result['access_token'] = access_token
+            result['status'] = "OK"
             self._logger.debug(f"Refreshed access token for user '{username}'.")
 
         else:
             result['status'] = "ERROR"
             result['error_details'] = error_details
 
-        return jsonify(result), http_status
+        response = make_response(jsonify(result), http_status)
+
+        if access_token is not None:
+            response.set_cookie(key=AUTH_COOKIE_NAME, value=access_token, httponly=True)
+
+        return response
 
     @ANGULAR_AUTH_BLUEPRINT_ADAPTER.route_method(p_rule=ANGULAR_STATUS_REL_URL,
                                                  endpoint=ANGULAR_STATUS_ENDPOINT_NAME,
@@ -250,43 +251,35 @@ class AngularAuthViewHandler:
                                                  methods=["POST"])
     def logout(self):
 
-        http_status = 200
-        error_details = None
-        result = {
-            'status': "OK",
-        }
-
-        auth_header = request.headers.get('Authorization')
-        refresh_token = request.cookies.get('httpOnly')
-
-        if auth_header:
-            auth_token = auth_header.split(" ")[1]
-        else:
-            auth_token = ''
+        error_details: str | None = None
+        result = {}
 
         try:
-            if auth_token:
-                try:
-                    self._token_handler.decode_auth_token(auth_token)
-                    self._token_handler.delete_token(p_token=auth_token, p_deletion_time=datetime.datetime.utcnow())
+            result, http_status = self.check_authorization(p_request=request, p_admin_required=False)
 
-                except TokenException as e:
-                    self._logger.warn(f"Exception '{e!s}' while deleting access token {auth_token}")
+            if http_status == 200:
+                auth_token = request.cookies.get(AUTH_COOKIE_NAME)
+                refresh_token = request.cookies.get(REFRESH_COOKIE_NAME)
 
-                if refresh_token is not None:
+                if auth_token:
                     try:
-                        self._token_handler.decode_auth_token(refresh_token, p_is_refresh=True)
-                        self._token_handler.delete_token(p_token=refresh_token,
-                                                         p_deletion_time=datetime.datetime.utcnow())
+                        username = self._token_handler.decode_auth_token(auth_token)
+                        self._token_handler.delete_token(p_token=auth_token, p_deletion_time=datetime.datetime.utcnow())
+                        self._logger.info(f"User {username} logged out successfully.")
 
                     except TokenException as e:
-                        self._logger.warn(f"Exception '{e!s}' while deleting refresh token {refresh_token}")
+                        self._logger.warn(f"Exception '{e!s}' while deleting access token {auth_token}")
 
-                result['message'] = 'Successfully logged out.'
+                    if refresh_token is not None:
+                        try:
+                            self._token_handler.decode_auth_token(refresh_token, p_is_refresh=True)
+                            self._token_handler.delete_token(p_token=refresh_token,
+                                                             p_deletion_time=datetime.datetime.utcnow())
 
-            else:
-                http_status = 403
-                error_details = "auth token is invalid"
+                        except TokenException as e:
+                            self._logger.warn(f"Exception '{e!s}' while deleting refresh token {refresh_token}")
+
+                    result['message'] = 'Successfully logged out.'
 
         except Exception as e:
             http_status = 403

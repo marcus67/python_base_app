@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019-2022  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -18,19 +18,19 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os.path
-
 import argparse
 import collections
 import copy
-import jinja2
 import logging
 import os
+import os.path
 import re
 import stat
 import subprocess
 import sys
 import time
+
+import jinja2
 
 import python_base_app
 from python_base_app import exceptions
@@ -39,6 +39,7 @@ from python_base_app import tools
 
 MODULE_NAME = "base_ci_toolbox"
 
+STAGE_BUILD_ANGULAR_APP = "BUILD_ANGULAR_APP"
 STAGE_BUILD_PACKAGE = "BUILD"
 STAGE_BUILD_DOCKER_IMAGES = "BUILD_DOCKER_IMAGES"
 STAGE_INSTALL = "INSTALL"
@@ -76,6 +77,9 @@ GENERIC_INSTALLATION_SCRIPT_TEMPLATE = 'debian_postinst.template.sh'
 
 MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/make-debian-package.sh'
 MAKE_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'make-debian-package.template.sh'
+
+BUILD_ANGULAR_APP_SCRIPT_FILE_PATH = '{bin_dir}/build_angular_app.sh'
+BUILD_ANGULAR_APP_SCRIPT_TEMPLATE = 'build-angular-app.template.sh'
 
 BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH = '{bin_dir}/build-docker-images.sh'
 BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE = 'build-docker-images.template.sh'
@@ -137,7 +141,7 @@ default_setup = {
     "docker_image_owasp": "registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest",
     "owasp_additional_params": "--enableExperimental",
     "ci_toolbox_script": "ci_toolbox.py",
-    "ci_pip_dependencies": [ ],
+    "ci_pip_dependencies": [],
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
@@ -147,8 +151,8 @@ default_setup = {
     "ci_stage_teardown": STAGE_TEARDOWN,
     "ci_stage_publish_package": STAGE_PUBLISH_PACKAGE,
     "ci_stage_publish_pypi_package": STAGE_PUBLISH_PYPI_PACKAGE,
-    "ci_stage_build_pip_dependencies": [ "babel" ],
-    "ci_stage_publish_pip_package_pip_dependencies": [ "twine" ],
+    "ci_stage_build_pip_dependencies": ["babel"],
+    "ci_stage_publish_pip_package_pip_dependencies": ["twine"],
     "owasp": False,
     "require_teardown": False,
     "bin_dir": "bin",
@@ -208,10 +212,13 @@ default_setup = {
     "analyze_extra_coverage_exclusions": None,
     "analyze_extra_exclusions": None,
     "script_timeout": 600,
-    "activate_xvfb_for_tests" : False,
+    "activate_xvfb_for_tests": False,
+    "angular_app_dir": None,
+    "angular_deployment_source_directory": "{angular_app_dir}/dist/{angular_app_dir}",
+    "angular_deployment_dest_directory": "static/angular"
 }
 
-logger:logging.Logger = None
+logger: logging.Logger | None = None
 
 
 def get_module_dir(p_module):
@@ -303,7 +310,6 @@ def load_contributing_setup_modules(p_main_setup_module):
 
 
 def get_site_packages_dir():
-
     major_version = sys.version_info[0]
     minor_version = sys.version_info[1]
 
@@ -393,18 +399,18 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
     python_packages = []
 
-    python_packages.append((app_dir,                                                            # 0
-                            get_python_package_name(p_var=var),                                 # 1
-                            var["setup"]["module_name"],                                        # 2
-                            var,                                                                # 3
-                            target_rep_url_env_name,                                            # 4
-                            target_rep_token_env_name,                                          # 5
-                            target_rep_user_env_name,                                           # 6
-                            target_rep_default_url,                                             # 7
-                            DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,                             # 8
-                            DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,                          # 9
-                            var["setup"]["name"],                                               # 10
-                            var["setup"]["version"]))                                           # 11
+    python_packages.append((app_dir,  # 0
+                            get_python_package_name(p_var=var),  # 1
+                            var["setup"]["module_name"],  # 2
+                            var,  # 3
+                            target_rep_url_env_name,  # 4
+                            target_rep_token_env_name,  # 5
+                            target_rep_user_env_name,  # 6
+                            target_rep_default_url,  # 7
+                            DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,  # 8
+                            DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,  # 9
+                            var["setup"]["name"],  # 10
+                            var["setup"]["version"]))  # 11
 
     if p_include_contrib_packages:
         for contributing_setup_module in contributing_setup_modules:
@@ -480,6 +486,7 @@ def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env, p_argu
                            p_file_description="GitLab CI configuration",
                            p_output_filename=GITLAB_CI_FILE, p_template_name=GITLAB_CI_TEMPLATE,
                            p_arguments=p_arguments)
+
 
 def generate_pip3_script(p_main_setup_module, p_template_env, p_arguments):
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
@@ -649,6 +656,36 @@ def generate_make_debian_package(p_main_setup_module, p_template_env, p_argument
              stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
 
+def generate_build_angular_app(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate build_angular_app.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(BUILD_ANGULAR_APP_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+
+    output_file_path = BUILD_ANGULAR_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    build_angular_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+
+    os.makedirs(os.path.dirname(build_angular_app_script_filename), mode=0o777, exist_ok=True)
+
+    with open(build_angular_app_script_filename, "w") as f:
+        f.write(output_text)
+
+    logger.info(f"Wrote build_angular_app.sh script file to '{build_angular_app_script_filename}'")
+
+    os.chmod(build_angular_app_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
 def generate_build_docker_image_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
@@ -765,6 +802,7 @@ def generate_test_app_script(p_main_setup_module, p_template_env, p_arguments):
 
     os.chmod(test_app_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
+
 def generate_analyze_app_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
@@ -874,13 +912,10 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_file_path = p_script_file_path_pattern.format(**(var["setup"]))
-
-    script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
-
+    script_filename = os.path.realpath(os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     timeout = p_main_setup_module.extended_setup_params.get("script_timeout")
 
-    fmt = "<<<<< START script {filename} (timeout={timeout}[sec])..."
-    logger.info(fmt.format(filename=script_filename, timeout=timeout))
+    logger.info(f"<<<<< START script {script_filename} (timeout={timeout}[sec])...")
 
     extended_env = os.environ.copy()
     extended_env.update(get_predefined_environment_variables())
@@ -903,9 +938,8 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
                 if line != '':
                     logger.info(msg.format(line=line))
 
-        process.communicate(timeout=5)
+        process.communicate(timeout=timeout)
         exit_code = process.returncode
-
 
     except subprocess.CalledProcessError as e:
         exit_code = e.returncode
@@ -925,12 +959,16 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
         if thread is not None:
             thread.join()
 
-
     msg = ">>>>> END script {filename} ..."
     logger.info(msg.format(filename=script_filename))
 
     if exit_code != 0:
         raise exceptions.ScriptExecutionError(p_script_name=script_filename, p_exit_code=exit_code)
+
+
+def execute_build_angular_app_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=BUILD_ANGULAR_APP_SCRIPT_FILE_PATH)
 
 
 def execute_make_debian_package_script(p_main_setup_module):
@@ -967,15 +1005,18 @@ def execute_test_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=TEST_APP_SCRIPT_FILE_PATH)
 
+
 def execute_analyze_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=ANALYZE_APP_SCRIPT_FILE_PATH)
+
 
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--execute-stage', dest='execute_stage', default=None,
                         help='execute CI stage',
                         choices=[STAGE_BUILD_PACKAGE,
+                                 STAGE_BUILD_ANGULAR_APP,
                                  STAGE_BUILD_DOCKER_IMAGES,
                                  STAGE_PUBLISH_PACKAGE,
                                  STAGE_PUBLISH_PYPI_PACKAGE,
@@ -1011,7 +1052,14 @@ def main(p_main_module_dir):
 
         var = get_vars(p_setup_params=main_setup_module.extended_setup_params)
 
-        if arguments.execute_stage == STAGE_BUILD_PACKAGE:
+        if arguments.execute_stage == STAGE_BUILD_ANGULAR_APP:
+            generate_pip3_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                 p_arguments=arguments)
+            generate_build_angular_app(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                       p_arguments=arguments)
+            execute_build_angular_app_script(p_main_setup_module=main_setup_module)
+
+        elif arguments.execute_stage == STAGE_BUILD_PACKAGE:
             if var["setup"]["build_debian_package"]:
                 generate_debian_control(p_main_setup_module=main_setup_module, p_template_env=template_env)
                 generate_debian_postinst(p_main_setup_module=main_setup_module, p_template_env=template_env,
@@ -1057,7 +1105,7 @@ def main(p_main_module_dir):
 
         elif arguments.execute_stage == STAGE_ANALYZE:
             generate_analyze_app_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
-                                     p_arguments=arguments)
+                                        p_arguments=arguments)
             execute_analyze_app_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_PREPARE:
