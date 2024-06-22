@@ -25,6 +25,9 @@ variables:
   PIP3: "./bin/pip3.sh"
 
 stages:
+  {% if var.setup.angular_app_dir -%}
+  - build_angular
+  {% endif -%}
   - build
   - install_and_check
   {% if var.setup.analyze -%}
@@ -39,6 +42,23 @@ stages:
   {% endif -%}
   {% if var.setup.docker_contexts|length > 0 -%}
   - deploy
+  {% endif -%}
+
+  {% if var.setup.angular_app_dir -%}
+build_angular_app:
+  image: {{ var.setup.docker_image_build_angular }}
+  stage: build_angular
+  script:
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_angular_app }} --use-dev-dir=.
+  artifacts:
+    paths:
+      - {{ var.setup.angular_deployment_source_directory }}/**
+  variables:
+    # Activate automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
   {% endif -%}
 
 

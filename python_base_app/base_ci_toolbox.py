@@ -134,6 +134,7 @@ DEFAULT_PYPI_USER_ENV_NAME = "PYPI_API_USER"
 predefined_env_variables = None
 
 default_setup = {
+    "docker_image_build_angular": "marcusrickert/docker-python-app:latest",
     "docker_image_make_package": "marcusrickert/docker-python-app:latest",
     "docker_image_test": "marcusrickert/docker-python-app:latest",
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
@@ -142,6 +143,7 @@ default_setup = {
     "owasp_additional_params": "--enableExperimental",
     "ci_toolbox_script": "ci_toolbox.py",
     "ci_pip_dependencies": [],
+    "ci_stage_build_angular_app": STAGE_BUILD_ANGULAR_APP,
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
