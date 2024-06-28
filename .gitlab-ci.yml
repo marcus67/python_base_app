@@ -33,7 +33,7 @@ stages:
   - publish
   
 build_pypi:
-  image: marcusrickert/docker-python-app:latest
+  image: marcusrickert/docker-python-app:3.11
   stage: build
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
@@ -48,7 +48,7 @@ build_pypi:
     GIT_SUBMODULE_STRATEGY: recursive
 
 install_pypi:
-  image: marcusrickert/docker-python-app:latest
+  image: marcusrickert/docker-python-app:3.11
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
@@ -65,7 +65,7 @@ install_pypi:
     GIT_SUBMODULE_STRATEGY: recursive
 
 analyze:
-  image: marcusrickert/docker-python-app:latest
+  image: marcusrickert/docker-python-app:3.11
   stage: analyze
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage ANALYZE --use-dev-dir=.
@@ -112,7 +112,7 @@ owasp_upload:
     - echo "Analysis successful."
 
 publish_pypi:
-  image: marcusrickert/docker-python-app:latest
+  image: marcusrickert/docker-python-app:3.11
   stage: publish
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage PUBLISH-PYPI-PACKAGE --use-dev-dir=.
