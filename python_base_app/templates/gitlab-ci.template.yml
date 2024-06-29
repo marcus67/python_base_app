@@ -210,6 +210,10 @@ publish_pypi:
     - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
   {%- endif %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_pypi_package }} --use-dev-dir=.
+  only:
+  {%- for branch in var.setup.publish_pypi_package.keys() %}
+    - {{ branch }}
+  {%- endfor %}
 {%- endif %}
 
 {%- if var.setup.build_debian_package and var.setup.docker_contexts|length > 0 %}

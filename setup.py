@@ -67,8 +67,10 @@ extended_setup_params = {
     #"ci_pip_dependencies": { "some-package" },
     #"extra_pypi_indexes": { "master": ["TEST_PYPI_EXTRA_INDEX"] },
 
-    "publish_pypi_package": { 'release': ( 'PYPI_API_URL', 'PYPI_API_TOKEN', 'TEST_PYPI_API_USER' ),
-                              'master': ( 'TEST_PYPI_API_URL', 'TEST_PYPI_API_TOKEN', 'TEST_PYPI_API_USER' ) },
+    "publish_pypi_package": {
+        'release': ('PYPI_API_URL', 'PYPI_API_TOKEN', 'TEST_PYPI_API_USER'),
+        'master': ('TEST_PYPI_API_URL', 'TEST_PYPI_API_TOKEN', 'TEST_PYPI_API_USER'),
+    },
     "analyze": True,
     "docker_image_build_angular": "marcusrickert/docker-python-app:3.11",
     "docker_image_make_package": "marcusrickert/docker-python-app:3.11",
