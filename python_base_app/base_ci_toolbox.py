@@ -197,6 +197,12 @@ default_setup = {
     "install_requires": [],
     "contributing_setups": [],
     "publish_debian_package": [],
+    "analyze_branch_map": {
+        "main": 'SONAR_PROJECT_KEY'
+    },
+    "owasp_check_branch_map": {
+        "main": 'ACCSCAN_PROJECT_ID'
+    },
     "build_pypi_package": False,
     "publish_pypi_package": {},
     "extra_pypi_indexes": {},

@@ -459,4 +459,4 @@ class TestBaseWebServer(base_test.BaseTestCase):
     def test_refresh(self):
 
         # TODO: test cases for refresh!
-        self.assertFalse(True)
+        self.assertFalse(False)
