@@ -81,12 +81,12 @@ if [ "${GIT_BRANCH}" != "" ] ; then
   {% for branch, env_name in var.setup.analyze_branch_map.items()  %}
   if [ "${GIT_BRANCH}" == "{{ branch }}" ] ; then
     EFFECTIVE_SONAR_PROJECT_KEY="${{ '{' + env_name + '}' }}"
-    echo "Using environment variable '${EFFECTIVE_SONAR_PROJECT_KEY}' as Sonar project key for branch '${GIT_BRANCH}'."
+    echo "Using environment variable '{{ env_name }}' as Sonar project key for branch '${GIT_BRANCH}'."
   fi
   {% endfor %}
 
   if [ "${EFFECTIVE_SONAR_PROJECT_KEY}" == "" ] ; then
-    echo "No environment variable mapping found for branch '${GIT_BRANCH}'!"
+    echo "Environment variable '{{ env_name }}' for branch '${GIT_BRANCH}' not set!"
     RETURN_CODE=1
   fi
 fi

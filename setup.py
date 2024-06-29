@@ -55,6 +55,13 @@ extended_setup_params = {
     "build_debian_package": False,
     "build_pypi_package": True,
     "owasp": True,
+    "analyze_branch_map": {
+        "master": 'SONAR_PROJECT_KEY',
+        "fb-angular": 'SONAR_PROJECT_KEY_FB_ANGULAR'
+    },
+    "owasp_check_branch_map": {
+        "main": 'ACCSCAN_PROJECT_ID'
+    },
 
     # for Testing extra CI PIP dependencies
     #"ci_pip_dependencies": { "some-package" },

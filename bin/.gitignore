@@ -5,3 +5,5 @@ install-debian-package.sh
 install-pypi-package.sh
 build-docker-images.sh
 test-app.sh
+/analyze-app.sh
+/.env
