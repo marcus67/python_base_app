@@ -78,8 +78,9 @@ build_debian:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-test_debian:
-  image: {{ var.setup.docker_image_test }}
+{% for image_info in var.setup.docker_images_test %}
+test_debian_{{ image_info[0] }}:
+  image: "{{ image_info[1] }}"
   stage: install_and_check
   script:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
@@ -90,14 +91,17 @@ test_debian:
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
     {%- endif %}
     - codecov
+  {% if loop.revindex == 1 %}
   artifacts:
     paths:
       - htmlcov
       - coverage.xml
+  {% endif %}
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
-{% endif %}
+  {% endfor %}
+  {% endif %}
 
 {%- if var.setup.build_pypi_package %}
 build_pypi:
@@ -118,8 +122,9 @@ build_pypi:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-install_pypi:
-  image: {{ var.setup.docker_image_test }}
+{% for image_info in var.setup.docker_images_test %}
+install_pypi_{{ image_info[0] }}:
+  image: "{{ image_info[1] }}"
   stage: install_and_check
   script:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
@@ -131,14 +136,17 @@ install_pypi:
   {% endif -%}
   after_script:
     - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}
+  {% if loop.revindex == 1 %}
   artifacts:
       when: always
       paths:
         - htmlcov
         - coverage.xml
+  {% endif %}
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
+{% endfor %}
 {% endif %}
 
 {%- if var.setup.analyze %}

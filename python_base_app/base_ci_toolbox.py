@@ -136,7 +136,12 @@ predefined_env_variables = None
 default_setup = {
     "docker_image_build_angular": "marcusrickert/docker-python-app:latest",
     "docker_image_make_package": "marcusrickert/docker-python-app:latest",
-    "docker_image_test": "marcusrickert/docker-python-app:latest",
+    "docker_image_publish_debian": "marcusrickert/docker-python-app:latest",
+    "docker_image_publish_pypi": "marcusrickert/docker-python-app:latest",
+    "docker_image_test": "marcusrickert/docker-python-app:latest",  # TODO: Remove this setting in future versions
+    "docker_images_test": [
+        ("latest", "marcusrickert/docker-python-app:latest")
+    ],
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "marcusrickert/docker-python-app:latest",
     "docker_image_owasp": "registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest",

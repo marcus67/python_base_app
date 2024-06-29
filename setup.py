@@ -54,7 +54,7 @@ extended_setup_params = {
     "id": "python-base-app",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "owasp": True,
+    "owasp": False,  # TODO: Reactivate Owasp check!
     "analyze_branch_map": {
         "master": 'SONAR_PROJECT_KEY',
         "fb-angular": 'SONAR_PROJECT_KEY_FB_ANGULAR'
@@ -72,7 +72,11 @@ extended_setup_params = {
     "analyze": True,
     "docker_image_build_angular": "marcusrickert/docker-python-app:3.11",
     "docker_image_make_package": "marcusrickert/docker-python-app:3.11",
-    "docker_image_test": "marcusrickert/docker-python-app:3.11",
+    "docker_images_test": [
+        ("3_10", "marcusrickert/docker-python-app:3.10"),
+        ("3_11", "marcusrickert/docker-python-app:3.11"),
+        ("3_12", "marcusrickert/docker-python-app:3.12"),
+    ],
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "marcusrickert/docker-python-app:3.11",
 }

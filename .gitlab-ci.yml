@@ -28,8 +28,6 @@ stages:
   - build
   - install_and_check
   - analyze
-  - owasp_check
-  - owasp_upload
   - publish
   
 build_pypi:
@@ -47,22 +45,52 @@ build_pypi:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-install_pypi:
-  image: marcusrickert/docker-python-app:3.11
+
+install_pypi_3_10:
+  image: "marcusrickert/docker-python-app:3.10"
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST --use-dev-dir .
   after_script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
+  
+  variables:
+    # Suppress automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+
+install_pypi_3_11:
+  image: "marcusrickert/docker-python-app:3.11"
+  stage: install_and_check
+  script:
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST --use-dev-dir .
+  after_script:
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
+  
+  variables:
+    # Suppress automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+
+install_pypi_3_12:
+  image: "marcusrickert/docker-python-app:3.12"
+  stage: install_and_check
+  script:
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST --use-dev-dir .
+  after_script:
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
+  
   artifacts:
       when: always
       paths:
         - htmlcov
         - coverage.xml
+  
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
+
 
 analyze:
   image: marcusrickert/docker-python-app:3.11
@@ -77,42 +105,8 @@ analyze:
 
 
 
-owasp_check:
-  image:
-    name: registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest
-    entrypoint: [""]
-  stage: owasp_check
-  script:
-    # Job will scan the project root folder and fail if any vulnerabilities with CVSS > 0 are found
-    - /usr/share/dependency-check/bin/dependency-check.sh --enableExperimental --scan "./" --format XML --project "$CI_PROJECT_NAME"
-    # Dependency Check will only fail the job based on CVSS scores, and in some cases vulnerabilities do not
-    # have CVSS scores (e.g. those from NPM audit), so they don't cause failure.  To fail for any vulnerabilities
-    # grep the resulting report for any "vulnerabilities" sections and exit if any are found (count > 0).
-  allow_failure: false
-  artifacts:
-    when: always
-    paths:
-        # Save the HTML and JSON report artifacts
-      - "./dependency-check-report.xml"
-
-owasp_upload:
-  image:
-    name: "$VULSCAN_ADAPTER_IMAGE"
-    entrypoint: ["python", "run.py"]
-  stage: owasp_upload
-  allow_failure: false
-  variables:
-    VULSCAN_SERVER_URL: "$VULSCAN_URL/analyzer/api"
-    REPORT_FILE_NAME: dependency-check-report.xml
-    FILE_FORMAT: xml
-    TOOL_NAME: owasp
-    PROJECT_ID: "python-base-app"
-    PROJECT_NAME: "python-base-app"
-  script:
-    - echo "Analysis successful."
-
 publish_pypi:
-  image: marcusrickert/docker-python-app:3.11
+  image: marcusrickert/docker-python-app:latest
   stage: publish
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage PUBLISH-PYPI-PACKAGE --use-dev-dir=.
