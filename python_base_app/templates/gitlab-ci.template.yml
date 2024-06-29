@@ -203,7 +203,7 @@ owasp_upload:
 
 {%- if var.setup.publish_pypi_package|length > 0 %}
 publish_pypi:
-  image: {{ var.setup.docker_image_test }}
+  image: {{ var.setup.docker_image_publish_pypi }}
   stage: publish
   script:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}

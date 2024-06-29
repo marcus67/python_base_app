@@ -106,7 +106,7 @@ analyze:
 
 
 publish_pypi:
-  image: marcusrickert/docker-python-app:latest
+  image: marcusrickert/docker-python-app:3.11
   stage: publish
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage PUBLISH-PYPI-PACKAGE --use-dev-dir=.
