@@ -44,9 +44,10 @@ else:
     DEFAULT_PING_WAIT_OPTION = "-w"
 
 # MacOS: round-trip min/avg/max/stddev = 0.043/0.043/0.043/0.000 ms
+#        round-trip min/avg/max/stddev = 0.058/0.058/0.058/nan ms
 # Linux: rtt min/avg/max/mdev = 0.043/0.043/0.043/0.000 ms
 
-DEFAULT_PING_RESULT_REGEX = r"(rtt|round-trip) min/avg/max/(mdev|stddev) = [\d\.]+/([\d\.]+)/[\d\.]+/[\d\.]+ ms"
+DEFAULT_PING_RESULT_REGEX = r"(rtt|round-trip) min/avg/max/(mdev|stddev) = [\d\.]+/([\d\.]+)/[\d\.]+/([\d\.]+|nan) ms"
 DEFAULT_PING_TIMEOUT_IN_SECONDS = 5
 
 

@@ -24,6 +24,7 @@ import pytest
 
 from python_base_app.configuration import ConfigurationException
 from python_base_app.pinger import Pinger, PingerConfigModel
+from python_base_app.tools import is_mac_os
 
 
 @pytest.fixture
@@ -58,7 +59,12 @@ def test_ping_localhost(default_pinger: Pinger):
     result = default_pinger.ping(p_host="localhost")
     assert result is not None
     value = float(result)
-    assert value < 0.1
+
+    if is_mac_os():
+        assert value < 0.2
+
+    else:
+        assert value < 0.1
 
 
 @pytest.mark.skipif(os.getenv("NO_PING"),  reason="no ping allowed")

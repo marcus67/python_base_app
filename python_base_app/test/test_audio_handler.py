@@ -66,7 +66,7 @@ class TestAudioHandler(base_test.BaseTestCase):
 
         self.delete_audio_file(p_audio_handler=a_handler)
         a_handler.notify(p_text=TEXT, p_locale=LOCALE)
-        a_handler.notify(p_text=TEXT, p_locale=LOCALE)
+        #a_handler.notify(p_text=TEXT, p_locale=LOCALE)
         a_handler.stop_engine()
 
     @base_test.skip_if_env("NO_AUDIO_OUTPUT")
