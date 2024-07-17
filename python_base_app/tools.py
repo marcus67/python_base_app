@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019-2022  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -18,8 +18,6 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from os.path import dirname
-
 import datetime
 import inspect
 import io
@@ -34,6 +32,7 @@ import threading
 import time
 import traceback
 import urllib.parse
+from os.path import dirname
 from typing import Set
 
 from python_base_app import configuration
@@ -108,7 +107,6 @@ def get_today():
 
 
 def get_datetime_in_iso_8601(a_time: datetime.datetime | datetime.date) -> str | None:
-
     if a_time is None:
         return None
 
@@ -628,3 +626,20 @@ def create_class_instance(p_class, p_initial_values) -> object:
     instance = p_class()
     copy_attributes(p_from=p_initial_values, p_to=instance)
     return instance
+
+
+class RepetitiveObjectWriter:
+    def __init__(self, p_base_filename_pattern: str = "/tmp/repetitive-writer.{index:04d}.{type}.json"):
+        self._base_filename_pattern = p_base_filename_pattern
+        self._index = 1
+
+    def write_object(self, p_object, p_object_type="generic"):
+        filename = self._base_filename_pattern.format(index=self._index, type=p_object_type)
+
+        if isinstance(p_object, dict):
+            p_object = json.dumps(p_object)
+
+        with open(filename, "w") as f:
+            f.write(p_object)
+
+        self._index += 1

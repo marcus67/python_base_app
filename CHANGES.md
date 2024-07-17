@@ -6,6 +6,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Add support for Angular login
 * Add support for authentication tokens
 * Allow for passwords for non-admin user in `UnixUserHandler`
+* Add class `RepetitiveObjectWriter`
 
 # Version 0.2.50 (December 3rd, 2023)
 * Bump `urllib3` to 2.1.0 (CVE-2023-45803)

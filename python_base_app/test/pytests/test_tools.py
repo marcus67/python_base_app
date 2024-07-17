@@ -19,12 +19,15 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import datetime
+import os
 import socket
+import tempfile
 
 import pytest
 
 from python_base_app import configuration
 from python_base_app import tools
+from python_base_app.tools import RepetitiveObjectWriter
 
 
 def test_anonymize_url():
@@ -80,24 +83,23 @@ def test_get_string_as_duration_empty_string():
 def test_get_string_as_duration_none():
     assert tools.get_string_as_duration(p_string=None) is None
 
+
 class TimingResult(object):
 
     def __init__(self):
-
         self.duration = None
 
     def set_duration(self, p_duration):
-
         self.duration = p_duration
 
-def test_timing_context():
 
+def test_timing_context():
     result = TimingResult()
 
     sum = 0
 
     with tools.TimingContext(p_result_handler=lambda duration: result.set_duration(p_duration=duration)):
-        for i in range (0, 10):
+        for i in range(0, 10):
             sum += i
 
     assert sum == 45
@@ -113,6 +115,7 @@ def test_is_valid_dns_name():
     assert tools.is_valid_dns_name(p_dns_name="192.168.1.1")
     assert tools.is_valid_dns_name(p_dns_name="192.168.1.1:6666")
 
+
 def test_is_invalid_dns_name():
     assert not tools.is_valid_dns_name(p_dns_name="some.weird.host")
     assert not tools.is_valid_dns_name(p_dns_name="web.de:0")
@@ -120,9 +123,11 @@ def test_is_invalid_dns_name():
     assert not tools.is_valid_dns_name(p_dns_name="256.168.1.1")
     assert not tools.is_valid_dns_name(p_dns_name="256.168.1.1:6666")
 
+
 def test_split_host_url():
     assert tools.split_host_url("some.host", p_default_port_number=123) == ("some.host", 123)
     assert tools.split_host_url("some.host:345", p_default_port_number=123) == ("some.host", 345)
+
 
 def test_today():
     today = tools.get_today()
@@ -131,17 +136,21 @@ def test_today():
     assert today.second == 0
     assert today.microsecond == 0
 
+
 def test_running_in_docker():
     assert not tools.running_in_docker()
 
+
 def test_running_in_snap():
     assert not tools.running_in_snap()
+
 
 def test_get_ip_address_by_dns_name():
     assert tools.get_ip_address_by_dns_name("localhost") == "127.0.0.1"
     assert tools.get_ip_address_by_dns_name("111.111.111.111") == "111.111.111.111"
     with pytest.raises(socket.gaierror):
         tools.get_ip_address_by_dns_name("xyx.xyx.xyx")
+
 
 def test_get_all_ip_address_by_dns_name():
     addresses = tools.get_ip_addresses_by_dns_name("localhost")
@@ -158,3 +167,65 @@ def test_get_dns_name_by_ip_address():
     assert tools.get_dns_name_by_ip_address("111.111.111.111") == "111.111.111.111"
     assert tools.get_dns_name_by_ip_address("0.0.0") == "0.0.0"
 
+
+def test_repetitive_object_writer_one_file():
+    with tempfile.TemporaryDirectory() as d:
+        filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
+        writer = RepetitiveObjectWriter(p_base_filename_pattern=filename_pattern)
+        writer.write_object(p_object="test")
+
+        filename = os.path.join(d, "base.generic.0001.json")
+
+        assert os.path.exists(filename)
+
+        with open(filename, "r") as f:
+            content = f.read()
+            assert content == "test"
+
+
+def test_repetitive_object_writer_two_files():
+    with tempfile.TemporaryDirectory() as d:
+        filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
+        writer = RepetitiveObjectWriter(p_base_filename_pattern=filename_pattern)
+        writer.write_object(p_object="test")
+        writer.write_object(p_object="hallo")
+
+        filename = os.path.join(d, "base.generic.0002.json")
+
+        assert os.path.exists(filename)
+
+        with open(filename, "r") as f:
+            content = f.read()
+            assert content == "hallo"
+
+
+def test_repetitive_object_writer_one_file_with_type():
+    with tempfile.TemporaryDirectory() as d:
+        filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
+        writer = RepetitiveObjectWriter(p_base_filename_pattern=filename_pattern)
+        writer.write_object(p_object="test", p_object_type="some-type")
+
+        filename = os.path.join(d, "base.some-type.0001.json")
+
+        assert os.path.exists(filename)
+
+        with open(filename, "r") as f:
+            content = f.read()
+            assert content == "test"
+
+
+def test_repetitive_object_writer_one_file_with_dict():
+    with tempfile.TemporaryDirectory() as d:
+        filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
+        writer = RepetitiveObjectWriter(p_base_filename_pattern=filename_pattern)
+        writer.write_object(p_object={
+            "some_key": "some text"
+        })
+
+        filename = os.path.join(d, "base.generic.0001.json")
+
+        assert os.path.exists(filename)
+
+        with open(filename, "r") as f:
+            content = f.read()
+            assert content == '{"some_key": "some text"}'
