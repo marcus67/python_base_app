@@ -629,17 +629,25 @@ def create_class_instance(p_class, p_initial_values) -> object:
 
 
 class RepetitiveObjectWriter:
-    def __init__(self, p_base_filename_pattern: str = "/tmp/repetitive-writer.{index:04d}.{type}.json"):
+    def __init__(self,
+                 p_base_filename_pattern: str = "/tmp/repetitive-writer.{index:04d}.{type}.json",
+                 p_ignore_same_object: bool = True):
         self._base_filename_pattern = p_base_filename_pattern
+        self._ignore_same_object = p_ignore_same_object
         self._index = 1
+        self._last_object = None
 
-    def write_object(self, p_object, p_object_type="generic"):
+    def write_object(self, p_object, p_object_type="generic") -> None:
         filename = self._base_filename_pattern.format(index=self._index, type=p_object_type)
 
         if isinstance(p_object, dict):
             p_object = json.dumps(p_object)
 
+        if self._last_object is not None and self._last_object == p_object and self._ignore_same_object:
+            return
+
         with open(filename, "w") as f:
             f.write(p_object)
 
         self._index += 1
+        self._last_object = p_object

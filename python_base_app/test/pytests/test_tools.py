@@ -183,7 +183,7 @@ def test_repetitive_object_writer_one_file():
             assert content == "test"
 
 
-def test_repetitive_object_writer_two_files():
+def test_repetitive_object_writer_two_files_ignore_same_objects_but_different():
     with tempfile.TemporaryDirectory() as d:
         filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
         writer = RepetitiveObjectWriter(p_base_filename_pattern=filename_pattern)
@@ -197,6 +197,33 @@ def test_repetitive_object_writer_two_files():
         with open(filename, "r") as f:
             content = f.read()
             assert content == "hallo"
+
+def test_repetitive_object_writer_two_files_ignore_same_objects_but_same():
+    with tempfile.TemporaryDirectory() as d:
+        filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
+        writer = RepetitiveObjectWriter(p_base_filename_pattern=filename_pattern)
+        writer.write_object(p_object="test")
+        writer.write_object(p_object="test")
+
+        filename = os.path.join(d, "base.generic.0002.json")
+
+        assert not os.path.exists(filename)
+
+
+def test_repetitive_object_writer_two_files_not_ignore_same_objects():
+    with tempfile.TemporaryDirectory() as d:
+        filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
+        writer = RepetitiveObjectWriter(p_base_filename_pattern=filename_pattern, p_ignore_same_object=False)
+        writer.write_object(p_object="test")
+        writer.write_object(p_object="test")
+
+        filename = os.path.join(d, "base.generic.0002.json")
+
+        assert os.path.exists(filename)
+
+        with open(filename, "r") as f:
+            content = f.read()
+            assert content == "test"
 
 
 def test_repetitive_object_writer_one_file_with_type():
