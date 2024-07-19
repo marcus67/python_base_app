@@ -11,6 +11,6 @@ python-google-speak==0.2.1
 requests==2.31.0
 secure==0.3.0
 some-flask-helpers==0.2.5
-urllib3==2.1.0
+urllib3==2.2.2
 werkzeug==2.3.8
 pyjwt==2.8.0
