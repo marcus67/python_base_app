@@ -44,7 +44,7 @@ stages:
   - deploy
   {% endif -%}
 
-  {% if var.setup.angular_app_dir -%}
+{%- if var.setup.angular_app_dir %}
 build_angular_app:
   image: {{ var.setup.docker_image_build_angular }}
   stage: build_angular
@@ -59,10 +59,10 @@ build_angular_app:
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
-  {% endif -%}
+{% endif -%}
 
 
-  {%- if var.setup.build_debian_package %}
+{%- if var.setup.build_debian_package %}
 build_debian:
   image: {{ var.setup.docker_image_make_package }}
   stage: build
@@ -100,8 +100,8 @@ test_debian_{{ image_info[0] }}:
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
-  {% endfor %}
-  {% endif %}
+{% endfor %}
+{% endif %}
 
 {%- if var.setup.build_pypi_package %}
 build_pypi:
