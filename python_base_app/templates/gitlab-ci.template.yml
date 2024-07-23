@@ -59,8 +59,7 @@ build_angular_app:
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
-{% endif -%}
-
+{%- endif -%}
 
 {%- if var.setup.build_debian_package %}
 build_debian:
@@ -69,6 +68,9 @@ build_debian:
   script:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
     - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
   {%- endif %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
   artifacts:
@@ -86,10 +88,12 @@ test_debian_{{ image_info[0] }}:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
     - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
   {%- endif %}
-    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
-    {%- if var.setup.run_test_suite %}
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
+  {%- endif %}
+  {%- if var.setup.run_test_suite %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
-    {%- endif %}
+  {%- endif %}
     - codecov
   {% if loop.revindex == 1 %}
   artifacts:
@@ -101,7 +105,7 @@ test_debian_{{ image_info[0] }}:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 {% endfor %}
-{% endif %}
+{%- endif %}
 
 {%- if var.setup.build_pypi_package %}
 build_pypi:
@@ -110,6 +114,9 @@ build_pypi:
   script:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
     - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
   {%- endif %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
   after_script:
@@ -147,7 +154,7 @@ install_pypi_{{ image_info[0] }}:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 {% endfor %}
-{% endif %}
+{%- endif %}
 
 {%- if var.setup.analyze %}
 analyze:
@@ -156,6 +163,9 @@ analyze:
   script:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
     - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
   {%- endif %}
     - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_analyze }} --use-dev-dir=.
   after_script:
@@ -199,7 +209,7 @@ owasp_upload:
     PROJECT_NAME: "{{ var.setup.name }}"
   script:
     - echo "Analysis successful."
-{% endif %}
+{%- endif %}
 
 {%- if var.setup.publish_pypi_package|length > 0 %}
 publish_pypi:

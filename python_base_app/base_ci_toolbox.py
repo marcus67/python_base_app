@@ -40,6 +40,7 @@ from python_base_app import tools
 MODULE_NAME = "base_ci_toolbox"
 
 STAGE_BUILD_ANGULAR_APP = "BUILD_ANGULAR_APP"
+STAGE_DEPLOY_ANGULAR_APP = "DEPLOY_ANGULAR_APP"
 STAGE_BUILD_PACKAGE = "BUILD"
 STAGE_BUILD_DOCKER_IMAGES = "BUILD_DOCKER_IMAGES"
 STAGE_INSTALL = "INSTALL"
@@ -80,6 +81,9 @@ MAKE_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'make-debian-package.template.sh'
 
 BUILD_ANGULAR_APP_SCRIPT_FILE_PATH = '{bin_dir}/build_angular_app.sh'
 BUILD_ANGULAR_APP_SCRIPT_TEMPLATE = 'build-angular-app.template.sh'
+
+DEPLOY_ANGULAR_APP_SCRIPT_FILE_PATH = '{bin_dir}/deploy_angular_app.sh'
+DEPLOY_ANGULAR_APP_SCRIPT_TEMPLATE = 'deploy-angular-app.template.sh'
 
 BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH = '{bin_dir}/build-docker-images.sh'
 BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE = 'build-docker-images.template.sh'
@@ -149,6 +153,7 @@ default_setup = {
     "ci_toolbox_script": "ci_toolbox.py",
     "ci_pip_dependencies": [],
     "ci_stage_build_angular_app": STAGE_BUILD_ANGULAR_APP,
+    "ci_stage_deploy_angular_app": STAGE_DEPLOY_ANGULAR_APP,
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
@@ -699,6 +704,36 @@ def generate_build_angular_app(p_main_setup_module, p_template_env, p_arguments)
              stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
 
+def generate_deploy_angular_app(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate deploy_angular_app.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(DEPLOY_ANGULAR_APP_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+
+    output_file_path = DEPLOY_ANGULAR_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    deploy_angular_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+
+    os.makedirs(os.path.dirname(deploy_angular_app_script_filename), mode=0o777, exist_ok=True)
+
+    with open(deploy_angular_app_script_filename, "w") as f:
+        f.write(output_text)
+
+    logger.info(f"Wrote deploy_angular_app.sh script file to '{deploy_angular_app_script_filename}'")
+
+    os.chmod(deploy_angular_app_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
 def generate_build_docker_image_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
 
@@ -983,6 +1018,10 @@ def execute_build_angular_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=BUILD_ANGULAR_APP_SCRIPT_FILE_PATH)
 
+def execute_deploy_angular_app_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=DEPLOY_ANGULAR_APP_SCRIPT_FILE_PATH)
+
 
 def execute_make_debian_package_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
@@ -1030,6 +1069,7 @@ def get_parser():
                         help='execute CI stage',
                         choices=[STAGE_BUILD_PACKAGE,
                                  STAGE_BUILD_ANGULAR_APP,
+                                 STAGE_DEPLOY_ANGULAR_APP,
                                  STAGE_BUILD_DOCKER_IMAGES,
                                  STAGE_PUBLISH_PACKAGE,
                                  STAGE_PUBLISH_PYPI_PACKAGE,
@@ -1071,6 +1111,14 @@ def main(p_main_module_dir):
             generate_build_angular_app(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                        p_arguments=arguments)
             execute_build_angular_app_script(p_main_setup_module=main_setup_module)
+
+        elif arguments.execute_stage == STAGE_DEPLOY_ANGULAR_APP:
+            generate_pip3_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                 p_arguments=arguments)
+            generate_deploy_angular_app(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                        p_arguments=arguments)
+            execute_deploy_angular_app_script(p_main_setup_module=main_setup_module)
+
 
         elif arguments.execute_stage == STAGE_BUILD_PACKAGE:
             if var["setup"]["build_debian_package"]:
