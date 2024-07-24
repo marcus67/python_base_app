@@ -34,6 +34,7 @@ with open(path.join(this_directory, 'requirements.txt')) as f:
 
 setup_params = {
     # standard setup configuration
+    "python_requires": '>=3.10, <3.13',
 
     "install_requires" : install_requires,
 
