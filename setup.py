@@ -40,6 +40,7 @@ setup_params = {
 
     "scripts": [
         "run_python_base_app_test_suite.py",
+        "run_python_base_app_test_suite_no_venv.py",
     ],
 
     "packages" : [ 'python_base_app', 'python_base_app.test' ],
