@@ -1090,7 +1090,7 @@ def main(p_main_module_dir: str, p_argv=None):
     exit_code = 0
 
     if p_argv is None:
-        p_argv = sys.argv
+        p_argv = sys.argv[1:]
 
     try:
         log_handling.start_logging()
