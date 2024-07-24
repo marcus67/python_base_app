@@ -1084,10 +1084,13 @@ def get_parser():
     return parser
 
 
-def main(p_main_module_dir):
+def main(p_main_module_dir: str, p_argv=None):
     global logger
 
     exit_code = 0
+
+    if p_argv is None:
+        p_argv = sys.argv
 
     try:
         log_handling.start_logging()
@@ -1096,7 +1099,7 @@ def main(p_main_module_dir):
 
         parser = get_parser()
 
-        arguments = parser.parse_args()
+        arguments = parser.parse_args(args=p_argv)
 
         main_setup_module = load_setup_module(p_dir=p_main_module_dir, p_module_name="setup")
 
