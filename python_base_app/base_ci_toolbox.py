@@ -470,7 +470,7 @@ def generate_standard_file(p_main_setup_module, p_template_env, p_file_descripti
 
     output_file_path = p_output_filename.format(**(var["setup"]))
 
-    filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    filename = os.path.realpath(os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     if p_create_directory:
         directory = os.path.dirname(filename)
