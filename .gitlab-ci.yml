@@ -51,7 +51,7 @@ install_pypi_3_10:
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
-    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST --use-dev-dir .
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
   after_script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
   
@@ -64,7 +64,7 @@ install_pypi_3_11:
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
-    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST --use-dev-dir .
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
   after_script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
   
@@ -77,7 +77,7 @@ install_pypi_3_12:
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
-    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST --use-dev-dir .
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
   after_script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
   
@@ -90,7 +90,6 @@ install_pypi_3_12:
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
-
 
 analyze:
   image: marcusrickert/docker-python-app:3.11
