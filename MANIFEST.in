@@ -24,4 +24,6 @@ include python_base_app/templates/*
 include python_base_app/translations/*/*/messages.po
 include python_base_app/test/pytests/*.py
 include python_base_app/test/resources/*
-include python_base_app/test/resources/ci_toolbox/**/*
+include python_base_app/test/resources/ci_toolbox/*
+include python_base_app/test/resources/ci_toolbox/a_package/*
+include python_base_app/test/resources/ci_toolbox/a_package/translations/de/LC_MESSAGES/messages.po
