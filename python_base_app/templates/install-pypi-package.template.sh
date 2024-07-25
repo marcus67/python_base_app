@@ -62,7 +62,6 @@ hash -r
 echo "Check: make found by 'which': $(which make)"
 {% endif %}
 
-{%- for package in python_packages %}
+
 echo "Installing PIP package {{package[1]}}..."
-${PIP3} install --upgrade --force-reinstall {{package[0]}}/dist/{{package[1]}}
-{%- endfor %}
+${PIP3} install --upgrade --force-reinstall {% for package in python_packages %} {{package[0]}}/dist/{{package[1]}} {% endfor %}
