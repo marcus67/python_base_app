@@ -63,5 +63,8 @@ echo "Check: make found by 'which': $(which make)"
 {% endif %}
 
 
-echo "Installing PIP package {{package[1]}}..."
+echo "Installing PIP packages..."
+{% for package in python_packages %}
+echo "* {{package[0]}}/dist/{{package[1]}}"
+{%- endfor %}
 ${PIP3} install --upgrade --force-reinstall {% for package in python_packages %} {{package[0]}}/dist/{{package[1]}} {% endfor %}
