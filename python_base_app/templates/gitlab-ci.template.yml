@@ -126,7 +126,7 @@ build_pypi:
       when: always
       paths:
 {%- for package in python_packages %}
-        - dist/{{ package[10] }}-{{ package[11] }}.tar.gz
+        - {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz
 {%- endfor %}
   variables:
     # Suppress automatic checkout for all sub modules
