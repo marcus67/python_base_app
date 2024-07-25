@@ -125,7 +125,9 @@ build_pypi:
   artifacts:
       when: always
       paths:
-        - dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
+{%- for package in python_packages %}
+        - dist/{{ package[10] }}-{{ package[11] }}.tar.gz
+{%- endfor %}
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive

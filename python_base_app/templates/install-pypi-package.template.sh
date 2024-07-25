@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -62,5 +62,7 @@ hash -r
 echo "Check: make found by 'which': $(which make)"
 {% endif %}
 
-echo "Installing PIP package {{python_packages[0][1]}}..."
-${PIP3} install --upgrade --force-reinstall dist/{{python_packages[0][1]}}
+{%- for package in python_packages %}
+echo "Installing PIP package {{package[1]}}..."
+${PIP3} install --upgrade --force-reinstall dist/{{package[1]}}
+{%- endfor %}
