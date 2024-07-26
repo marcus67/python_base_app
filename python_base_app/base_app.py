@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -35,6 +35,7 @@ from python_base_app import locale_helper
 from python_base_app import log_handling
 from python_base_app import settings
 from python_base_app import tools
+from some_flask_helpers.blueprint_adapter import LOG_NAME as BLUEPRINT_ADAPTER_LOG_NAME
 
 PACKAGE_NAME = "python_base_app"
 
@@ -54,7 +55,8 @@ DEFAULT_MAXIMUM_TIMER_SLACK = 5  # second
 DEFAULT_MINIMUM_DOWNTIME_DURATION = 20  # seconds
 
 CONTRIB_LOG_PATHS = [
-    "alembic.runtime.migration"
+    "alembic.runtime.migration",
+    BLUEPRINT_ADAPTER_LOG_NAME
 ]
 
 class BaseAppConfigModel(configuration.ConfigModel):
