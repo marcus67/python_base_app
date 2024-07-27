@@ -28,20 +28,17 @@ BASE_DIR=`realpath ${SCRIPT_DIR}/..`
 set -e
 
 {% for package in python_packages %}
-# Build PIP package {{ package[1] }}...
+{%- if package[3].setup.angular_app_dir %}
 pushd . > /dev/null
 cd {{ package[0] }}
-
-{% if package[3].setup.angular_app_dir %}
-  ANGULAR_BUILD_DIR=${BASE_DIR}/{{ package[3].setup.angular_deployment_source_directory }}
-  ANGULAR_DEPLOYMENT_DIR=${BASE_DIR}/{{ package [2] }}/{{ package[3].setup.angular_deployment_dest_directory }}
-  if [[ ! -d ${ANGULAR_DEPLOYMENT_DIR} ]] ; then
-    echo "Create Angular deployment directory ${ANGULAR_DEPLOYMENT_DIR}..."
-    mkdir -p ${ANGULAR_DEPLOYMENT_DIR}
-  fi
-  echo "Copying Angular build directory ${ANGULAR_BUILD_DIR} to ${ANGULAR_DEPLOYMENT_DIR}"
-  cp -a ${ANGULAR_BUILD_DIR}/* ${ANGULAR_DEPLOYMENT_DIR}
-{%endif %}
-
-popd
+ANGULAR_BUILD_DIR=${BASE_DIR}/{{ package[3].setup.angular_deployment_source_directory }}
+ANGULAR_DEPLOYMENT_DIR=${BASE_DIR}/{{ package [2] }}/{{ package[3].setup.angular_deployment_dest_directory }}
+if [[ ! -d ${ANGULAR_DEPLOYMENT_DIR} ]] ; then
+  echo "Create Angular deployment directory ${ANGULAR_DEPLOYMENT_DIR}..."
+  mkdir -p ${ANGULAR_DEPLOYMENT_DIR}
+fi
+echo "Copying Angular build directory ${ANGULAR_BUILD_DIR} to ${ANGULAR_DEPLOYMENT_DIR}"
+cp -a ${ANGULAR_BUILD_DIR}/* ${ANGULAR_DEPLOYMENT_DIR}
+popd . > /dev/null
+{%- endif %}
 {% endfor %}
