@@ -39,6 +39,6 @@ if [[ ! -d ${ANGULAR_DEPLOYMENT_DIR} ]] ; then
 fi
 echo "Copying Angular build directory ${ANGULAR_BUILD_DIR} to ${ANGULAR_DEPLOYMENT_DIR}"
 cp -a ${ANGULAR_BUILD_DIR}/* ${ANGULAR_DEPLOYMENT_DIR}
-popd . > /dev/null
+popd > /dev/null
 {%- endif %}
 {% endfor %}
