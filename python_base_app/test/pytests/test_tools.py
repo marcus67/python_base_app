@@ -27,11 +27,13 @@ import pytest
 
 from python_base_app import configuration
 from python_base_app import tools
-from python_base_app.tools import RepetitiveObjectWriter
+from python_base_app.tools import RepetitiveObjectWriter, wrap_retry_until_expected_result
+
+global missing_calls_counter
 
 
 def test_anonymize_url():
-    assert 'http://user:[HIDDEN]@somehost/someurl' == tools.anonymize_url(p_url='http://user:pwd@somehost/someurl')
+    assert 'http://user:[HIDDEN]@some-host/some-url' == tools.anonymize_url(p_url='http://user:pwd@some-host/some-url')
 
 
 def test_get_string_as_time_valid_time():
@@ -96,13 +98,13 @@ class TimingResult(object):
 def test_timing_context():
     result = TimingResult()
 
-    sum = 0
+    my_sum = 0
 
     with tools.TimingContext(p_result_handler=lambda duration: result.set_duration(p_duration=duration)):
         for i in range(0, 10):
-            sum += i
+            my_sum += i
 
-    assert sum == 45
+    assert my_sum == 45
     assert result.duration is not None
     assert result.duration > 0
     assert result.duration < 0.1
@@ -198,6 +200,7 @@ def test_repetitive_object_writer_two_files_ignore_same_objects_but_different():
             content = f.read()
             assert content == "hallo"
 
+
 def test_repetitive_object_writer_two_files_ignore_same_objects_but_same():
     with tempfile.TemporaryDirectory() as d:
         filename_pattern = os.path.join(d, "base.{type}.{index:04d}.json")
@@ -256,3 +259,102 @@ def test_repetitive_object_writer_one_file_with_dict():
         with open(filename, "r") as f:
             content = f.read()
             assert content == '{"some_key": "some text"}'
+
+
+def repeat_me() -> str | None:
+    global missing_calls_counter
+
+    if missing_calls_counter == 0:
+        return "OK"
+
+    missing_calls_counter -= 1
+
+    return None
+
+
+def test_wrap_wrap_retry_until_non_none_sufficient_retries():
+    global missing_calls_counter
+
+    missing_calls_counter = 1
+
+    wrapped_function = wrap_retry_until_expected_result(func=repeat_me, p_max_retries=1)
+
+    result = wrapped_function()
+
+    assert result is not None
+    assert "OK" == result
+
+
+def test_wrap_wrap_retry_until_non_none_insufficient_retries():
+    global missing_calls_counter
+
+    missing_calls_counter = 2
+
+    wrapped_function = wrap_retry_until_expected_result(func=repeat_me, p_max_retries=1)
+
+    with pytest.raises(AssertionError) as e:
+        result = wrapped_function()
+
+    assert "did not return expected result" in str(e)
+
+
+def test_wrap_wrap_retry_until_non_none_wait_time_one_retry():
+    global missing_calls_counter
+
+    missing_calls_counter = 1
+
+    wrapped_function = wrap_retry_until_expected_result(func=repeat_me, p_max_retries=1, p_wait_time=1)
+
+    start_time = datetime.datetime.now()
+    result = wrapped_function()
+    end_time = datetime.datetime.now()
+
+    assert result is not None
+    assert "OK" == result
+
+    exec_time_in_seconds = (end_time - start_time).total_seconds()
+
+    assert exec_time_in_seconds >= 1
+    assert exec_time_in_seconds < 1.1
+
+
+def test_wrap_wrap_retry_until_non_none_wait_time_three_retries():
+    global missing_calls_counter
+
+    missing_calls_counter = 3
+
+    wrapped_function = wrap_retry_until_expected_result(func=repeat_me, p_max_retries=4, p_wait_time=1)
+
+    start_time = datetime.datetime.now()
+    result = wrapped_function()
+    end_time = datetime.datetime.now()
+
+    assert result is not None
+    assert "OK" == result
+
+    exec_time_in_seconds = (end_time - start_time).total_seconds()
+
+    assert exec_time_in_seconds >= 3
+    assert exec_time_in_seconds < 3.1
+
+
+def test_wrap_wrap_retry_until_non_none_wait_time_three_retries_exceeded():
+    global missing_calls_counter
+
+    missing_calls_counter = 4
+
+    wrapped_function = wrap_retry_until_expected_result(func=repeat_me, p_max_retries=3, p_wait_time=1)
+
+    start_time = datetime.datetime.now()
+
+    with pytest.raises(AssertionError) as e:
+        result = wrapped_function()
+
+    assert "did not return expected result" in str(e)
+
+    end_time = datetime.datetime.now()
+
+    exec_time_in_seconds = (end_time - start_time).total_seconds()
+
+    assert exec_time_in_seconds >= 3
+    assert exec_time_in_seconds < 3.1

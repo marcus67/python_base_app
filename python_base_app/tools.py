@@ -22,6 +22,7 @@ import datetime
 import inspect
 import io
 import json
+import logging
 import os
 import platform
 import re
@@ -33,7 +34,7 @@ import time
 import traceback
 import urllib.parse
 from os.path import dirname
-from typing import Set
+from typing import Set, Callable
 
 from python_base_app import configuration
 from python_base_app import exceptions
@@ -529,6 +530,9 @@ def is_valid_dns_name(p_dns_name):
 
 
 def get_dns_name_by_ip_address(p_ip_address):
+    if not REGEX_IP_ADDRESS.match(p_ip_address.strip()):
+        return p_ip_address
+
     try:
         result = socket.gethostbyaddr(p_ip_address)
         return result[0]
@@ -651,3 +655,39 @@ class RepetitiveObjectWriter:
 
         self._index += 1
         self._last_object = p_object
+
+
+def wrap_retry_until_expected_result(func: Callable, p_check_expected_result=None, p_wait_time=1,
+                                     p_max_retries=10, p_logger=None):
+    def wrapper(*args, **kwargs):
+        nonlocal p_logger
+        nonlocal p_check_expected_result
+
+        retry_count = 0
+
+        if p_logger is None:
+            p_logger = logging.getLogger("")
+
+        if p_check_expected_result is None:
+            p_check_expected_result = lambda x: x is not None
+
+        while True:
+            result = func(*args, **kwargs)
+
+            if p_check_expected_result(result):
+                if retry_count > 0:
+                    p_logger.info(f"method '{func.__name__}' returned expected result "
+                                  f"on attempt #{retry_count + 1} -> OK")
+                return result
+
+            retry_count += 1
+
+            if retry_count > p_max_retries:
+                raise AssertionError(f"method '{func.__name__}' did not return expected result "
+                                     f"after {p_max_retries} attempts -> failing...")
+
+            p_logger.debug(f"method '{func.__name__}' did not return expected result -> "
+                           f"retrying in {p_wait_time} second(s)...")
+            time.sleep(p_wait_time)
+
+    return wrapper
