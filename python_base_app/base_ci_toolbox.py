@@ -259,13 +259,14 @@ def get_predefined_environment_variables():
 
             if value is not None:
                 if var_info.target_name in predefined_env_variables:
-                    msg = "New value '{value}' found in environment with value ({name}) to be used for '{target_name}' WILL BE IGNORED!"
-                    logger.warning(msg.format(name=var_info.source_name, value=value, target_name=var_info.target_name))
+                    msg = f"New value '{value}' found in environment with value ({var_info.source_name}) "\
+                          f"to be used for '{var_info.target_name}' WILL BE IGNORED!"
+                    logger.warning(msg)
 
                 else:
-                    msg = "{description} ({name}) found in environment with value '{value}' to be used for '{target_name}'"
-                    logger.info(msg.format(name=var_info.source_name, description=var_info.description, value=value,
-                                           target_name=var_info.target_name))
+                    msg = f"{var_info.description} ({var_info.source_name}) found in environment "\
+                          f"with value '{value}' to be used for '{var_info.target_name}'"
+                    logger.info(msg)
                     predefined_env_variables[var_info.target_name] = value
 
     return predefined_env_variables
@@ -382,12 +383,10 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
     branch = var["setup"].get("GIT_BRANCH")
     branch_target_rep_map = var["setup"]["publish_pypi_package"]
-    branch_extra_pypi_indexes_map = var["setup"]["extra_pypi_indexes"]
 
     target_rep_url_env_name = None
     target_rep_token_env_name = None
     target_rep_user_env_name = None
-    target_rep_extra_index_env_name = None
 
     if branch is not None:
         if isinstance(branch_target_rep_map, dict):
@@ -812,8 +811,8 @@ def generate_install_pypi_package_script(p_main_setup_module, p_template_env, p_
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
     output_file_path = INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    install_and_test_pypi_package_script_filename = os.path.join(
-        os.path.realpath(get_module_dir(p_module=p_main_setup_module), output_file_path))
+    install_and_test_pypi_package_script_filename = os.path.realpath(os.path.join(
+        get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(install_and_test_pypi_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(install_and_test_pypi_package_script_filename, "w") as f:
@@ -1131,7 +1130,6 @@ def main(p_main_module_dir: str, p_argv=None):
             generate_deploy_angular_app(p_main_setup_module=main_setup_module, p_template_env=template_env,
                                         p_arguments=arguments)
             execute_deploy_angular_app_script(p_main_setup_module=main_setup_module)
-
 
         elif arguments.execute_stage == STAGE_BUILD_PACKAGE:
             if var["setup"]["build_debian_package"]:
