@@ -38,7 +38,7 @@ if [[ ! -d ${ANGULAR_DEPLOYMENT_DIR} ]] ; then
   mkdir -p ${ANGULAR_DEPLOYMENT_DIR}
 fi
 echo "Copying Angular build directory ${ANGULAR_BUILD_DIR} to ${ANGULAR_DEPLOYMENT_DIR}"
-cp -a ${ANGULAR_BUILD_DIR}/* ${ANGULAR_DEPLOYMENT_DIR}
+cp -uva ${ANGULAR_BUILD_DIR}/* ${ANGULAR_DEPLOYMENT_DIR}
 popd > /dev/null
 {%- endif %}
 {% endfor %}

@@ -533,7 +533,8 @@ def generate_debian_control(p_main_setup_module, p_template_env):
 
     output_file_path = DEBIAN_CONTROL_FILE_PATH.format(**(var["setup"]))
 
-    debian_control_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    debian_control_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(debian_control_filename), mode=0o777, exist_ok=True)
 
@@ -563,7 +564,8 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
 
     output_file_path = DEBIAN_POSTINST_FILE_PATH.format(**(var["setup"]))
 
-    debian_postinst_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    debian_postinst_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(debian_postinst_filename), mode=0o777, exist_ok=True)
 
@@ -596,7 +598,8 @@ def generate_generic_installation_script(p_main_setup_module, p_template_env, p_
 
     output_file_path = GENERIC_INSTALLATION_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    debian_postinst_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    debian_postinst_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(debian_postinst_filename), mode=0o777, exist_ok=True)
 
@@ -634,7 +637,7 @@ def generate_pycoveragerc(p_main_setup_module, p_template_env, p_arguments):
     else:
         run_dir = get_module_dir(p_module=p_main_setup_module)
 
-    pycoveragerc_filename = os.path.join(run_dir, output_file_path)
+    pycoveragerc_filename = os.path.realpath(os.path.join(run_dir, output_file_path))
 
     with open(pycoveragerc_filename, "w") as f:
         f.write(output_text)
@@ -660,7 +663,8 @@ def generate_make_debian_package(p_main_setup_module, p_template_env, p_argument
 
     output_file_path = MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    make_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    make_debian_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(make_debian_package_script_filename), mode=0o777, exist_ok=True)
 
@@ -691,7 +695,8 @@ def generate_build_angular_app(p_main_setup_module, p_template_env, p_arguments)
 
     output_file_path = BUILD_ANGULAR_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    build_angular_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    build_angular_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(build_angular_app_script_filename), mode=0o777, exist_ok=True)
 
@@ -721,7 +726,8 @@ def generate_deploy_angular_app(p_main_setup_module, p_template_env, p_arguments
 
     output_file_path = DEPLOY_ANGULAR_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    deploy_angular_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    deploy_angular_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(deploy_angular_app_script_filename), mode=0o777, exist_ok=True)
 
@@ -751,7 +757,8 @@ def generate_build_docker_image_script(p_main_setup_module, p_template_env, p_ar
 
     output_file_path = BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    build_docker_image_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    build_docker_image_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(build_docker_image_script_filename), mode=0o777, exist_ok=True)
 
@@ -778,8 +785,8 @@ def generate_install_debian_package_script(p_main_setup_module, p_template_env, 
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
     output_file_path = INSTALL_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    install_and_test_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
-                                                                   output_file_path)
+    install_and_test_debian_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(install_and_test_debian_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(install_and_test_debian_package_script_filename, "w") as f:
@@ -805,8 +812,8 @@ def generate_install_pypi_package_script(p_main_setup_module, p_template_env, p_
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
     output_file_path = INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    install_and_test_pypi_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
-                                                                 output_file_path)
+    install_and_test_pypi_package_script_filename = os.path.join(
+        os.path.realpath(get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(install_and_test_pypi_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(install_and_test_pypi_package_script_filename, "w") as f:
@@ -838,7 +845,8 @@ def generate_test_app_script(p_main_setup_module, p_template_env, p_arguments):
 
     output_file_path = TEST_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    test_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    test_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(test_app_script_filename), mode=0o777, exist_ok=True)
 
@@ -870,7 +878,8 @@ def generate_analyze_app_script(p_main_setup_module, p_template_env, p_arguments
 
     output_file_path = ANALYZE_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    analyze_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    analyze_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(analyze_app_script_filename), mode=0o777, exist_ok=True)
 
@@ -898,8 +907,8 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
         site_packages_dir=get_site_packages_dir()
     )
     output_file_path = PUBLISH_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    publish_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
-                                                          output_file_path)
+    publish_debian_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(publish_debian_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(publish_debian_package_script_filename, "w") as f:
@@ -928,7 +937,8 @@ def generate_publish_pypi_package_script(p_main_setup_module, p_template_env, p_
         site_packages_dir=get_site_packages_dir()
     )
     output_file_path = PUBLISH_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    publish_pypi_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    publish_pypi_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(publish_pypi_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(publish_pypi_package_script_filename, "w") as f:
@@ -944,7 +954,6 @@ def generate_publish_pypi_package_script(p_main_setup_module, p_template_env, p_
 def output_beacon(status):
     global logger
 
-    done = False
     count = 0
 
     while not status.done:
@@ -1017,6 +1026,7 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
 def execute_build_angular_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=BUILD_ANGULAR_APP_SCRIPT_FILE_PATH)
+
 
 def execute_deploy_angular_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,

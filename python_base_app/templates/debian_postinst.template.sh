@@ -293,7 +293,8 @@ echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
 chmod og-rwx {{ file_mapping[1] }}
 {%- endfor %}
 
-${PIP3} install wheel # setuptools
+echo "Upgrading packages 'wheel' and 'setuptools'..."
+${PIP3} install wheel setuptools
 echo "Installing PIP packages..."
 {%- for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
