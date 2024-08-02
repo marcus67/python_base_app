@@ -1,6 +1,6 @@
 #! /bin/bash
 
-#    Copyright (C) 2019-2022  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -244,18 +244,18 @@ echo "Activating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
 fi
 
 echo "Setting ownership..."
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${ETC_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${ETC_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${LOG_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${LOG_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${SPOOL_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${SPOOL_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${LIB_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${LIB_DIR}
 
 {% for file_mapping in var.setup.debian_templates %}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
-chown {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} {{ file_mapping[1] }}"
+chown {{ var.setup.user }}:{{ var.setup.group }} {{ file_mapping[1] }}
 {%- endfor %}
 
 {%- if var.setup.deploy_systemd_service %}
@@ -289,7 +289,7 @@ echo "    * ${SPOOL_DIR}"
 chmod -R og-rwx ${SPOOL_DIR}
 
 {% for file_mapping in var.setup.debian_templates %}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} {{ file_mapping[1] }}"
 chmod og-rwx {{ file_mapping[1] }}
 {%- endfor %}
 
@@ -302,6 +302,12 @@ echo "  * {{ package_name[1] }}"
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
 ${PIP3} install --upgrade --ignore-installed {% for package_name in python_packages %}\
      ${LIB_DIR}/{{ package_name[1] }}{% endfor %}
+
+if [ "${VIRTUAL_ENV_DIR}" != "" ] ; then
+  echo "Changing ownership of virtual environment ${VIRTUAL_ENV_DIR} to {{ var.setup.user }}:{{ var.setup.group }}..."
+  chown -R {{ var.setup.user }}:{{ var.setup.group }} ${VIRTUAL_ENV_DIR}
+fi
+
 
 {% for package_name in python_packages %}
 echo "Removing installation file ${LIB_DIR}/{{ package_name[1] }}..."
