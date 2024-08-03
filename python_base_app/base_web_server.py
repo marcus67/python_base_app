@@ -35,6 +35,8 @@ from python_base_app import auth_view_handler
 from python_base_app import configuration
 from python_base_app import log_handling
 from python_base_app import tools
+from python_base_app.configuration import ConfigurationException
+from python_base_app.tools import is_port_available
 
 DEFAULT_BASE_URL = ''
 DEFAULT_INTERNAL_BASE_URL = ''
@@ -219,6 +221,13 @@ class BaseWebServer(object):
         fmt = "Starting web server '{name}' on {address}:{port}{base_url}"
         self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
                                      base_url=self._config.base_url))
+
+        if not is_port_available(p_host=self._config.host, p_port=self._config.port):
+            msg = f"Port {self._config.port} is not available at {self._config.host}!"
+            self._logger.error(msg)
+            self._server_exception = ConfigurationException(msg)
+            raise self._server_exception
+
 
 # See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
         try:

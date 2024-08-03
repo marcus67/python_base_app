@@ -691,3 +691,13 @@ def wrap_retry_until_expected_result(func: Callable, p_check_expected_result=Non
             time.sleep(p_wait_time)
 
     return wrapper
+
+
+def is_port_available(p_port: int, p_host: str = '127.0.0.1'):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind((p_host, p_port))
+            return True
+
+        except OSError:
+            return False
