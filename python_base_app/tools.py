@@ -696,8 +696,11 @@ def wrap_retry_until_expected_result(func: Callable, p_check_expected_result=Non
 def is_port_available(p_port: int, p_host: str = '127.0.0.1'):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
+            # The option SO_REUSEPORT is required for macOS. See:
+            # https://stackoverflow.com/questions/51998042/macos-so-reuseaddr-so-reuseport-not-consistent-with-linux
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
             s.bind((p_host, p_port))
             return True
 
-        except OSError:
+        except OSError as e:
             return False
