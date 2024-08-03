@@ -698,7 +698,10 @@ def is_port_available(p_port: int, p_host: str = '127.0.0.1'):
         try:
             # The option SO_REUSEPORT is required for macOS. See:
             # https://stackoverflow.com/questions/51998042/macos-so-reuseaddr-so-reuseport-not-consistent-with-linux
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
+            if is_mac_os():
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+
             s.bind((p_host, p_port))
             return True
 
