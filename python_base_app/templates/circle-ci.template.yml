@@ -44,7 +44,7 @@ jobs:
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
   {%- if var.setup.run_test_suite %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+      - run: DELTA_PORT={{ loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
   {%- endif %}
       - run: codecov
       {% if loop.revindex == 1 %}
@@ -110,7 +110,7 @@ jobs:
   {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install_pypi_package }} --use-dev-dir=.
   {%- if var.setup.run_test_suite %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+      - run: DELTA_PORT={{ (var.setup.docker_images_test | length) + loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
   {%- endif %}
       - run: codecov
       {% if loop.revindex == 1 %}

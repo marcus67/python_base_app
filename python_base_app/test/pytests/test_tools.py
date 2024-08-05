@@ -28,7 +28,6 @@ import pytest
 from python_base_app import configuration
 from python_base_app import tools
 from python_base_app.tools import RepetitiveObjectWriter, wrap_retry_until_expected_result
-from python_base_app.net_tools import is_port_available
 
 global missing_calls_counter
 

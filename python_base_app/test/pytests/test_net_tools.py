@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
 import socket
 
 from python_base_app.net_tools import is_port_available
+from python_base_app.test.base_test import BaseTestCase
 
 
 #    Copyright (C) 2019-2024  Marcus Rickert
@@ -24,12 +24,12 @@ from python_base_app.net_tools import is_port_available
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 def test_is_port_available_true():
-    port = os.getenv("STATUS_SERVER_PORT", "5555")
+    port = BaseTestCase.get_status_server_port()
     assert is_port_available(p_port=int(port))
 
 
 def test_is_port_available_false():
-    port = os.getenv("STATUS_SERVER_PORT", "5555")
+    port = BaseTestCase.get_status_server_port()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("localhost", int(port)))
