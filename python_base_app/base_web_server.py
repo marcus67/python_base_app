@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import os
 #    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
@@ -222,7 +222,7 @@ class BaseWebServer(object):
         self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
                                      base_url=self._config.base_url))
 
-        if not is_port_available(p_port=self._config.port):
+        if not os.getenv("NO_PORT_CHECK") and not is_port_available(p_port=self._config.port):
             msg = f"Port {self._config.port} is not available at {self._config.host}!"
             self._logger.error(msg)
             self._server_exception = ConfigurationException(msg)
