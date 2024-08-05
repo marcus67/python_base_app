@@ -151,7 +151,9 @@ default_setup = {
     "docker_image_owasp": "registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest",
     "owasp_additional_params": "--enableExperimental",
     "ci_toolbox_script": "ci_toolbox.py",
-    "ci_pip_dependencies": [],
+    "ci_pip_dependencies": [
+        "psutil"
+    ],
     "ci_stage_build_angular_app": STAGE_BUILD_ANGULAR_APP,
     "ci_stage_deploy_angular_app": STAGE_DEPLOY_ANGULAR_APP,
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,

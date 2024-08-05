@@ -36,8 +36,6 @@ import urllib.parse
 from os.path import dirname
 from typing import Set, Callable
 
-import psutil
-
 from python_base_app import configuration
 from python_base_app import exceptions
 from python_base_app import log_handling
@@ -695,12 +693,3 @@ def wrap_retry_until_expected_result(func: Callable, p_check_expected_result=Non
     return wrapper
 
 
-def is_port_available(p_port: int):
-    connections = psutil.net_connections()
-
-    # Check if the port is in use
-    for conn in connections:
-        if conn.laddr.port == p_port:
-            return False
-
-    return True

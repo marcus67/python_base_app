@@ -36,7 +36,7 @@ from python_base_app import configuration
 from python_base_app import log_handling
 from python_base_app import tools
 from python_base_app.configuration import ConfigurationException
-from python_base_app.tools import is_port_available
+from python_base_app.net_tools import is_port_available
 
 DEFAULT_BASE_URL = ''
 DEFAULT_INTERNAL_BASE_URL = ''

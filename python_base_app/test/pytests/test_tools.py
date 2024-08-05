@@ -27,7 +27,8 @@ import pytest
 
 from python_base_app import configuration
 from python_base_app import tools
-from python_base_app.tools import RepetitiveObjectWriter, wrap_retry_until_expected_result, is_port_available
+from python_base_app.tools import RepetitiveObjectWriter, wrap_retry_until_expected_result
+from python_base_app.net_tools import is_port_available
 
 global missing_calls_counter
 
@@ -358,19 +359,3 @@ def test_wrap_wrap_retry_until_non_none_wait_time_three_retries_exceeded():
 
     assert exec_time_in_seconds >= 3
     assert exec_time_in_seconds < 3.1
-
-
-def test_is_port_available_true():
-    port = os.getenv("STATUS_SERVER_PORT", "5555")
-    assert is_port_available(p_port=int(port))
-
-
-def test_is_port_available_false():
-    port = os.getenv("STATUS_SERVER_PORT", "5555")
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("localhost", int(port)))
-        s.listen()
-
-        assert not is_port_available(p_port=int(port))
-
