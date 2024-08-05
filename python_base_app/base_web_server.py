@@ -222,7 +222,7 @@ class BaseWebServer(object):
         self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
                                      base_url=self._config.base_url))
 
-        if not is_port_available(p_host=self._config.host, p_port=self._config.port):
+        if not is_port_available(p_port=self._config.port):
             msg = f"Port {self._config.port} is not available at {self._config.host}!"
             self._logger.error(msg)
             self._server_exception = ConfigurationException(msg)

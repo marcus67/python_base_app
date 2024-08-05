@@ -362,7 +362,7 @@ def test_wrap_wrap_retry_until_non_none_wait_time_three_retries_exceeded():
 
 def test_is_port_available_true():
     port = os.getenv("STATUS_SERVER_PORT", "5555")
-    assert is_port_available(p_port=int(port), p_host="localhost")
+    assert is_port_available(p_port=int(port))
 
 
 def test_is_port_available_false():
@@ -370,6 +370,7 @@ def test_is_port_available_false():
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("localhost", int(port)))
+        s.listen()
 
-        assert not is_port_available(p_port=int(port), p_host="localhost")
+        assert not is_port_available(p_port=int(port))
 
