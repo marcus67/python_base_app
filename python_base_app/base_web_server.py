@@ -173,6 +173,9 @@ class BaseWebServer(object):
                                  p_view_method,
                                  methods=p_methods)
 
+    def get_port(self) -> int:
+        return self._config.port
+
     # noinspection PyUnusedLocal
     def get_url(self, p_rel_url='', p_internal=False, p_simple=False):
 
@@ -221,13 +224,6 @@ class BaseWebServer(object):
         fmt = "Starting web server '{name}' on {address}:{port}{base_url}"
         self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
                                      base_url=self._config.base_url))
-
-        if not os.getenv("NO_PORT_CHECK") and not is_port_available(p_port=self._config.port):
-            msg = f"Port {self._config.port} is not available at {self._config.host}!"
-            self._logger.error(msg)
-            self._server_exception = ConfigurationException(msg)
-            raise self._server_exception
-
 
 # See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
         try:
