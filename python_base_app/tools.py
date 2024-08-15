@@ -125,6 +125,9 @@ def get_time_from_iso_8601(datetime_in_iso8061: str) -> datetime.time | None:
     if datetime_in_iso8061 is None:
         return None
 
+    if sys.version_info[1] <= 10 and datetime_in_iso8061[-1] == 'Z':
+        datetime_in_iso8061 = datetime_in_iso8061[:-1]
+
     return datetime.datetime.fromisoformat(datetime_in_iso8061).time()
 
 
