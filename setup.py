@@ -56,7 +56,7 @@ extended_setup_params = {
     "id": "python-base-app",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "owasp": False,  # TODO: Reactivate Owasp check!
+    "owasp": True,  # TODO: Reactivate Owasp check!
     "analyze_branch_map": {
         "master": 'SONAR_PROJECT_KEY',
         "fb-angular": 'SONAR_PROJECT_KEY_FB_ANGULAR'
