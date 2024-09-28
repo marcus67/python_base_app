@@ -126,12 +126,12 @@ owasp_check:
 
 owasp_upload:
   image:
-    name: "$VULSCAN_ADAPTER_IMAGE"
+    name: "$SECURECHECKPLUS_ADAPTER_IMAGE"
     entrypoint: ["python", "run.py"]
   stage: owasp_upload
   allow_failure: false
   variables:
-    VULSCAN_SERVER_URL: "$VULSCAN_URL/analyzer/api"
+    SECURECHECKPLUS_SERVER_URL: "SECURECHECKPLUS_URL/analyzer/api"
     REPORT_FILE_NAME: dependency-check-report.xml
     FILE_FORMAT: xml
     TOOL_NAME: owasp
