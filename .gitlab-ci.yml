@@ -113,7 +113,7 @@ owasp_check:
   stage: owasp_check
   script:
     # Job will scan the project root folder and fail if any vulnerabilities with CVSS > 0 are found
-    - /usr/share/dependency-check/bin/dependency-check.sh --enableExperimental --scan "./" --format XML --project "$CI_PROJECT_NAME"
+    - /usr/share/dependency-check/bin/dependency-check.sh --enableExperimental --scan "./" --format JSON --project "$CI_PROJECT_NAME"
     # Dependency Check will only fail the job based on CVSS scores, and in some cases vulnerabilities do not
     # have CVSS scores (e.g. those from NPM audit), so they don't cause failure.  To fail for any vulnerabilities
     # grep the resulting report for any "vulnerabilities" sections and exit if any are found (count > 0).
@@ -122,7 +122,7 @@ owasp_check:
     when: always
     paths:
         # Save the HTML and JSON report artifacts
-      - "./dependency-check-report.xml"
+      - "./dependency-check-report.json"
 
 owasp_upload:
   image:
@@ -132,8 +132,8 @@ owasp_upload:
   allow_failure: false
   variables:
     SECURECHECKPLUS_SERVER_URL: "SECURECHECKPLUS_URL/analyzer/api"
-    REPORT_FILE_NAME: dependency-check-report.xml
-    FILE_FORMAT: xml
+    REPORT_FILE_NAME: dependency-check-report.json
+    FILE_FORMAT: json
     TOOL_NAME: owasp
     PROJECT_ID: "python-base-app"
     PROJECT_NAME: "python-base-app"
