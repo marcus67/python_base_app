@@ -204,8 +204,8 @@ owasp_upload:
   stage: owasp_upload
   allow_failure: false
   variables:
-    SECURECHECKPLUS_SERVER_URL: "SECURECHECKPLUS_URL/analyzer/api"
-    SECURECHECKPLUS_API_KEY: "$SECURECHECKPLUS_API_KEY"
+    SERVER_URL: "$SECURECHECKPLUS_SERVER_URL/analyzer/api"
+    API_KEY: "$SECURECHECKPLUS_API_KEY"
     REPORT_FILE_NAME: dependency-check-report.json
     FILE_FORMAT: json
     TOOL_NAME: owasp
@@ -217,7 +217,7 @@ owasp_upload:
     - if: '$CI_COMMIT_REF_NAME == "{{ branch_name }}"'
       variables:
         PROJECT_ID: "${{ project_id_env_name }}"
-        SECURECHECKPLUS_API_KEY: "${{ api_key_env_name }}"
+        API_KEY: "${{ api_key_env_name }}"
   {%- endfor %}
   {% endif %}
   script:
