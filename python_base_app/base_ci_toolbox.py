@@ -212,7 +212,7 @@ default_setup = {
         "main": 'SONAR_PROJECT_KEY'
     },
     "owasp_check_branch_map": {
-        "main": 'ACCSCAN_PROJECT_ID'
+        "main": 'SECURECHECKPLUS_PROJECT_ID'
     },
     "build_pypi_package": False,
     "publish_pypi_package": {},
