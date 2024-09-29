@@ -137,6 +137,14 @@ owasp_upload:
     TOOL_NAME: owasp
     PROJECT_ID: "python-base-app"
     PROJECT_NAME: "python-base-app"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      variables:
+        PROJECT_ID: "$SECURECHECKPLUS_PROJECT_ID"
+    - if: '$CI_COMMIT_REF_NAME == "fb-angular"'
+      variables:
+        PROJECT_ID: "$SECURECHECKPLUS_PROJECT_ID_FB_ANGULAR"
+  
   script:
     - echo "Analysis successful."
 publish_pypi:

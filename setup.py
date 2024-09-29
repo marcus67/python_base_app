@@ -62,7 +62,8 @@ extended_setup_params = {
         "fb-angular": 'SONAR_PROJECT_KEY_FB_ANGULAR'
     },
     "owasp_check_branch_map": {
-        "main": 'SECURECHECKPLUS_PROJECT_ID'
+        "main": 'SECURECHECKPLUS_PROJECT_ID',
+        "fb-angular": 'SECURECHECKPLUS_PROJECT_ID_FB_ANGULAR'
     },
 
     # for Testing extra CI PIP dependencies

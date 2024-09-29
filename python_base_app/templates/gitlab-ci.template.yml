@@ -210,6 +210,14 @@ owasp_upload:
     TOOL_NAME: owasp
     PROJECT_ID: "{{ var.setup.scan_id or var.setup.name }}"
     PROJECT_NAME: "{{ var.setup.name }}"
+  {%- if var.setup.owasp_check_branch_map %}
+  rules:
+  {%- for branch_name, env_name in var.setup.owasp_check_branch_map.items() %}
+    - if: '$CI_COMMIT_REF_NAME == "{{ branch_name }}"'
+      variables:
+        PROJECT_ID: "${{ env_name }}"
+  {%- endfor %}
+  {% endif %}
   script:
     - echo "Analysis successful."
 {%- endif %}
