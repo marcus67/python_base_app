@@ -132,6 +132,7 @@ owasp_upload:
   allow_failure: false
   variables:
     SECURECHECKPLUS_SERVER_URL: "SECURECHECKPLUS_URL/analyzer/api"
+    SECURECHECKPLUS_API_KEY: "$SECURECHECKPLUS_API_KEY"
     REPORT_FILE_NAME: dependency-check-report.json
     FILE_FORMAT: json
     TOOL_NAME: owasp
@@ -141,9 +142,11 @@ owasp_upload:
     - if: '$CI_COMMIT_REF_NAME == "main"'
       variables:
         PROJECT_ID: "$SECURECHECKPLUS_PROJECT_ID"
+        SECURECHECKPLUS_API_KEY: "$SECURECHECKPLUS_API_KEY"
     - if: '$CI_COMMIT_REF_NAME == "fb-angular"'
       variables:
         PROJECT_ID: "$SECURECHECKPLUS_PROJECT_ID_FB_ANGULAR"
+        SECURECHECKPLUS_API_KEY: "$SECURECHECKPLUS_API_KEY_FB_ANGULAR"
   
   script:
     - echo "Analysis successful."
