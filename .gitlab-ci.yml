@@ -132,7 +132,7 @@ owasp_upload:
   allow_failure: false
   variables:
     SERVER_URL: "$SECURECHECKPLUS_SERVER_URL/analyzer/api"
-    API_KEY: "$SECURECHECKPLUS_API_KEY"
+    SKIP: "$SECURECHECKPLUS_SKIP"
     REPORT_FILE_NAME: dependency-check-report.json
     FILE_FORMAT: json
     TOOL_NAME: owasp
