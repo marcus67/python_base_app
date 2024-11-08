@@ -9,6 +9,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Add class `RepetitiveObjectWriter`
 * Add support for renaming of VulScan to SecureCheckPlus
 * Add branch map support for SecureCheckPlus
+* Support building and testing for several Python versions
 
 # Version 0.2.50 (December 3rd, 2023)
 * Bump `urllib3` to 2.1.0 (CVE-2023-45803)

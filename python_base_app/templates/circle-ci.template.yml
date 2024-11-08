@@ -24,6 +24,28 @@
 version: 2.0
 
 jobs:
+
+  {%- if var.setup.angular_app_dir %}
+  build_angular_app:
+    docker:
+      - image: "{{ var.setup.docker_image_build_angular }}"
+     steps:
+       - checkout
+      # Check out all sub modules
+      # See https://circleci.com/docs/2.0/configuration-reference/#checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+
+    {%- if var.setup.ci_pip_dependencies|length > 0 %}
+      - run: ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+    {%- endif %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_angular_app }} --use-dev-dir=.
+      - persist_to_workspace:
+          root: {{ var.setup.angular_deployment_source_directory }}
+          paths:
+            - "**"
+  {%- endif -%}
+
   {%- if var.setup.build_debian_package %}
   {% for image_info in var.setup.docker_images_test %}
   build_{{ image_info[0] }}:
@@ -40,6 +62,9 @@ jobs:
 
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
       - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
   {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
@@ -76,6 +101,9 @@ jobs:
 
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
       - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
   {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       {% if loop.revindex == 1 %}
@@ -176,9 +204,12 @@ workflows:
     version: 2
     build_and_deploy:
       jobs:
+  {% if var.setup.angular_app_dir -%}
+        - build_angular_app
+  {% endif -%}
   {%- if var.setup.build_debian_package %}
   {% for image_info in var.setup.docker_images_test %}
-        - build
+        - build_{{ image_info[0] }}
   {% endfor %}
   {%- if var.setup.publish_debian_package|length > 0 %}
         - deploy:
