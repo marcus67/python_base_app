@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 #    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
@@ -26,17 +25,15 @@ from os.path import join
 import flask.globals
 import flask.wrappers
 import flask_login
-import some_flask_helpers
 from flask_wtf import CSRFProtect
 from secure import Secure
 
+import some_flask_helpers
 from python_base_app import actuator
 from python_base_app import auth_view_handler
 from python_base_app import configuration
 from python_base_app import log_handling
 from python_base_app import tools
-from python_base_app.configuration import ConfigurationException
-from python_base_app.net_tools import is_port_available
 
 DEFAULT_BASE_URL = ''
 DEFAULT_INTERNAL_BASE_URL = ''
@@ -225,9 +222,9 @@ class BaseWebServer(object):
         self._logger.info(fmt.format(name=self._name, address=self._config.host, port=self._config.port,
                                      base_url=self._config.base_url))
 
-# See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
+        # See https://stackoverflow.com/questions/14814201/can-i-serve-multiple-clients-using-just-flask-app-run-as-standalone
         try:
-            self._app.run(port=self._config.port, host=self._config.host, threaded=True)
+            self._app.run(port=self._config.port, host=self._config.host, threaded=True, debug=False)
 
         except Exception as e:
             fmt = "Exception '%s' while starting web server %s" % (str(e), self._name)
