@@ -24,6 +24,7 @@ import pytest
 
 from python_base_app.configuration import ConfigurationException
 from python_base_app.pinger import Pinger, PingerConfigModel
+from python_base_app.tools import is_mac_os
 
 
 @pytest.fixture
@@ -53,15 +54,20 @@ def test_is_invalid_ping(default_pinger):
     assert not default_pinger.is_valid_ping(p_host="256.168.1.1:6666")
 
 
-@pytest.mark.skipif(os.getenv("NO_PING"),  reason="no ping allowed")
+@pytest.mark.skipif(os.getenv("NO_PING"), reason="no ping allowed")
 def test_ping_localhost(default_pinger: Pinger):
     result = default_pinger.ping(p_host="localhost")
     assert result is not None
     value = float(result)
-    assert value < 0.1
+
+    if is_mac_os():
+        assert value < 0.2
+
+    else:
+        assert value < 0.1
 
 
-@pytest.mark.skipif(os.getenv("NO_PING"),  reason="no ping allowed")
+@pytest.mark.skipif(os.getenv("NO_PING"), reason="no ping allowed")
 def test_ping_google_dns(default_pinger: Pinger):
     result = default_pinger.ping(p_host="8.8.8.8")
     assert result is not None
@@ -70,7 +76,7 @@ def test_ping_google_dns(default_pinger: Pinger):
     assert value < 1000
 
 
-@pytest.mark.skipif(os.getenv("NO_PING"),  reason="no ping allowed")
+@pytest.mark.skipif(os.getenv("NO_PING"), reason="no ping allowed")
 def test_ping_non_existing_host(default_pinger: Pinger):
     with pytest.raises(ConfigurationException):
         default_pinger.ping(p_host="localhostx")

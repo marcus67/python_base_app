@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2019  Marcus Rickert
+# Copyright (C) 2019-2024  Marcus Rickert
 #
 # See https://github.com/marcus67/python_base_app
 # This program is free software; you can redistribute it and/or modify
@@ -70,7 +70,7 @@ class BaseUserHandler(object, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_uid(self, p_username):
+    def get_uid(self, p_username):  # pragma: no cover
         pass
 
     def authenticate(self, p_username, p_password):

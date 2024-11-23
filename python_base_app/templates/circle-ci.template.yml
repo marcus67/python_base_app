@@ -1,4 +1,4 @@
-#    Copyright (C) 2019-2022  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -24,11 +24,34 @@
 version: 2.0
 
 jobs:
+
+  {%- if var.setup.angular_app_dir %}
+  build_angular_app:
+    docker:
+      - image: "{{ var.setup.docker_image_build_angular }}"
+     steps:
+       - checkout
+      # Check out all sub modules
+      # See https://circleci.com/docs/2.0/configuration-reference/#checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+
+    {%- if var.setup.ci_pip_dependencies|length > 0 %}
+      - run: ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+    {%- endif %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_angular_app }} --use-dev-dir=.
+      - persist_to_workspace:
+          root: {{ var.setup.angular_deployment_source_directory }}
+          paths:
+            - "**"
+  {%- endif -%}
+
   {%- if var.setup.build_debian_package %}
-  build:
+  {% for image_info in var.setup.docker_images_test %}
+  build_{{ image_info[0] }}:
     #working_directory: ~
     docker:
-      - image: {{ var.setup.docker_image_test }}
+      - image: "{{ image_info[1] }}"
     steps:
       - checkout
 
@@ -40,12 +63,16 @@ jobs:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
       - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
   {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
+  {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}
   {%- if var.setup.run_test_suite %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+      - run: DELTA_PORT={{ loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
   {%- endif %}
       - run: codecov
+      {% if loop.revindex == 1 %}
       - store_artifacts:
           path: htmlcov
       - store_artifacts:
@@ -54,13 +81,16 @@ jobs:
           root: {{ var.setup.debian_build_dir }}
           paths:
             - {{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
+      {% endif %}
+  {% endfor %}
   {%- endif %}
 
   {%- if var.setup.build_pypi_package %}
-  build_pypi:
+  {% for image_info in var.setup.docker_images_test %}
+  build_pypi_{{ image_info[0] }}:
     #working_directory: ~
     docker:
-      - image: {{ var.setup.docker_image_test }}
+      - image: "{{ image_info[1] }}"
     steps:
       - checkout
 
@@ -72,20 +102,27 @@ jobs:
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
       - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
   {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
+  {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+      {% if loop.revindex == 1 %}
       - store_artifacts:
           path: "dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
       - persist_to_workspace:
           root: dist
           paths:
             - "{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
+      {% endif %}
+  {% endfor %}
   {%- endif %}
 
   {%- if var.setup.build_pypi_package %}
-  install_pypi:
+  {% for image_info in var.setup.docker_images_test %}
+  install_pypi_{{ image_info[0] }}:
     #working_directory: ~
     docker:
-      - image: {{ var.setup.docker_image_test }}
+      - image: "{{ image_info[1] }}"
     steps:
       - checkout
       - attach_workspace:
@@ -101,18 +138,21 @@ jobs:
   {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install_pypi_package }} --use-dev-dir=.
   {%- if var.setup.run_test_suite %}
-      - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+      - run: DELTA_PORT={{ (var.setup.docker_images_test | length) + loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
   {%- endif %}
       - run: codecov
+      {% if loop.revindex == 1 %}
       - store_artifacts:
           path: htmlcov
+      {% endif %}
+  {% endfor %}
   {%- endif %}
 
   {%- if var.setup.publish_pypi_package|length > 0 %}
   publish_pypi:
     #working_directory: ~
     docker:
-      - image: {{ var.setup.docker_image_test }}
+      - image: {{ var.setup.docker_image_push_pypi }}
     steps:
       - checkout
       - attach_workspace:
@@ -132,7 +172,7 @@ jobs:
   {%- if var.setup.build_debian_package %}
   deploy:
     docker:
-      - image: {{ var.setup.docker_image_test }}
+      - image: {{ var.setup.docker_image_publish_debian }}
     steps:
       - checkout
       - attach_workspace:
@@ -164,12 +204,19 @@ workflows:
     version: 2
     build_and_deploy:
       jobs:
+  {% if var.setup.angular_app_dir -%}
+        - build_angular_app
+  {% endif -%}
   {%- if var.setup.build_debian_package %}
-        - build
+  {% for image_info in var.setup.docker_images_test %}
+        - build_{{ image_info[0] }}
+  {% endfor %}
   {%- if var.setup.publish_debian_package|length > 0 %}
         - deploy:
             requires:
-              - build
+  {% for image_info in var.setup.docker_images_test %}
+              - build_{{ image_info[0] }}
+  {% endfor %}
             filters:
               branches:
                 only:
@@ -180,22 +227,28 @@ workflows:
         - docker:
   {%- endif %}
             requires:
-              - build
+  {% for image_info in var.setup.docker_images_test %}
+              - build_{{ image_info[0] }}
   {%- if var.setup.publish_pypi_package|length > 0 %}
-              - publish_pypi
+              - publish_pypi_{{ image_info[0] }}
   {%- endif %}
+  {% endfor %}
   {%- endif %}
   {%- endif %}
 
   {%- if var.setup.build_pypi_package %}
-        - build_pypi
-        - install_pypi:
+  {% for image_info in var.setup.docker_images_test %}
+        - build_pypi_{{ image_info[0] }}
+        - install_pypi_{{ image_info[0] }}:
             requires:
-              - build_pypi
+              - build_pypi_{{ image_info[0] }}
+  {% endfor %}
   {%- if var.setup.publish_pypi_package|length > 0 %}
         - publish_pypi:
             requires:
-              - install_pypi
+  {%- for image_info in var.setup.docker_images_test %}
+              - install_pypi_{{ image_info[0] }}
+  {%- endfor %}
             filters:
               branches:
                 only:

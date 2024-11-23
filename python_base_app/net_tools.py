@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+import psutil
+
+
 #    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
@@ -16,14 +20,12 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-include LICENSE
-include README.md
-include requirements.txt
-include python_base_app/static/icons/*.png
-include python_base_app/templates/*
-include python_base_app/translations/*/*/messages.po
-include python_base_app/test/pytests/*.py
-recursive-include python_base_app/test/resources *
-#include python_base_app/test/resources/ci_toolbox/*
-#include python_base_app/test/resources/ci_toolbox/a_package/*
-#include python_base_app/test/resources/ci_toolbox/a_package/translations/de/LC_MESSAGES/messages.po
+def is_port_available(p_port: int):
+    connections = psutil.net_connections()
+
+    # Check if the port is in use
+    for conn in connections:
+        if conn.laddr.port == p_port:
+            return False
+
+    return True

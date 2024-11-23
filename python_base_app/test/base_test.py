@@ -223,3 +223,10 @@ class BaseTestCase(unittest.TestCase):
 
         self.assertIsNotNone(p_list)
         self.assertEqual(len(p_list), p_length)
+
+    @staticmethod
+    def get_status_server_port() -> int:
+        port = int(os.getenv("STATUS_SERVER_PORT", "5555"))
+        delta_port = int(os.getenv("DELTA_PORT", "0"))
+
+        return port + delta_port

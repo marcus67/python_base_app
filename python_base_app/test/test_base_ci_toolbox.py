@@ -110,8 +110,11 @@ class TestBaseCiToolbox(base_test.BaseTestCase):
         self.remove_files(p_rel_paths=STAGE_PREPARE_FILES, p_rel_dirs=STAGE_PREPARE_DIRS)
         main_module_dir = os.path.join(os.path.dirname(__file__), self.get_resource_base_path())
 
-        sys.argv.extend(['--execute-stage', 'PREPARE'])
-        base_ci_toolbox.main(p_main_module_dir=main_module_dir)
+        self._logger.info(f"Testing stage prepare in main module directory {main_module_dir}.")
+
+        argv = ['--execute-stage', 'PREPARE']
+
+        base_ci_toolbox.main(p_main_module_dir=main_module_dir, p_argv=argv)
 
         self.rel_test_files(p_rel_paths=STAGE_PREPARE_FILES)
 
@@ -124,8 +127,11 @@ class TestBaseCiToolbox(base_test.BaseTestCase):
         self.remove_files(p_rel_paths=STAGE_BUILD_FILES, p_rel_dirs=STAGE_BUILD_DIRS)
         main_module_dir = os.path.join(os.path.dirname(__file__), self.get_resource_base_path())
 
-        sys.argv.extend(['--execute-stage', 'BUILD', '--use-dev-dir', self.get_resource_base_path()])
-        base_ci_toolbox.main(p_main_module_dir=main_module_dir)
+        self._logger.info(f"Testing stage build in main module directory {main_module_dir}.")
+
+        argv = ['--execute-stage', 'BUILD', '--use-dev-dir', self.get_resource_base_path()]
+
+        base_ci_toolbox.main(p_main_module_dir=main_module_dir, p_argv=argv)
 
         self.rel_test_files(p_rel_paths=STAGE_BUILD_FILES)
 

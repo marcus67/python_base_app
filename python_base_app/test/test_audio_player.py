@@ -18,9 +18,10 @@
 
 import os
 
-from python_base_app import audio_handler
+from python_base_app import audio_handler, afplay_audio_player
 from python_base_app import mpg123_audio_player
 from python_base_app.test import base_test
+from python_base_app.tools import is_mac_os
 
 HELLO_MPG = os.path.join(os.path.dirname(__file__), "resources/hello.mpg")
 
@@ -28,11 +29,16 @@ HELLO_MPG = os.path.join(os.path.dirname(__file__), "resources/hello.mpg")
 class TestAudioPlayer(base_test.BaseTestCase):
 
     @base_test.skip_if_env("NO_AUDIO_OUTPUT")
-    def test_mpg123_player(self):
+    def test_binary_player(self):
 
         a_config = audio_handler.AudioHandlerConfigModel()
 
         self.assertIsNotNone(a_config)
 
-        a_player = mpg123_audio_player.Mpg123AudioPlayer(p_mpg123_binary = a_config.mpg123_binary)
+        if is_mac_os():
+            a_player = afplay_audio_player.AfplayAudioPlayer(p_afplay_binary=a_config.afplay_binary)
+
+        else:
+            a_player = mpg123_audio_player.Mpg123AudioPlayer(p_mpg123_binary = a_config.mpg123_binary)
+
         a_player.play_audio_file(HELLO_MPG)
