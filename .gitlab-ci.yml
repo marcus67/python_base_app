@@ -139,7 +139,7 @@ owasp_upload:
     PROJECT_ID: "python-base-app"
     PROJECT_NAME: "python-base-app"
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
       variables:
         PROJECT_ID: "$SECURECHECKPLUS_PROJECT_ID"
         API_KEY: "$SECURECHECKPLUS_API_KEY"
