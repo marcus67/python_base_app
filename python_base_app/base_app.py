@@ -47,6 +47,7 @@ DEFAULT_USER_CONFIG_DIR = ".config"
 DEFAULT_CONF_EXTENSION = ".conf"
 DEFAULT_LANGUAGES = ['en']
 DEFAULT_NO_LOG_FILTER = False
+DEFAULT_LOCALE = "en_US"
 
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
@@ -171,12 +172,13 @@ class BaseApp(daemon.Daemon):
         return self._locale_helper
 
     def get_request_locale(self):
-        locale = flask.request.accept_languages.best_match(self._languages)
+        locale = flask.request.accept_languages.best_match(self._languages) or DEFAULT_LOCALE
 
         if self._latest_request is None or not self._latest_request is flask.request.stream:
             msg = "Best matching locale = {locale}"
             self._logger.debug(msg.format(locale=locale))
             self._latest_request = flask.request.stream
+
         return locale
 
     def add_locale_helper(self, p_locale_helper):
