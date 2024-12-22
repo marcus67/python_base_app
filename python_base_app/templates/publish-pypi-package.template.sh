@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -48,7 +48,9 @@ else
     URL="${{ python_packages[0][4] }}"
 fi
 
-if [ ! "${{ python_packages[0][9] }}" == "" ] ; then
+if [ "${{ python_packages[0][9] }}" == "" ] ; then
+    echo "The setting {{ python_packages[0][9] }} was empty -> no deletion of PYPI package before upload."
+else
     PACKAGE_LIST_URL="${{ python_packages[0][9] }}"
     echo "INFO: Package deletion requested. Package list URL = ${PACKAGE_LIST_URL}."
 
