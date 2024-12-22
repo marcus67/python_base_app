@@ -2,7 +2,7 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
-# Version 0.3.0 (TODO)
+# Version 0.3.0 (December 22nd, 2024)
 * Add support for Angular login
 * Add support for authentication tokens
 * Allow for passwords for non-admin user in `UnixUserHandler`

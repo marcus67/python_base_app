@@ -29,8 +29,8 @@ jobs:
   build_angular_app:
     docker:
       - image: "{{ var.setup.docker_image_build_angular }}"
-     steps:
-       - checkout
+    steps:
+      - checkout
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
@@ -54,7 +54,6 @@ jobs:
       - image: "{{ image_info[1] }}"
     steps:
       - checkout
-
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
@@ -204,7 +203,7 @@ workflows:
     version: 2
     build_and_deploy:
       jobs:
-  {% if var.setup.angular_app_dir -%}
+  {% if var.setup.angular_app_dir %}
         - build_angular_app
   {% endif -%}
   {%- if var.setup.build_debian_package %}
@@ -227,11 +226,11 @@ workflows:
         - docker:
   {%- endif %}
             requires:
+  {%- if var.setup.publish_pypi_package|length > 0 %}
+              - publish_pypi
+  {%- endif %}
   {% for image_info in var.setup.docker_images_test %}
               - build_{{ image_info[0] }}
-  {%- if var.setup.publish_pypi_package|length > 0 %}
-              - publish_pypi_{{ image_info[0] }}
-  {%- endif %}
   {% endfor %}
   {%- endif %}
   {%- endif %}
