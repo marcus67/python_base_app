@@ -51,7 +51,7 @@ fi
 if [ "${{ python_packages[0][9] }}" == "" ] ; then
     echo "The setting {{ python_packages[0][9] }} was empty -> no deletion of PYPI package before upload."
 else
-    PACKAGE_LIST_URL="${{ python_packages[0][9] }}"
+    PACKAGE_LIST_URL="${{ python_packages[0][9] }}?per_page=100&order_by=created_at&sort=desc"
     echo "INFO: Package deletion requested. Package list URL = ${PACKAGE_LIST_URL}."
 
     PACKAGE_LIST=$(curl --header "PRIVATE-TOKEN: ${{ python_packages[0][5] }}" "${PACKAGE_LIST_URL}")
