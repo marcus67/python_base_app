@@ -133,23 +133,24 @@ jobs:
       - image: "{{ image_info[1] }}"
     steps:
       - checkout
-      - attach_workspace:
-          at: "."
-  {%- for package in python_packages %}
-      - run: mv {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz_{{ image_info[0] }} {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz
-  {%- endfor %}
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
       - run: git submodule update --init
 
+      - attach_workspace:
+          at: "."
+  {%- for package in python_packages %}
+      - run: mv {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz_{{ image_info[0] }} {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz
+  {%- endfor %}
+
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
       - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
   {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install_pypi_package }} --use-dev-dir=.
   {%- if var.setup.run_test_suite %}
-      - run: DELTA_PORT={{ (var.setup.docker_images_test | length) + loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+      - run: DELTA_PORT={{ (var.setup.docker_images_test | length) + loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }}
   {%- endif %}
       - run: codecov
       {% if loop.revindex == 1 %}
