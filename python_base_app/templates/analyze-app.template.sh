@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Copyright (C) 2019-2021  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -53,6 +53,11 @@ fi
 
 RETURN_CODE=0
 
+if [ "${GIT_BRANCH}" == "" ] ; then
+  echo "Environment variable 'GIT_BRANCH' not set!"
+  RETURN_CODE=1
+fi
+
 if [ "${SONAR_HOST_URL}" == "" ] ; then
   echo "Environment variable 'SONAR_HOST_URL' not set!"
   RETURN_CODE=1
@@ -63,9 +68,27 @@ if [ "${SONAR_LOGIN}" == "" ] ; then
   RETURN_CODE=1
 fi
 
-if [ "${SONAR_PROJECT_KEY}" == "" ] ; then
-  echo "Environment variable 'SONAR_PROJECT_KEY' not set!"
+{% for branch, env_name in var.setup.analyze_branch_map.items()  %}
+if [ "${{ '{' + env_name + '}' }}" == "" ] ; then
+  echo "Environment variable '{{ env_name }}' as Sonar project key for branch '{{ branch }}' not set!"
   RETURN_CODE=1
+fi
+{% endfor %}
+
+if [ "${GIT_BRANCH}" != "" ] ; then
+  EFFECTIVE_SONAR_PROJECT_KEY=""
+
+  {% for branch, env_name in var.setup.analyze_branch_map.items()  %}
+  if [ "${GIT_BRANCH}" == "{{ branch }}" ] ; then
+    EFFECTIVE_SONAR_PROJECT_KEY="${{ '{' + env_name + '}' }}"
+    echo "Using environment variable '{{ env_name }}' as Sonar project key for branch '${GIT_BRANCH}'."
+  fi
+  {% endfor %}
+
+  if [ "${EFFECTIVE_SONAR_PROJECT_KEY}" == "" ] ; then
+    echo "Environment variable '{{ env_name }}' for branch '${GIT_BRANCH}' not set!"
+    RETURN_CODE=1
+  fi
 fi
 
 if [ ${RETURN_CODE} -gt 0 ] ; then
@@ -83,4 +106,4 @@ ${SONAR_SCANNER_BIN} \
     -Dsonar.language=py \
     -Dsonar.host.url=${SONAR_HOST_URL} \
     -Dsonar.login=${SONAR_LOGIN} \
-    -Dsonar.projectKey=${SONAR_PROJECT_KEY}
+    -Dsonar.projectKey=${EFFECTIVE_SONAR_PROJECT_KEY}

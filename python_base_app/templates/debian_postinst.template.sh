@@ -1,6 +1,6 @@
 #! /bin/bash
 
-#    Copyright (C) 2019-2022  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -153,23 +153,23 @@ fi
 {%- if var.setup.deploy_systemd_service %}
 if [ "$RUNNING_IN_DOCKER" == "" ] ; then
   mkdir -p ${SYSTEMD_DIR}
-  cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+  cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.service ${SYSTEMD_DIR}/{{ var.setup.id }}.service
 fi
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_conf %}
 mkdir -p ${TMPFILE_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.name }}.conf
+cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.id }}.conf
 {%- endif %}
 
 {%- if var.setup.deploy_sudoers_file %}
 mkdir -p ${SUDOERS_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.sudo ${SUDOERS_DIR}/{{ var.setup.name }}
+cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.sudo ${SUDOERS_DIR}/{{ var.setup.id }}
 {%- endif %}
 
 {%- if var.setup.deploy_apparmor_file %}
 mkdir -p ${APPARMOR_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.apparmor ${APPARMOR_DIR}/{{ var.setup.name }}.conf
+cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.apparmor ${APPARMOR_DIR}/{{ var.setup.id }}.conf
 {%- endif %}
 
 {%- for package in python_packages %}
@@ -244,40 +244,40 @@ echo "Activating virtual Python environment in ${VIRTUAL_ENV_DIR}..."
 fi
 
 echo "Setting ownership..."
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${ETC_DIR}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LOG_DIR}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${SPOOL_DIR}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}"
-chown -R {{ var.setup.user }}.{{ var.setup.group }} ${LIB_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${ETC_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${ETC_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${LOG_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${LOG_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${SPOOL_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${SPOOL_DIR}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} ${LIB_DIR}"
+chown -R {{ var.setup.user }}:{{ var.setup.group }} ${LIB_DIR}
 
 {% for file_mapping in var.setup.debian_templates %}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
-chown {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} {{ file_mapping[1] }}"
+chown {{ var.setup.user }}:{{ var.setup.group }} {{ file_mapping[1] }}
 {%- endfor %}
 
 {%- if var.setup.deploy_systemd_service %}
   if [ "$RUNNING_IN_DOCKER" == "" ] ; then
-  echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
-  chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+  echo "    * ${SYSTEMD_DIR}/{{ var.setup.id }}.service"
+  chown root.root ${SYSTEMD_DIR}/{{ var.setup.id }}.service
   fi
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_service %}
-echo "    * ${TMPFILE_DIR}/{{ var.setup.name }}.conf"
-chown root.root ${TMPFILE_DIR}/{{ var.setup.name }}.conf
+echo "    * ${TMPFILE_DIR}/{{ var.setup.id }}.conf"
+chown root.root ${TMPFILE_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 {%- if var.setup.deploy_sudoers_file %}
 echo "    * ${SUDOERS_DIR}"
 chown root.root ${SUDOERS_DIR}
-echo "    * ${SUDOERS_DIR}/{{ var.setup.name }}"
-chown root.root ${SUDOERS_DIR}/{{ var.setup.name }}
+echo "    * ${SUDOERS_DIR}/{{ var.setup.id }}"
+chown root.root ${SUDOERS_DIR}/{{ var.setup.id }}
 {% endif %}
 {%- if var.setup.deploy_apparmor_file %}
-echo "    * ${APPARMOR_DIR}/{{ var.setup.name }}.conf"
-chown root.root ${APPARMOR_DIR}/{{ var.setup.name }}.conf
+echo "    * ${APPARMOR_DIR}/{{ var.setup.id }}.conf"
+chown root.root ${APPARMOR_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 
 echo "Setting permissions..."
@@ -289,11 +289,12 @@ echo "    * ${SPOOL_DIR}"
 chmod -R og-rwx ${SPOOL_DIR}
 
 {% for file_mapping in var.setup.debian_templates %}
-echo "    * {{ var.setup.user }}.{{ var.setup.group }} {{ file_mapping[1] }}"
+echo "    * {{ var.setup.user }}:{{ var.setup.group }} {{ file_mapping[1] }}"
 chmod og-rwx {{ file_mapping[1] }}
 {%- endfor %}
 
-${PIP3} install wheel # setuptools
+echo "Upgrading packages 'wheel' and 'setuptools'..."
+${PIP3} install wheel setuptools
 echo "Installing PIP packages..."
 {%- for package_name in python_packages %}
 echo "  * {{ package_name[1] }}"
@@ -301,6 +302,12 @@ echo "  * {{ package_name[1] }}"
 # see https://stackoverflow.com/questions/19548957/can-i-force-pip-to-reinstall-the-current-version
 ${PIP3} install --upgrade --ignore-installed {% for package_name in python_packages %}\
      ${LIB_DIR}/{{ package_name[1] }}{% endfor %}
+
+if [ "${VIRTUAL_ENV_DIR}" != "" ] ; then
+  echo "Changing ownership of virtual environment ${VIRTUAL_ENV_DIR} to {{ var.setup.user }}:{{ var.setup.group }}..."
+  chown -R {{ var.setup.user }}:{{ var.setup.group }} ${VIRTUAL_ENV_DIR}
+fi
+
 
 {% for package_name in python_packages %}
 echo "Removing installation file ${LIB_DIR}/{{ package_name[1] }}..."

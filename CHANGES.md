@@ -2,23 +2,45 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
-# Version 0.2.50 (December 3rd, 2023)
+## Version 0.3.2 (December 26th, 2024)
+* Better handling of pip package names (only use underscores)
+* Upgrade `some_flask_helpers` to 0.2.8
+
+## Version 0.3.1 (December 26th, 2024)
+* Version for clean upload to test.pypi.org
+
+## Version 0.3.0 (December 22nd, 2024)
+* Add support for Angular login
+* Add support for authentication tokens
+* Allow for passwords for non-admin user in `UnixUserHandler`
+* Add class `RepetitiveObjectWriter`
+* Add support for renaming of VulScan to SecureCheckPlus
+* Add branch map support for SecureCheckPlus
+* Support building and testing for several Python versions
+* Bump `werkzeug` to 3.1.3
+* Always default to locale "en_US" if request does not provide sufficient information
+* Bump `python_google_speak` to 0.2.2 (closes issue #205)
+* Use underscores in setup package name
+* Explicitly include package `setuptools` in `requirements.txt`
+* Bump `jinja2` to 3.1.5
+
+## Version 0.2.50 (December 3rd, 2023)
 * Bump `urllib3` to 2.1.0 (CVE-2023-45803)
 * Bump `werkzeug` to 2.3.8 (CVE-2023-46136)
 * Bump `some_flask_helpers` to 0.2.5 (CVE-2023-46136)
 
-# Version 0.2.49 (October 13th, 2023)
+## Version 0.2.49 (October 13th, 2023)
 * Bump `some_flask_helpers` to 0.2.4
 
-# Version 0.2.48 (October 11th, 2023)
+## Version 0.2.48 (October 11th, 2023)
   * Optionally define `scan_id` to be used as id when calling the vulnerability scanner
 
-# Version 0.2.47 (October 7th, 2023)
+## Version 0.2.47 (October 7th, 2023)
   * Remove incompatibility with version 3.* of package `werkzeug`; fix version at 2.3.*
   * Fix all other packages at minor release
   * Use Python virtual environment also for Docker images
 
-# Version 0.2.46 (August 26th, 2023)
+## Version 0.2.46 (August 26th, 2023)
   * Remove incompatibility with Python 3.8 in `tools.py`
   * Support for `pypy` Python versions supplied by `asdf`
 

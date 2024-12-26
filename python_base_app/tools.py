@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019-2022  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -18,12 +18,11 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from os.path import dirname
-
 import datetime
 import inspect
 import io
 import json
+import logging
 import os
 import platform
 import re
@@ -34,7 +33,8 @@ import threading
 import time
 import traceback
 import urllib.parse
-from typing import Set
+from os.path import dirname
+from typing import Set, Callable
 
 from python_base_app import configuration
 from python_base_app import exceptions
@@ -50,6 +50,7 @@ FORMAT_DURATION_WITH_SECONDS = "%dh%02dm%02ds"
 FORMAT_DURATION = "%dh%02dm"
 
 FORMAT_JSON_DATETIME = "%Y-%m-%d %H:%M:%S"
+FORMAT_JSON_TIME = "%H:%M:%S"
 
 REGEX_DURATION = re.compile("^ *(([0-9]+) *[h|H])? *(([0-9]+) *[m|M])? *(([0-9]+) *[s|S])? *$")
 REGEX_TIME = re.compile("^ *([0-9]+)( *: *([0-9]+))?( *: *([0-9]+))? *$")
@@ -104,6 +105,30 @@ def get_current_time():
 def get_today():
     today = datetime.datetime.now()
     return datetime.datetime(year=today.year, month=today.month, day=today.day)
+
+
+def get_datetime_in_iso_8601(a_time: datetime.datetime | datetime.date) -> str | None:
+    if a_time is None:
+        return None
+
+    elif isinstance(a_time, datetime.date):
+        return a_time.isoformat()
+
+    elif isinstance(a_time, datetime.time):
+        return datetime.datetime.combine(datetime.date(1900, 1, 1), a_time).isoformat()
+
+    else:
+        return a_time.isoformat(timespec='seconds')
+
+
+def get_time_from_iso_8601(datetime_in_iso8061: str) -> datetime.time | None:
+    if datetime_in_iso8061 is None:
+        return None
+
+    if sys.version_info[1] <= 10 and datetime_in_iso8061[-1] == 'Z':
+        datetime_in_iso8061 = datetime_in_iso8061[:-1]
+
+    return datetime.datetime.fromisoformat(datetime_in_iso8061).time()
 
 
 def get_date_as_string(p_date, p_short=False):
@@ -350,9 +375,12 @@ def handle_fatal_exception(p_exception, p_logger=None):
         sys.stderr.write(str(p_exception))
 
 
-def objectify_dict(p_dict, p_class, p_attribute_classes=None):
+def objectify_dict(p_dict, p_class, p_attribute_classes=None, p_attribute_readers=None):
     if p_attribute_classes is None:
         p_attribute_classes = {}
+
+    if p_attribute_readers is None:
+        p_attribute_readers = {}
 
     instance = p_class()
 
@@ -362,6 +390,9 @@ def objectify_dict(p_dict, p_class, p_attribute_classes=None):
 
             if attr_class == datetime.datetime:
                 attr_value = datetime.datetime.strptime(attr_value, FORMAT_JSON_DATETIME)
+
+        elif attr_value is not None and attr_name in p_attribute_readers:
+            attr_value = p_attribute_readers[attr_name](attr_value)
 
         setattr(instance, attr_name, attr_value)
 
@@ -502,6 +533,9 @@ def is_valid_dns_name(p_dns_name):
 
 
 def get_dns_name_by_ip_address(p_ip_address):
+    if not REGEX_IP_ADDRESS.match(p_ip_address.strip()):
+        return p_ip_address
+
     try:
         result = socket.gethostbyaddr(p_ip_address)
         return result[0]
@@ -599,3 +633,66 @@ def create_class_instance(p_class, p_initial_values) -> object:
     instance = p_class()
     copy_attributes(p_from=p_initial_values, p_to=instance)
     return instance
+
+
+class RepetitiveObjectWriter:
+    def __init__(self,
+                 p_base_filename_pattern: str = "/tmp/repetitive-writer.{index:04d}.{type}.json",
+                 p_ignore_same_object: bool = True):
+        self._base_filename_pattern = p_base_filename_pattern
+        self._ignore_same_object = p_ignore_same_object
+        self._index = 1
+        self._last_object = None
+
+    def write_object(self, p_object, p_object_type="generic") -> None:
+        filename = self._base_filename_pattern.format(index=self._index, type=p_object_type)
+
+        if isinstance(p_object, dict):
+            p_object = json.dumps(p_object)
+
+        if self._last_object is not None and self._last_object == p_object and self._ignore_same_object:
+            return
+
+        with open(filename, "w") as f:
+            f.write(p_object)
+
+        self._index += 1
+        self._last_object = p_object
+
+
+def wrap_retry_until_expected_result(func: Callable, p_check_expected_result=None, p_wait_time=1,
+                                     p_max_retries=10, p_logger=None):
+    def wrapper(*args, **kwargs):
+        nonlocal p_logger
+        nonlocal p_check_expected_result
+
+        retry_count = 0
+
+        if p_logger is None:
+            p_logger = logging.getLogger("")
+
+        if p_check_expected_result is None:
+            p_check_expected_result = lambda x: x is not None
+
+        while True:
+            result = func(*args, **kwargs)
+
+            if p_check_expected_result(result):
+                if retry_count > 0:
+                    p_logger.info(f"method '{func.__name__}' returned expected result "
+                                  f"on attempt #{retry_count + 1} -> OK")
+                return result
+
+            retry_count += 1
+
+            if retry_count > p_max_retries:
+                raise AssertionError(f"method '{func.__name__}' did not return expected result "
+                                     f"after {p_max_retries} attempts -> failing...")
+
+            p_logger.debug(f"method '{func.__name__}' did not return expected result -> "
+                           f"retrying in {p_wait_time} second(s)...")
+            time.sleep(p_wait_time)
+
+    return wrapper
+
+

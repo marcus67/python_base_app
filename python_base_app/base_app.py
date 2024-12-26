@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -35,6 +35,7 @@ from python_base_app import locale_helper
 from python_base_app import log_handling
 from python_base_app import settings
 from python_base_app import tools
+from some_flask_helpers.blueprint_adapter import LOG_NAME as BLUEPRINT_ADAPTER_LOG_NAME
 
 PACKAGE_NAME = "python_base_app"
 
@@ -46,6 +47,7 @@ DEFAULT_USER_CONFIG_DIR = ".config"
 DEFAULT_CONF_EXTENSION = ".conf"
 DEFAULT_LANGUAGES = ['en']
 DEFAULT_NO_LOG_FILTER = False
+DEFAULT_LOCALE = "en_US"
 
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
@@ -54,7 +56,8 @@ DEFAULT_MAXIMUM_TIMER_SLACK = 5  # second
 DEFAULT_MINIMUM_DOWNTIME_DURATION = 20  # seconds
 
 CONTRIB_LOG_PATHS = [
-    "alembic.runtime.migration"
+    "alembic.runtime.migration",
+    BLUEPRINT_ADAPTER_LOG_NAME
 ]
 
 class BaseAppConfigModel(configuration.ConfigModel):
@@ -169,12 +172,13 @@ class BaseApp(daemon.Daemon):
         return self._locale_helper
 
     def get_request_locale(self):
-        locale = flask.request.accept_languages.best_match(self._languages)
+        locale = flask.request.accept_languages.best_match(self._languages) or DEFAULT_LOCALE
 
         if self._latest_request is None or not self._latest_request is flask.request.stream:
             msg = "Best matching locale = {locale}"
             self._logger.debug(msg.format(locale=locale))
             self._latest_request = flask.request.stream
+
         return locale
 
     def add_locale_helper(self, p_locale_helper):
@@ -235,6 +239,8 @@ class BaseApp(daemon.Daemon):
         self._downtime = 0
 
     def add_recurring_task(self, p_recurring_task):
+
+        self._logger.info(f"Adding recurring task '{p_recurring_task.name}' every {p_recurring_task.interval} seconds.")
 
         p_recurring_task.compute_next_execution_time()
         heapq.heappush(self._recurring_tasks, p_recurring_task.get_heap_entry())

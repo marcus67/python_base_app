@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+import socket
+
+from python_base_app.net_tools import is_port_available
+from python_base_app.test.base_test import BaseTestCase
+
+
 #    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
@@ -16,14 +23,17 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-include LICENSE
-include README.md
-include requirements.txt
-include python_base_app/static/icons/*.png
-include python_base_app/templates/*
-include python_base_app/translations/*/*/messages.po
-include python_base_app/test/pytests/*.py
-recursive-include python_base_app/test/resources *
-#include python_base_app/test/resources/ci_toolbox/*
-#include python_base_app/test/resources/ci_toolbox/a_package/*
-#include python_base_app/test/resources/ci_toolbox/a_package/translations/de/LC_MESSAGES/messages.po
+def test_is_port_available_true():
+    port = BaseTestCase.get_status_server_port()
+    assert is_port_available(p_port=int(port))
+
+
+def test_is_port_available_false():
+    port = BaseTestCase.get_status_server_port()
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("localhost", int(port)))
+        s.listen()
+
+        assert not is_port_available(p_port=int(port))
+

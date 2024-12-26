@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -34,11 +34,13 @@ with open(path.join(this_directory, 'requirements.txt')) as f:
 
 setup_params = {
     # standard setup configuration
+    "python_requires": '>=3.10, <3.13',
 
     "install_requires" : install_requires,
 
     "scripts": [
         "run_python_base_app_test_suite.py",
+        "run_python_base_app_test_suite_no_venv.py",
     ],
 
     "packages" : [ 'python_base_app', 'python_base_app.test' ],
@@ -55,14 +57,35 @@ extended_setup_params = {
     "build_debian_package": False,
     "build_pypi_package": True,
     "owasp": True,
+    "analyze_branch_map": {
+        "master": 'SONAR_PROJECT_KEY',
+        "fb-angular": 'SONAR_PROJECT_KEY_FB_ANGULAR'
+    },
+    "owasp_check_branch_map": {
+        "master": ('SECURECHECKPLUS_PROJECT_ID', 'SECURECHECKPLUS_API_KEY'),
+        "fb-angular": ('SECURECHECKPLUS_PROJECT_ID_FB_ANGULAR', 'SECURECHECKPLUS_API_KEY_FB_ANGULAR')
+    },
 
     # for Testing extra CI PIP dependencies
     #"ci_pip_dependencies": { "some-package" },
     #"extra_pypi_indexes": { "master": ["TEST_PYPI_EXTRA_INDEX"] },
 
-    "publish_pypi_package": { 'release': ( 'PYPI_API_URL', 'PYPI_API_TOKEN', 'TEST_PYPI_API_USER' ),
-                              'master': ( 'TEST_PYPI_API_URL', 'TEST_PYPI_API_TOKEN', 'TEST_PYPI_API_USER' ) },
-    "analyze": True
+    "publish_pypi_package": {
+        'release': ('PYPI_API_URL', 'PYPI_API_TOKEN', 'TEST_PYPI_API_USER'),
+        'master': ('TEST_PYPI_API_URL', 'TEST_PYPI_API_TOKEN', 'TEST_PYPI_API_USER'),
+    },
+    "analyze": True,
+    "docker_image_build_angular": "marcusrickert/docker-python-app:3.11",
+    "docker_image_make_package": "marcusrickert/docker-python-app:3.11",
+    "docker_images_test": [
+        ("3_10", "marcusrickert/docker-python-app:3.10"),
+        ("3_11", "marcusrickert/docker-python-app:3.11"),
+        ("3_12", "marcusrickert/docker-python-app:3.12"),
+    ],
+    "docker_image_publish_pypi": "marcusrickert/docker-python-app:3.11",
+    "docker_image_publish_debian": "marcusrickert/docker-python-app:3.11",
+    "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
+    "docker_image_analyze": "marcusrickert/docker-python-app:3.11",
 }
 extended_setup_params.update(setup_params)
 

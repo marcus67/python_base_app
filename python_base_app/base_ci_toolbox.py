@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019-2022  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -18,19 +18,19 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import os.path
-
 import argparse
 import collections
 import copy
-import jinja2
 import logging
 import os
+import os.path
 import re
 import stat
 import subprocess
 import sys
 import time
+
+import jinja2
 
 import python_base_app
 from python_base_app import exceptions
@@ -39,6 +39,8 @@ from python_base_app import tools
 
 MODULE_NAME = "base_ci_toolbox"
 
+STAGE_BUILD_ANGULAR_APP = "BUILD_ANGULAR_APP"
+STAGE_DEPLOY_ANGULAR_APP = "DEPLOY_ANGULAR_APP"
 STAGE_BUILD_PACKAGE = "BUILD"
 STAGE_BUILD_DOCKER_IMAGES = "BUILD_DOCKER_IMAGES"
 STAGE_INSTALL = "INSTALL"
@@ -76,6 +78,12 @@ GENERIC_INSTALLATION_SCRIPT_TEMPLATE = 'debian_postinst.template.sh'
 
 MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH = '{bin_dir}/make-debian-package.sh'
 MAKE_DEBIAN_PACKAGE_SCRIPT_TEMPLATE = 'make-debian-package.template.sh'
+
+BUILD_ANGULAR_APP_SCRIPT_FILE_PATH = '{bin_dir}/build_angular_app.sh'
+BUILD_ANGULAR_APP_SCRIPT_TEMPLATE = 'build-angular-app.template.sh'
+
+DEPLOY_ANGULAR_APP_SCRIPT_FILE_PATH = '{bin_dir}/deploy_angular_app.sh'
+DEPLOY_ANGULAR_APP_SCRIPT_TEMPLATE = 'deploy-angular-app.template.sh'
 
 BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH = '{bin_dir}/build-docker-images.sh'
 BUILD_DOCKER_IMAGE_SCRIPT_TEMPLATE = 'build-docker-images.template.sh'
@@ -130,14 +138,23 @@ DEFAULT_PYPI_USER_ENV_NAME = "PYPI_API_USER"
 predefined_env_variables = None
 
 default_setup = {
+    "docker_image_build_angular": "marcusrickert/docker-python-app:latest",
     "docker_image_make_package": "marcusrickert/docker-python-app:latest",
-    "docker_image_test": "marcusrickert/docker-python-app:latest",
+    "docker_image_publish_debian": "marcusrickert/docker-python-app:latest",
+    "docker_image_publish_pypi": "marcusrickert/docker-python-app:latest",
+    "docker_image_test": "marcusrickert/docker-python-app:latest",  # TODO: Remove this setting in future versions
+    "docker_images_test": [
+        ("latest", "marcusrickert/docker-python-app:latest")
+    ],
     "docker_image_docker": "marcusrickert/docker-docker-ci:release-0.9.1",
     "docker_image_analyze": "marcusrickert/docker-python-app:latest",
     "docker_image_owasp": "registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest",
     "owasp_additional_params": "--enableExperimental",
     "ci_toolbox_script": "ci_toolbox.py",
-    "ci_pip_dependencies": [ ],
+    "ci_pip_dependencies": [
+    ],
+    "ci_stage_build_angular_app": STAGE_BUILD_ANGULAR_APP,
+    "ci_stage_deploy_angular_app": STAGE_DEPLOY_ANGULAR_APP,
     "ci_stage_build_package": STAGE_BUILD_PACKAGE,
     "ci_stage_build_docker_images": STAGE_BUILD_DOCKER_IMAGES,
     "ci_stage_install": STAGE_INSTALL,
@@ -147,8 +164,8 @@ default_setup = {
     "ci_stage_teardown": STAGE_TEARDOWN,
     "ci_stage_publish_package": STAGE_PUBLISH_PACKAGE,
     "ci_stage_publish_pypi_package": STAGE_PUBLISH_PYPI_PACKAGE,
-    "ci_stage_build_pip_dependencies": [ "babel" ],
-    "ci_stage_publish_pip_package_pip_dependencies": [ "twine" ],
+    "ci_stage_build_pip_dependencies": ["babel"],
+    "ci_stage_publish_pip_package_pip_dependencies": ["twine"],
     "owasp": False,
     "require_teardown": False,
     "bin_dir": "bin",
@@ -157,18 +174,18 @@ default_setup = {
     "run_test_suite_no_venv": "run_{module_name}_test_suite_no_venv.py",
     "contrib_dir": "contrib",
     "rel_tmp_dir": "tmp",
-    "rel_etc_dir": "etc/{name}",
-    "rel_log_dir": "var/log/{name}",
-    "rel_spool_dir": "var/spool/{name}",
-    "rel_lib_dir": "var/lib/{name}",
-    "rel_virtual_env_dir": "var/lib/{name}/virtualenv",
+    "rel_etc_dir": "etc/{id}",
+    "rel_log_dir": "var/log/{id}",
+    "rel_spool_dir": "var/spool/{id}",
+    "rel_lib_dir": "var/lib/{id}",
+    "rel_virtual_env_dir": "var/lib/{id}/virtualenv",
     "rel_systemd_dir": "lib/systemd/system",
     "rel_tmpfile_dir": "usr/lib/tmpfiles.d",
     "rel_sudoers_dir": "etc/sudoers.d",
     "rel_apparmor_dir": "etc/apparmor.d",
     "git_metadata_file": "{module_name}/git_metadata.py",
-    "user": "{name}",
-    "group": "{name}",
+    "user": "{id}",
+    "group": "{id}",
     "user_group_mappings": [],
     "create_usr": False,
     "create_group": False,
@@ -180,7 +197,7 @@ default_setup = {
     "target_alembic_version": None,
     "build_debian_package": True,
     "debian_build_dir": "debian",
-    "debian_package_name": "{name}",
+    "debian_package_name": "{id}",
     "debian_package_revision": "1",
     "debian_package_section": "base",
     "debian_package_priority": "optional",
@@ -191,6 +208,12 @@ default_setup = {
     "install_requires": [],
     "contributing_setups": [],
     "publish_debian_package": [],
+    "analyze_branch_map": {
+        "main": 'SONAR_PROJECT_KEY'
+    },
+    "owasp_check_branch_map": {
+        "main": ('SECURECHECKPLUS_PROJECT_ID', 'SECURECHECKPLUS_API_KEY')
+    },
     "build_pypi_package": False,
     "publish_pypi_package": {},
     "extra_pypi_indexes": {},
@@ -208,10 +231,13 @@ default_setup = {
     "analyze_extra_coverage_exclusions": None,
     "analyze_extra_exclusions": None,
     "script_timeout": 600,
-    "activate_xvfb_for_tests" : False,
+    "activate_xvfb_for_tests": False,
+    "angular_app_dir": None,
+    "angular_deployment_source_directory": "{angular_app_dir}/dist/{angular_app_dir}",
+    "angular_deployment_dest_directory": "static/angular"
 }
 
-logger:logging.Logger = None
+logger: logging.Logger | None = None
 
 
 def get_module_dir(p_module):
@@ -234,13 +260,14 @@ def get_predefined_environment_variables():
 
             if value is not None:
                 if var_info.target_name in predefined_env_variables:
-                    msg = "New value '{value}' found in environment with value ({name}) to be used for '{target_name}' WILL BE IGNORED!"
-                    logger.warning(msg.format(name=var_info.source_name, value=value, target_name=var_info.target_name))
+                    msg = f"New value '{value}' found in environment with value ({var_info.source_name}) "\
+                          f"to be used for '{var_info.target_name}' WILL BE IGNORED!"
+                    logger.warning(msg)
 
                 else:
-                    msg = "{description} ({name}) found in environment with value '{value}' to be used for '{target_name}'"
-                    logger.info(msg.format(name=var_info.source_name, description=var_info.description, value=value,
-                                           target_name=var_info.target_name))
+                    msg = f"{var_info.description} ({var_info.source_name}) found in environment "\
+                          f"with value '{value}' to be used for '{var_info.target_name}'"
+                    logger.info(msg)
                     predefined_env_variables[var_info.target_name] = value
 
     return predefined_env_variables
@@ -271,6 +298,7 @@ def get_vars(p_setup_params):
     setup.update(p_setup_params)
 
     setup["module_name"] = setup["name"].replace("-", "_")
+    setup["id"] = setup["name"].replace("_", "-")
     setup.update(get_predefined_environment_variables())
 
     expand_vars(setup)
@@ -303,15 +331,14 @@ def load_contributing_setup_modules(p_main_setup_module):
 
 
 def get_site_packages_dir():
-
     major_version = sys.version_info[0]
     minor_version = sys.version_info[1]
 
     if tools.is_windows():
-        pattern = f".+Python\.{major_version}\.{minor_version}.+\\\\lib$"
+        pattern = f".+Python\\.{major_version}\\.{minor_version}.+\\\\lib$"
 
     else:
-        pattern = f".+[python|pypy]{major_version}\.{minor_version}/(site|dist)-packages$"
+        pattern = f".+[python|pypy]{major_version}\\.{minor_version}/(site|dist)-packages$"
 
     regex = re.compile(pattern)
 
@@ -358,12 +385,10 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
     branch = var["setup"].get("GIT_BRANCH")
     branch_target_rep_map = var["setup"]["publish_pypi_package"]
-    branch_extra_pypi_indexes_map = var["setup"]["extra_pypi_indexes"]
 
     target_rep_url_env_name = None
     target_rep_token_env_name = None
     target_rep_user_env_name = None
-    target_rep_extra_index_env_name = None
 
     if branch is not None:
         if isinstance(branch_target_rep_map, dict):
@@ -393,18 +418,18 @@ def get_python_packages(p_main_setup_module, p_arguments, p_include_contrib_pack
 
     python_packages = []
 
-    python_packages.append((app_dir,                                                            # 0
-                            get_python_package_name(p_var=var),                                 # 1
-                            var["setup"]["module_name"],                                        # 2
-                            var,                                                                # 3
-                            target_rep_url_env_name,                                            # 4
-                            target_rep_token_env_name,                                          # 5
-                            target_rep_user_env_name,                                           # 6
-                            target_rep_default_url,                                             # 7
-                            DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,                             # 8
-                            DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,                          # 9
-                            var["setup"]["name"],                                               # 10
-                            var["setup"]["version"]))                                           # 11
+    python_packages.append((app_dir,  # 0
+                            get_python_package_name(p_var=var),  # 1
+                            var["setup"]["module_name"],  # 2
+                            var,  # 3
+                            target_rep_url_env_name,  # 4
+                            target_rep_token_env_name,  # 5
+                            target_rep_user_env_name,  # 6
+                            target_rep_default_url,  # 7
+                            DEFAULT_TEST_PYPI_EXTRA_INDEX_ENV_NAME,  # 8
+                            DEFAULT_TEST_PYPI_DELETE_PACKAGE_ENV_NAME,  # 9
+                            var["setup"]["name"],  # 10
+                            var["setup"]["version"]))  # 11
 
     if p_include_contrib_packages:
         for contributing_setup_module in contributing_setup_modules:
@@ -446,7 +471,7 @@ def generate_standard_file(p_main_setup_module, p_template_env, p_file_descripti
 
     output_file_path = p_output_filename.format(**(var["setup"]))
 
-    filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    filename = os.path.realpath(os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     if p_create_directory:
         directory = os.path.dirname(filename)
@@ -481,6 +506,7 @@ def generate_gitlab_ci_configuration(p_main_setup_module, p_template_env, p_argu
                            p_output_filename=GITLAB_CI_FILE, p_template_name=GITLAB_CI_TEMPLATE,
                            p_arguments=p_arguments)
 
+
 def generate_pip3_script(p_main_setup_module, p_template_env, p_arguments):
     generate_standard_file(p_main_setup_module=p_main_setup_module, p_template_env=p_template_env,
                            p_file_description="pip3 script",
@@ -508,7 +534,8 @@ def generate_debian_control(p_main_setup_module, p_template_env):
 
     output_file_path = DEBIAN_CONTROL_FILE_PATH.format(**(var["setup"]))
 
-    debian_control_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    debian_control_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(debian_control_filename), mode=0o777, exist_ok=True)
 
@@ -538,7 +565,8 @@ def generate_debian_postinst(p_main_setup_module, p_template_env, p_arguments):
 
     output_file_path = DEBIAN_POSTINST_FILE_PATH.format(**(var["setup"]))
 
-    debian_postinst_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    debian_postinst_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(debian_postinst_filename), mode=0o777, exist_ok=True)
 
@@ -571,7 +599,8 @@ def generate_generic_installation_script(p_main_setup_module, p_template_env, p_
 
     output_file_path = GENERIC_INSTALLATION_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    debian_postinst_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    debian_postinst_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(debian_postinst_filename), mode=0o777, exist_ok=True)
 
@@ -609,7 +638,7 @@ def generate_pycoveragerc(p_main_setup_module, p_template_env, p_arguments):
     else:
         run_dir = get_module_dir(p_module=p_main_setup_module)
 
-    pycoveragerc_filename = os.path.join(run_dir, output_file_path)
+    pycoveragerc_filename = os.path.realpath(os.path.join(run_dir, output_file_path))
 
     with open(pycoveragerc_filename, "w") as f:
         f.write(output_text)
@@ -635,7 +664,8 @@ def generate_make_debian_package(p_main_setup_module, p_template_env, p_argument
 
     output_file_path = MAKE_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    make_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    make_debian_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(make_debian_package_script_filename), mode=0o777, exist_ok=True)
 
@@ -646,6 +676,68 @@ def generate_make_debian_package(p_main_setup_module, p_template_env, p_argument
     logger.info(fmt.format(filename=make_debian_package_script_filename))
 
     os.chmod(make_debian_package_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
+def generate_build_angular_app(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate build_angular_app.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(BUILD_ANGULAR_APP_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+
+    output_file_path = BUILD_ANGULAR_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    build_angular_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
+
+    os.makedirs(os.path.dirname(build_angular_app_script_filename), mode=0o777, exist_ok=True)
+
+    with open(build_angular_app_script_filename, "w") as f:
+        f.write(output_text)
+
+    logger.info(f"Wrote build_angular_app.sh script file to '{build_angular_app_script_filename}'")
+
+    os.chmod(build_angular_app_script_filename,
+             stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
+
+def generate_deploy_angular_app(p_main_setup_module, p_template_env, p_arguments):
+    global logger
+
+    fmt = "Generate deploy_angular_app.sh script file for version {version} of app '{name}'"
+    logger.info(fmt.format(**p_main_setup_module.extended_setup_params))
+
+    template = p_template_env.get_template(DEPLOY_ANGULAR_APP_SCRIPT_TEMPLATE)
+
+    var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
+
+    output_text = template.render(
+        var=var,
+        python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
+    )
+
+    output_file_path = DEPLOY_ANGULAR_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
+
+    deploy_angular_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
+
+    os.makedirs(os.path.dirname(deploy_angular_app_script_filename), mode=0o777, exist_ok=True)
+
+    with open(deploy_angular_app_script_filename, "w") as f:
+        f.write(output_text)
+
+    logger.info(f"Wrote deploy_angular_app.sh script file to '{deploy_angular_app_script_filename}'")
+
+    os.chmod(deploy_angular_app_script_filename,
              stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
 
 
@@ -666,7 +758,8 @@ def generate_build_docker_image_script(p_main_setup_module, p_template_env, p_ar
 
     output_file_path = BUILD_DOCKER_IMAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    build_docker_image_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    build_docker_image_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(build_docker_image_script_filename), mode=0o777, exist_ok=True)
 
@@ -693,8 +786,8 @@ def generate_install_debian_package_script(p_main_setup_module, p_template_env, 
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
     output_file_path = INSTALL_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    install_and_test_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
-                                                                   output_file_path)
+    install_and_test_debian_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(install_and_test_debian_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(install_and_test_debian_package_script_filename, "w") as f:
@@ -720,8 +813,8 @@ def generate_install_pypi_package_script(p_main_setup_module, p_template_env, p_
         python_packages=get_python_packages(p_main_setup_module=p_main_setup_module, p_arguments=p_arguments)
     )
     output_file_path = INSTALL_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    install_and_test_pypi_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
-                                                                 output_file_path)
+    install_and_test_pypi_package_script_filename = os.path.realpath(os.path.join(
+        get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(install_and_test_pypi_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(install_and_test_pypi_package_script_filename, "w") as f:
@@ -753,7 +846,8 @@ def generate_test_app_script(p_main_setup_module, p_template_env, p_arguments):
 
     output_file_path = TEST_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    test_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    test_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(test_app_script_filename), mode=0o777, exist_ok=True)
 
@@ -764,6 +858,7 @@ def generate_test_app_script(p_main_setup_module, p_template_env, p_arguments):
     logger.info(fmt.format(filename=test_app_script_filename))
 
     os.chmod(test_app_script_filename, stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR | stat.S_IXGRP | stat.S_IRGRP)
+
 
 def generate_analyze_app_script(p_main_setup_module, p_template_env, p_arguments):
     global logger
@@ -784,7 +879,8 @@ def generate_analyze_app_script(p_main_setup_module, p_template_env, p_arguments
 
     output_file_path = ANALYZE_APP_SCRIPT_FILE_PATH.format(**(var["setup"]))
 
-    analyze_app_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    analyze_app_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
 
     os.makedirs(os.path.dirname(analyze_app_script_filename), mode=0o777, exist_ok=True)
 
@@ -812,8 +908,8 @@ def generate_publish_debian_package_script(p_main_setup_module, p_template_env, 
         site_packages_dir=get_site_packages_dir()
     )
     output_file_path = PUBLISH_DEBIAN_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    publish_debian_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module),
-                                                          output_file_path)
+    publish_debian_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(publish_debian_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(publish_debian_package_script_filename, "w") as f:
@@ -842,7 +938,8 @@ def generate_publish_pypi_package_script(p_main_setup_module, p_template_env, p_
         site_packages_dir=get_site_packages_dir()
     )
     output_file_path = PUBLISH_PYPI_PACKAGE_SCRIPT_FILE_PATH.format(**(var["setup"]))
-    publish_pypi_package_script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
+    publish_pypi_package_script_filename = os.path.realpath(
+        os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     os.makedirs(os.path.dirname(publish_pypi_package_script_filename), mode=0o777, exist_ok=True)
 
     with open(publish_pypi_package_script_filename, "w") as f:
@@ -858,7 +955,6 @@ def generate_publish_pypi_package_script(p_main_setup_module, p_template_env, p_
 def output_beacon(status):
     global logger
 
-    done = False
     count = 0
 
     while not status.done:
@@ -874,13 +970,10 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
     var = get_vars(p_setup_params=p_main_setup_module.extended_setup_params)
 
     output_file_path = p_script_file_path_pattern.format(**(var["setup"]))
-
-    script_filename = os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path)
-
+    script_filename = os.path.realpath(os.path.join(get_module_dir(p_module=p_main_setup_module), output_file_path))
     timeout = p_main_setup_module.extended_setup_params.get("script_timeout")
 
-    fmt = "<<<<< START script {filename} (timeout={timeout}[sec])..."
-    logger.info(fmt.format(filename=script_filename, timeout=timeout))
+    logger.info(f"<<<<< START script {script_filename} (timeout={timeout}[sec])...")
 
     extended_env = os.environ.copy()
     extended_env.update(get_predefined_environment_variables())
@@ -903,9 +996,8 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
                 if line != '':
                     logger.info(msg.format(line=line))
 
-        process.communicate(timeout=5)
+        process.communicate(timeout=timeout)
         exit_code = process.returncode
-
 
     except subprocess.CalledProcessError as e:
         exit_code = e.returncode
@@ -925,12 +1017,21 @@ def execute_generated_script(p_main_setup_module, p_script_file_path_pattern):
         if thread is not None:
             thread.join()
 
-
     msg = ">>>>> END script {filename} ..."
     logger.info(msg.format(filename=script_filename))
 
     if exit_code != 0:
         raise exceptions.ScriptExecutionError(p_script_name=script_filename, p_exit_code=exit_code)
+
+
+def execute_build_angular_app_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=BUILD_ANGULAR_APP_SCRIPT_FILE_PATH)
+
+
+def execute_deploy_angular_app_script(p_main_setup_module):
+    execute_generated_script(p_main_setup_module=p_main_setup_module,
+                             p_script_file_path_pattern=DEPLOY_ANGULAR_APP_SCRIPT_FILE_PATH)
 
 
 def execute_make_debian_package_script(p_main_setup_module):
@@ -967,15 +1068,19 @@ def execute_test_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=TEST_APP_SCRIPT_FILE_PATH)
 
+
 def execute_analyze_app_script(p_main_setup_module):
     execute_generated_script(p_main_setup_module=p_main_setup_module,
                              p_script_file_path_pattern=ANALYZE_APP_SCRIPT_FILE_PATH)
+
 
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--execute-stage', dest='execute_stage', default=None,
                         help='execute CI stage',
                         choices=[STAGE_BUILD_PACKAGE,
+                                 STAGE_BUILD_ANGULAR_APP,
+                                 STAGE_DEPLOY_ANGULAR_APP,
                                  STAGE_BUILD_DOCKER_IMAGES,
                                  STAGE_PUBLISH_PACKAGE,
                                  STAGE_PUBLISH_PYPI_PACKAGE,
@@ -990,10 +1095,13 @@ def get_parser():
     return parser
 
 
-def main(p_main_module_dir):
+def main(p_main_module_dir: str, p_argv=None):
     global logger
 
     exit_code = 0
+
+    if p_argv is None:
+        p_argv = sys.argv[1:]
 
     try:
         log_handling.start_logging()
@@ -1002,7 +1110,7 @@ def main(p_main_module_dir):
 
         parser = get_parser()
 
-        arguments = parser.parse_args()
+        arguments = parser.parse_args(args=p_argv)
 
         main_setup_module = load_setup_module(p_dir=p_main_module_dir, p_module_name="setup")
 
@@ -1011,7 +1119,21 @@ def main(p_main_module_dir):
 
         var = get_vars(p_setup_params=main_setup_module.extended_setup_params)
 
-        if arguments.execute_stage == STAGE_BUILD_PACKAGE:
+        if arguments.execute_stage == STAGE_BUILD_ANGULAR_APP:
+            generate_pip3_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                 p_arguments=arguments)
+            generate_build_angular_app(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                       p_arguments=arguments)
+            execute_build_angular_app_script(p_main_setup_module=main_setup_module)
+
+        elif arguments.execute_stage == STAGE_DEPLOY_ANGULAR_APP:
+            generate_pip3_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                 p_arguments=arguments)
+            generate_deploy_angular_app(p_main_setup_module=main_setup_module, p_template_env=template_env,
+                                        p_arguments=arguments)
+            execute_deploy_angular_app_script(p_main_setup_module=main_setup_module)
+
+        elif arguments.execute_stage == STAGE_BUILD_PACKAGE:
             if var["setup"]["build_debian_package"]:
                 generate_debian_control(p_main_setup_module=main_setup_module, p_template_env=template_env)
                 generate_debian_postinst(p_main_setup_module=main_setup_module, p_template_env=template_env,
@@ -1057,7 +1179,7 @@ def main(p_main_module_dir):
 
         elif arguments.execute_stage == STAGE_ANALYZE:
             generate_analyze_app_script(p_main_setup_module=main_setup_module, p_template_env=template_env,
-                                     p_arguments=arguments)
+                                        p_arguments=arguments)
             execute_analyze_app_script(p_main_setup_module=main_setup_module)
 
         elif arguments.execute_stage == STAGE_PREPARE:
