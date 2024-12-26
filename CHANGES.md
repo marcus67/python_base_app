@@ -15,6 +15,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Bump `python_google_speak` to 0.2.2 (closes issue #205)
 * Use underscores in setup package name
 * Explicitly include package `setuptools` in `requirements.txt`
+* Bump `jinja2` to 3.1.5
 
 # Version 0.2.50 (December 3rd, 2023)
 * Bump `urllib3` to 2.1.0 (CVE-2023-45803)
