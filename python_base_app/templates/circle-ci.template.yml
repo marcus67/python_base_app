@@ -149,7 +149,7 @@ jobs:
   publish_pypi:
     #working_directory: ~
     docker:
-      - image: {{ var.setup.docker_image_push_pypi }}
+      - image: {{ var.setup.docker_image_publish_pypi }}
     steps:
       - checkout
       - attach_workspace:

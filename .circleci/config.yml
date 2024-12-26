@@ -143,7 +143,7 @@ jobs:
   publish_pypi:
     #working_directory: ~
     docker:
-      - image: 
+      - image: marcusrickert/docker-python-app:3.11
     steps:
       - checkout
       - attach_workspace:
