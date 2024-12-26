@@ -105,14 +105,12 @@ jobs:
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
   {%- endif %}
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
-      {% if loop.revindex == 1 %}
       - store_artifacts:
           path: "dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
       - persist_to_workspace:
           root: dist
           paths:
             - "{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
-      {% endif %}
   {% endfor %}
   {%- endif %}
 

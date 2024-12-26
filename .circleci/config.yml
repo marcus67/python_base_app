@@ -37,7 +37,12 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
-      
+      - store_artifacts:
+          path: "dist/python_base_app-0.3.0.tar.gz"
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - "python_base_app-0.3.0.tar.gz"
   
   build_pypi_3_11:
     #working_directory: ~
@@ -51,7 +56,12 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
-      
+      - store_artifacts:
+          path: "dist/python_base_app-0.3.0.tar.gz"
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - "python_base_app-0.3.0.tar.gz"
   
   build_pypi_3_12:
     #working_directory: ~
@@ -65,14 +75,12 @@ jobs:
       - run: git submodule sync
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
-      
       - store_artifacts:
           path: "dist/python_base_app-0.3.0.tar.gz"
       - persist_to_workspace:
           root: dist
           paths:
             - "python_base_app-0.3.0.tar.gz"
-      
   
   
   install_pypi_3_10:
