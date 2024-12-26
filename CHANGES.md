@@ -11,7 +11,10 @@ This document lists all changes of `python_base_app` with the most recent change
 * Add branch map support for SecureCheckPlus
 * Support building and testing for several Python versions
 * Bump `werkzeug` to 3.1.3
-* Always default to locale "en_US" if request does not provide sufficient information 
+* Always default to locale "en_US" if request does not provide sufficient information
+* Bump `python_google_speak` to 0.2.2 (closes issue #205)
+* Use underscores in setup package name
+* Explicitly include package `setuptools` in `requirements.txt`
 
 # Version 0.2.50 (December 3rd, 2023)
 * Bump `urllib3` to 2.1.0 (CVE-2023-45803)

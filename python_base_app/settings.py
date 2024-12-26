@@ -16,7 +16,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 settings = {
-    "name": "python-base-app",
+    "name": "python_base_app",
     "version": "0.3.0",
     "description": "Generic tools and base classes for Python applications with web interface.",
     "author": "Marcus Rickert",

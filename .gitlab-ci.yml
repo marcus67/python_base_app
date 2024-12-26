@@ -42,7 +42,7 @@ build_pypi:
   artifacts:
       when: always
       paths:
-        - ./dist/python-base-app-0.3.0.tar.gz
+        - ./dist/python_base_app-0.3.0.tar.gz
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
@@ -136,8 +136,8 @@ owasp_upload:
     REPORT_FILE_NAME: dependency-check-report.json
     FILE_FORMAT: json
     TOOL_NAME: owasp
-    PROJECT_ID: "python-base-app"
-    PROJECT_NAME: "python-base-app"
+    PROJECT_ID: "python_base_app"
+    PROJECT_NAME: "python_base_app"
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       variables:
