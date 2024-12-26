@@ -80,9 +80,9 @@ jobs:
       - store_artifacts:
           path: {{ var.setup.debian_build_dir }}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
       - persist_to_workspace:
-          root: {{ var.setup.debian_build_dir }}
+          root: "."
           paths:
-            - {{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
+            - {{ var.setup.debian_build_dir }}/{{ var.setup.debian_package_name }}_{{ var.setup.version }}_{{ var.setup.debian_package_revision }}.deb
       {% endif %}
   {% endfor %}
   {%- endif %}
@@ -167,15 +167,15 @@ jobs:
       - image: {{ var.setup.docker_image_publish_pypi }}
     steps:
       - checkout
-      - attach_workspace:
-          at: "dist"
-      # Choose the artifact of the last Python image (having the most up-to-date Python version)...
-      - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ var.setup.docker_images_test[-1][0] }} dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
       - run: git submodule update --init
+      - attach_workspace:
+          at: "."
+      # Choose the artifact of the last Python image (having the most up-to-date Python version)...
+      - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ var.setup.docker_images_test[-1][0] }} dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
 
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
       - run: ./bin/pip3.sh install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
@@ -190,7 +190,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: {{ var.setup.debian_build_dir}}
+          at: "."
       - run: git submodule sync
       - run: git submodule update --init
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_package }}
@@ -202,10 +202,10 @@ jobs:
       - image: {{ var.setup.docker_image_docker }}
     steps:
       - checkout
-      - attach_workspace:
-          at: {{ var.setup.debian_build_dir}}
       - run: git submodule sync
       - run: git submodule update --init
+      - attach_workspace:
+          at: "."
       - setup_remote_docker:
           docker_layer_caching: false
   {%- if var.setup.ci_pip_dependencies|length > 0 %}
