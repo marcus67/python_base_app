@@ -31,7 +31,6 @@ jobs:
       - image: "marcusrickert/docker-python-app:3.10"
     steps:
       - checkout
-
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
@@ -39,10 +38,11 @@ jobs:
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
           path: "dist/python_base_app-0.3.0.tar.gz"
-      - persist_to_workspace:
-          root: dist
-          paths:
-            - "python_base_app-0.3.0.tar.gz"
+          destination: "build_pypi_3_10"
+#      - persist_to_workspace:
+#          root: dist
+#          paths:
+#            - "python_base_app-0.3.0.tar.gz"
   
   build_pypi_3_11:
     #working_directory: ~
@@ -50,7 +50,6 @@ jobs:
       - image: "marcusrickert/docker-python-app:3.11"
     steps:
       - checkout
-
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
@@ -58,10 +57,11 @@ jobs:
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
           path: "dist/python_base_app-0.3.0.tar.gz"
-      - persist_to_workspace:
-          root: dist
-          paths:
-            - "python_base_app-0.3.0.tar.gz"
+          destination: "build_pypi_3_11"
+#      - persist_to_workspace:
+#          root: dist
+#          paths:
+#            - "python_base_app-0.3.0.tar.gz"
   
   build_pypi_3_12:
     #working_directory: ~
@@ -69,7 +69,6 @@ jobs:
       - image: "marcusrickert/docker-python-app:3.12"
     steps:
       - checkout
-
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
@@ -77,10 +76,11 @@ jobs:
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
           path: "dist/python_base_app-0.3.0.tar.gz"
-      - persist_to_workspace:
-          root: dist
-          paths:
-            - "python_base_app-0.3.0.tar.gz"
+          destination: "build_pypi_3_12"
+#      - persist_to_workspace:
+#          root: dist
+#          paths:
+#            - "python_base_app-0.3.0.tar.gz"
   
   
   install_pypi_3_10:
@@ -89,8 +89,9 @@ jobs:
       - image: "marcusrickert/docker-python-app:3.10"
     steps:
       - checkout
-      - attach_workspace:
-          at: "dist"
+#      - attach_workspace:
+#          at: "dist"
+      - run: curl $CIRCLE_ARTIFACTS/build_pypi_3_10/python_base_app-0.3.0.tar.gz -o dist/python_base_app-0.3.0.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -107,8 +108,9 @@ jobs:
       - image: "marcusrickert/docker-python-app:3.11"
     steps:
       - checkout
-      - attach_workspace:
-          at: "dist"
+#      - attach_workspace:
+#          at: "dist"
+      - run: curl $CIRCLE_ARTIFACTS/build_pypi_3_11/python_base_app-0.3.0.tar.gz -o dist/python_base_app-0.3.0.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -125,8 +127,9 @@ jobs:
       - image: "marcusrickert/docker-python-app:3.12"
     steps:
       - checkout
-      - attach_workspace:
-          at: "dist"
+#      - attach_workspace:
+#          at: "dist"
+      - run: curl $CIRCLE_ARTIFACTS/build_pypi_3_12/python_base_app-0.3.0.tar.gz -o dist/python_base_app-0.3.0.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -146,8 +149,9 @@ jobs:
       - image: marcusrickert/docker-python-app:3.11
     steps:
       - checkout
-      - attach_workspace:
-          at: "dist"
+#      - attach_workspace:
+#          at: "dist"
+      - run: curl $CIRCLE_ARTIFACTS/build_pypi_3_12/python_base_app-0.3.0.tar.gz -o dist/python_base_app-0.3.0.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
