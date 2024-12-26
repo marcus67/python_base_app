@@ -197,7 +197,7 @@ default_setup = {
     "target_alembic_version": None,
     "build_debian_package": True,
     "debian_build_dir": "debian",
-    "debian_package_name": "{name}",
+    "debian_package_name": "{id}",
     "debian_package_revision": "1",
     "debian_package_section": "base",
     "debian_package_priority": "optional",
@@ -298,6 +298,7 @@ def get_vars(p_setup_params):
     setup.update(p_setup_params)
 
     setup["module_name"] = setup["name"].replace("-", "_")
+    setup["id"] = setup["name"].replace("_", "-")
     setup.update(get_predefined_environment_variables())
 
     expand_vars(setup)
@@ -334,10 +335,10 @@ def get_site_packages_dir():
     minor_version = sys.version_info[1]
 
     if tools.is_windows():
-        pattern = f".+Python\.{major_version}\.{minor_version}.+\\\\lib$"
+        pattern = f".+Python\\.{major_version}\\.{minor_version}.+\\\\lib$"
 
     else:
-        pattern = f".+[python|pypy]{major_version}\.{minor_version}/(site|dist)-packages$"
+        pattern = f".+[python|pypy]{major_version}\\.{minor_version}/(site|dist)-packages$"
 
     regex = re.compile(pattern)
 

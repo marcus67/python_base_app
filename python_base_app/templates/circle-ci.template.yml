@@ -49,11 +49,14 @@ jobs:
   {%- if var.setup.build_debian_package %}
   {% for image_info in var.setup.docker_images_test %}
   build_{{ image_info[0] }}:
-    #working_directory: ~
     docker:
       - image: "{{ image_info[1] }}"
     steps:
       - checkout
+{% if var.setup.angular_app_dir %}
+      - attach_workspace:
+          at: "{{ var.setup.angular_deployment_source_directory }}"
+{% endif %}
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
@@ -92,6 +95,10 @@ jobs:
       - image: "{{ image_info[1] }}"
     steps:
       - checkout
+  {% if var.setup.angular_app_dir %}
+      - attach_workspace:
+          at: "{{ var.setup.angular_deployment_source_directory }}"
+  {% endif %}
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
       - run: git submodule sync
@@ -108,11 +115,13 @@ jobs:
           path: "dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
       # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
       # with each other in common downstream jobs.
-      - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ image_info[0] }}
+  {%- for package in python_packages %}
+      - run: mv {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz_{{ image_info[0] }}
       - persist_to_workspace:
-          root: dist
+          root: "."
           paths:
-            - "{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ image_info[0] }}"
+            - {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz_{{ image_info[0] }}
+  {%- endfor %}
   {% endfor %}
   {%- endif %}
 
@@ -125,8 +134,10 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: "dist"
-      - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ image_info[0] }} dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
+          at: "."
+  {%- for package in python_packages %}
+      - run: mv {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz_{{ image_info[0] }} {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz
+  {%- endfor %}
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -210,10 +221,18 @@ workflows:
         - build_angular_app
   {% endif -%}
   {%- if var.setup.build_debian_package %}
+  {% if var.setup.angular_app_dir %}
+  {% for image_info in var.setup.docker_images_test %}
+        - build_{{ image_info[0] }}:
+            requires:
+              - build_angular_app
+  {% endfor %}
+  {% else %}
   {% for image_info in var.setup.docker_images_test %}
         - build_{{ image_info[0] }}
   {% endfor %}
-  {%- if var.setup.publish_debian_package|length > 0 %}
+  {% endif -%}
+{%- if var.setup.publish_debian_package|length > 0 %}
         - deploy:
             requires:
   {% for image_info in var.setup.docker_images_test %}
@@ -239,8 +258,18 @@ workflows:
   {%- endif %}
 
   {%- if var.setup.build_pypi_package %}
+  {% if var.setup.angular_app_dir %}
+  {% for image_info in var.setup.docker_images_test %}
+        - build_pypi_{{ image_info[0] }}:
+            requires:
+              - build_angular_app
+  {% endfor %}
+  {% else %}
   {% for image_info in var.setup.docker_images_test %}
         - build_pypi_{{ image_info[0] }}
+  {% endfor %}
+  {% endif %}
+  {% for image_info in var.setup.docker_images_test %}
         - install_pypi_{{ image_info[0] }}:
             requires:
               - build_pypi_{{ image_info[0] }}

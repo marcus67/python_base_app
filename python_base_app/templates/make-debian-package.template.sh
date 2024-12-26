@@ -103,22 +103,22 @@ cp -a ${BASE_DIR}/{{ var.setup.debian_build_dir}}/DEBIAN ${ROOT_DIR}
 
 {% if var.setup.deploy_systemd_service %}
 mkdir -p ${SYSTEMD_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.service ${SYSTEMD_DIR}/{{ var.setup.id }}.service
 {% endif %}
 
 {% if var.setup.deploy_tmpfile_conf %}
 mkdir -p ${TMPFILE_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.name }}.conf
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 
 {% if var.setup.deploy_sudoers_file %}
 mkdir -p ${SUDOERS_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.sudo ${SUDOERS_DIR}/{{ var.setup.name }}
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.sudo ${SUDOERS_DIR}/{{ var.setup.id }}
 {% endif %}
 
 {% if var.setup.deploy_apparmor_file %}
 mkdir -p ${APPARMOR_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.apparmor ${APPARMOR_DIR}/{{ var.setup.name }}.conf
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.apparmor ${APPARMOR_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 
 rm -f {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb

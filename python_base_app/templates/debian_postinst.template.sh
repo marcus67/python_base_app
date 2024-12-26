@@ -153,23 +153,23 @@ fi
 {%- if var.setup.deploy_systemd_service %}
 if [ "$RUNNING_IN_DOCKER" == "" ] ; then
   mkdir -p ${SYSTEMD_DIR}
-  cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+  cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.service ${SYSTEMD_DIR}/{{ var.setup.id }}.service
 fi
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_conf %}
 mkdir -p ${TMPFILE_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.name }}.conf
+cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.id }}.conf
 {%- endif %}
 
 {%- if var.setup.deploy_sudoers_file %}
 mkdir -p ${SUDOERS_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.sudo ${SUDOERS_DIR}/{{ var.setup.name }}
+cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.sudo ${SUDOERS_DIR}/{{ var.setup.id }}
 {%- endif %}
 
 {%- if var.setup.deploy_apparmor_file %}
 mkdir -p ${APPARMOR_DIR}
-cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.name }}.apparmor ${APPARMOR_DIR}/{{ var.setup.name }}.conf
+cp ${INSTALL_BASE_DIR}/etc/{{ var.setup.id }}.apparmor ${APPARMOR_DIR}/{{ var.setup.id }}.conf
 {%- endif %}
 
 {%- for package in python_packages %}
@@ -260,24 +260,24 @@ chown {{ var.setup.user }}:{{ var.setup.group }} {{ file_mapping[1] }}
 
 {%- if var.setup.deploy_systemd_service %}
   if [ "$RUNNING_IN_DOCKER" == "" ] ; then
-  echo "    * ${SYSTEMD_DIR}/{{ var.setup.name }}.service"
-  chown root.root ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+  echo "    * ${SYSTEMD_DIR}/{{ var.setup.id }}.service"
+  chown root.root ${SYSTEMD_DIR}/{{ var.setup.id }}.service
   fi
 {%- endif %}
 
 {%- if var.setup.deploy_tmpfile_service %}
-echo "    * ${TMPFILE_DIR}/{{ var.setup.name }}.conf"
-chown root.root ${TMPFILE_DIR}/{{ var.setup.name }}.conf
+echo "    * ${TMPFILE_DIR}/{{ var.setup.id }}.conf"
+chown root.root ${TMPFILE_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 {%- if var.setup.deploy_sudoers_file %}
 echo "    * ${SUDOERS_DIR}"
 chown root.root ${SUDOERS_DIR}
-echo "    * ${SUDOERS_DIR}/{{ var.setup.name }}"
-chown root.root ${SUDOERS_DIR}/{{ var.setup.name }}
+echo "    * ${SUDOERS_DIR}/{{ var.setup.id }}"
+chown root.root ${SUDOERS_DIR}/{{ var.setup.id }}
 {% endif %}
 {%- if var.setup.deploy_apparmor_file %}
-echo "    * ${APPARMOR_DIR}/{{ var.setup.name }}.conf"
-chown root.root ${APPARMOR_DIR}/{{ var.setup.name }}.conf
+echo "    * ${APPARMOR_DIR}/{{ var.setup.id }}.conf"
+chown root.root ${APPARMOR_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 
 echo "Setting permissions..."
