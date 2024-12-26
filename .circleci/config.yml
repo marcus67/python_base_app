@@ -37,12 +37,14 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python_base_app-0.3.0.tar.gz"
-      - run: mv dist/python_base_app-0.3.0.tar.gz dist/python_base_app-0.3.0.tar.gz_3_10
+          path: "dist/python_base_app-0.3.1.tar.gz"
+      # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
+      # with each other in common downstream jobs.
+      - run: mv dist/python_base_app-0.3.1.tar.gz dist/python_base_app-0.3.1.tar.gz_3_10
       - persist_to_workspace:
           root: dist
           paths:
-            - "python_base_app-0.3.0.tar.gz_3_10"
+            - "python_base_app-0.3.1.tar.gz_3_10"
   
   build_pypi_3_11:
     #working_directory: ~
@@ -56,12 +58,14 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python_base_app-0.3.0.tar.gz"
-      - run: mv dist/python_base_app-0.3.0.tar.gz dist/python_base_app-0.3.0.tar.gz_3_11
+          path: "dist/python_base_app-0.3.1.tar.gz"
+      # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
+      # with each other in common downstream jobs.
+      - run: mv dist/python_base_app-0.3.1.tar.gz dist/python_base_app-0.3.1.tar.gz_3_11
       - persist_to_workspace:
           root: dist
           paths:
-            - "python_base_app-0.3.0.tar.gz_3_11"
+            - "python_base_app-0.3.1.tar.gz_3_11"
   
   build_pypi_3_12:
     #working_directory: ~
@@ -75,12 +79,14 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python_base_app-0.3.0.tar.gz"
-      - run: mv dist/python_base_app-0.3.0.tar.gz dist/python_base_app-0.3.0.tar.gz_3_12
+          path: "dist/python_base_app-0.3.1.tar.gz"
+      # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
+      # with each other in common downstream jobs.
+      - run: mv dist/python_base_app-0.3.1.tar.gz dist/python_base_app-0.3.1.tar.gz_3_12
       - persist_to_workspace:
           root: dist
           paths:
-            - "python_base_app-0.3.0.tar.gz_3_12"
+            - "python_base_app-0.3.1.tar.gz_3_12"
   
   
   install_pypi_3_10:
@@ -91,7 +97,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "dist"
-      - run: mv dist/python_base_app-0.3.0.tar.gz_3_10 dist/python_base_app-0.3.0.tar.gz
+      - run: mv dist/python_base_app-0.3.1.tar.gz_3_10 dist/python_base_app-0.3.1.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -110,7 +116,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "dist"
-      - run: mv dist/python_base_app-0.3.0.tar.gz_3_11 dist/python_base_app-0.3.0.tar.gz
+      - run: mv dist/python_base_app-0.3.1.tar.gz_3_11 dist/python_base_app-0.3.1.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -129,7 +135,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "dist"
-      - run: mv dist/python_base_app-0.3.0.tar.gz_3_12 dist/python_base_app-0.3.0.tar.gz
+      - run: mv dist/python_base_app-0.3.1.tar.gz_3_12 dist/python_base_app-0.3.1.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -151,7 +157,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: "dist"
-      - run: mv dist/python_base_app-0.3.0.tar.gz_3_12 dist/python_base_app-0.3.0.tar.gz
+      # Choose the artifact of the last Python image (having the most up-to-date Python version)...
+      - run: mv dist/python_base_app-0.3.1.tar.gz_3_12 dist/python_base_app-0.3.1.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout

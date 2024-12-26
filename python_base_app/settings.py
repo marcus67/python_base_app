@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2019-2022  Marcus Rickert
+# Copyright (C) 2019-2024  Marcus Rickert
 #
 # See https://github.com/marcus67/python_base_app
 # This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 
 settings = {
     "name": "python_base_app",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Generic tools and base classes for Python applications with web interface.",
     "author": "Marcus Rickert",
     "author_email": "marcus.rickert@web.de",

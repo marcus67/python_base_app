@@ -106,6 +106,8 @@ jobs:
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - store_artifacts:
           path: "dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
+      # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
+      # with each other in common downstream jobs.
       - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ image_info[0] }}
       - persist_to_workspace:
           root: dist
@@ -155,6 +157,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: "dist"
+      # Choose the artifact of the last Python image (having the most up-to-date Python version)...
       - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ var.setup.docker_images_test[-1][0] }} dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
 
       # Check out all sub modules
