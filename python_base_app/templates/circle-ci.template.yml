@@ -106,11 +106,11 @@ jobs:
       - run: PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
       - store_artifacts:
           path: "dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
-          destination: "build_pypi_{{ image_info[0] }}"
-#      - persist_to_workspace:
-#          root: dist
-#          paths:
-#            - "{{ var.setup.name }}-{{ var.setup.version }}.tar.gz"
+      - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ image_info[0] }}
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - "{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ image_info[0] }}"
   {% endfor %}
   {%- endif %}
 
@@ -122,9 +122,9 @@ jobs:
       - image: "{{ image_info[1] }}"
     steps:
       - checkout
-#      - attach_workspace:
-#          at: "dist"
-      - run: curl $CIRCLE_ARTIFACTS/build_pypi_{{ image_info[0] }}/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz -o dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
+      - attach_workspace:
+          at: "dist"
+      - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ image_info[0] }} dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
@@ -153,9 +153,9 @@ jobs:
       - image: {{ var.setup.docker_image_publish_pypi }}
     steps:
       - checkout
-#      - attach_workspace:
-#          at: "dist"
-      - run: curl $CIRCLE_ARTIFACTS/build_pypi_{{ var.setup.docker_images_test[-1][0] }}/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz -o dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
+      - attach_workspace:
+          at: "dist"
+      - run: mv dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz_{{ var.setup.docker_images_test[-1][0] }} dist/{{ var.setup.name }}-{{ var.setup.version }}.tar.gz
 
       # Check out all sub modules
       # See https://circleci.com/docs/2.0/configuration-reference/#checkout
