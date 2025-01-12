@@ -2,6 +2,9 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.3.3 (January 12th, 2025)
+* Support processing of authorization results to add additional information (such as user ids) 
+
 ## Version 0.3.2 (December 26th, 2024)
 * Better handling of pip package names (only use underscores)
 * Upgrade `some_flask_helpers` to 0.2.8
