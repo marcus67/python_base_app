@@ -209,10 +209,12 @@ default_setup = {
     "contributing_setups": [],
     "publish_debian_package": [],
     "analyze_branch_map": {
-        "main": 'SONAR_PROJECT_KEY'
+        "main": 'SONAR_PROJECT_KEY',
+        "master": 'SONAR_PROJECT_KEY'
     },
     "owasp_check_branch_map": {
-        "main": ('SECURECHECKPLUS_PROJECT_ID', 'SECURECHECKPLUS_API_KEY')
+        "main": ('SECURECHECKPLUS_PROJECT_ID', 'SECURECHECKPLUS_API_KEY'),
+        "master": ('SECURECHECKPLUS_PROJECT_ID', 'SECURECHECKPLUS_API_KEY'),
     },
     "build_pypi_package": False,
     "publish_pypi_package": {},

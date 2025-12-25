@@ -33,7 +33,7 @@ stages:
   - publish
   
 build_pypi:
-  image: marcusrickert/docker-python-app:3.11
+  image: marcusrickert/docker-python-app:3.12
   stage: build
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
@@ -42,7 +42,7 @@ build_pypi:
   artifacts:
       when: always
       paths:
-        - ./dist/python_base_app-0.3.3.tar.gz
+        - ./dist/python_base_app-0.3.4.tar.gz
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
@@ -53,7 +53,7 @@ install_pypi_3_10:
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
-    - DELTA_PORT=3 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
+    - DELTA_PORT=4 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
   after_script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
   
@@ -66,7 +66,7 @@ install_pypi_3_11:
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
-    - DELTA_PORT=4 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
+    - DELTA_PORT=5 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
   after_script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
   
@@ -79,7 +79,20 @@ install_pypi_3_12:
   stage: install_and_check
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
-    - DELTA_PORT=5 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
+    - DELTA_PORT=6 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
+  after_script:
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
+  
+  variables:
+    # Suppress automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+
+install_pypi_3_13:
+  image: "marcusrickert/docker-python-app:3.13"
+  stage: install_and_check
+  script:
+    - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
+    - DELTA_PORT=7 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
   after_script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEARDOWN
   
@@ -94,7 +107,7 @@ install_pypi_3_12:
     GIT_SUBMODULE_STRATEGY: recursive
 
 analyze:
-  image: marcusrickert/docker-python-app:3.11
+  image: marcusrickert/docker-python-app:3.12
   stage: analyze
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage ANALYZE --use-dev-dir=.
@@ -151,7 +164,7 @@ owasp_upload:
   script:
     - echo "Analysis successful."
 publish_pypi:
-  image: marcusrickert/docker-python-app:3.11
+  image: marcusrickert/docker-python-app:3.12
   stage: publish
   script:
     - PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage PUBLISH-PYPI-PACKAGE --use-dev-dir=.

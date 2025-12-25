@@ -109,7 +109,8 @@ class must_be_available(object):
 def add_tests_in_test_unit(
         p_test_suite, p_test_unit_class,
         p_config_filename=DEFAULT_CONFIG_FILENAME, p_test_data_base_dir=DEFAULT_RESOURCE_REL_PATH):
-    for test_name in unittest.getTestCaseNames(p_test_unit_class, prefix="test"):
+    loader = unittest.TestLoader()
+    for test_name in loader.getTestCaseNames(p_test_unit_class):
         test = p_test_unit_class(
             test_name,
             p_config_filename=p_config_filename,
