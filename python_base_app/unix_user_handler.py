@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2019  Marcus Rickert
+# Copyright (C) 2019-2024  Marcus Rickert
 #
 # See https://github.com/marcus67/python_base_app
 # This program is free software; you can redistribute it and/or modify
@@ -24,20 +24,15 @@ SECTION_NAME = "UnixUserHandler"
 
 HANDLER_NAME = "unix"
 
-DEFAULT_MIN_UID = 500
-DEFAULT_MAX_UID = 65000
-INVALID_SHELLS = ["/usr/sbin/nologin", "/bin/false"]
 
-
-class BaseUserHandlerConfigModel(configuration.ConfigModel):
+class UnixUserHandlerConfigModel(base_user_handler.BaseUserHandlerConfigModel):
 
     def __init__(self):
         super().__init__(p_section_name=SECTION_NAME)
+
         self.admin_username = configuration.NONE_STRING
         self.admin_password = configuration.NONE_STRING
         self.user_list = configuration.NONE_STRING
-        self.min_uid = DEFAULT_MIN_UID
-        self.max_uid = DEFAULT_MAX_UID
 
     def is_active(self):
         return self.admin_username is not None and self.admin_password is not None
@@ -47,22 +42,28 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
 
     def __init__(self, p_config, p_exclude_user_list=None):
 
-        super().__init__()
-
-        self._config = p_config
+        super().__init__(p_config=p_config, p_exclude_user_list=p_exclude_user_list)
         self._users = None
-        self._exclude_user_list = p_exclude_user_list
+        self._passwords = None
 
-        if self._exclude_user_list is None:
-            self._exclude_user_list = []
+        self._logger.warning(
+            "******************************************************************************************************")
+        self._logger.warning(
+            "Using the simple UnixUserHandler for user authentication which is inherently insecure.")
+        self._logger.warning(
+            "Consider upgrading to the more secure LdapUserHandler found in package python_base_app_ldap_extension.")
+        self._logger.warning(
+            "******************************************************************************************************")
 
         msg = "Using admin user '{username}'"
         self._logger.info(msg.format(username=self._config.admin_username))
 
         if self._config.user_list is not None:
             try:
-                self._users = {name_uid.split(":")[0].strip(): int(name_uid.split(":")[1]) for name_uid in
-                               self._config.user_list.split(",")}
+                entries = self._config.user_list.split(",")
+                self._users = {entry.split(":")[0].strip(): int(entry.split(":")[1]) for entry in entries}
+                self._passwords = {entry.split(":")[0].strip(): entry.split(":")[2] for entry in entries
+                                   if len(entry.split(":")) == 3}
 
             except Exception as e:
                 msg = "Invalid user:uid list '{list}' in [UnixUserHandler].user_list"
@@ -71,17 +72,18 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
             msg = "Using predefined users {users}"
             self._logger.info(msg.format(users=",".join(self._users.keys())))
 
+            if len(self._passwords) > 0:
+                self._logger.info(f"The following users have passwords defined: {','.join(self._passwords.keys())}")
+
+
     def list_users(self):
 
         users = []
 
         if self._users is None:
             for entry in pwd.getpwall():
-                if (entry.pw_uid >= self._config.min_uid and
-                        entry.pw_uid <= self._config.max_uid and
-                        entry.pw_passwd != "" and entry.pw_passwd is not None and
-                        entry.pw_shell not in INVALID_SHELLS and
-                        entry.pw_name not in self._exclude_user_list):
+                if self.is_valid_uid(p_uid=entry.pw_uid, p_username=entry.pw_name,
+                                     p_password=entry.pw_passwd, p_shell=entry.pw_shell):
                     users.append(entry.pw_name)
 
             return users
@@ -108,7 +110,8 @@ class UnixUserHandler(base_user_handler.BaseUserHandler):
 
     def authenticate(self, p_username, p_password):
 
-        return p_username == self._config.admin_username and p_password == self._config.admin_password
+        return ((p_username == self._config.admin_username and p_password == self._config.admin_password) or
+                p_username in self._passwords and self._passwords[p_username] == p_password)
 
     def is_admin(self, p_username):
 

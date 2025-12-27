@@ -1,4 +1,4 @@
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -21,48 +21,233 @@
 # but only to python_base_app/templates/gitlab-ci.template.yml!                  #
 ##################################################################################
 
-stages:
-- build
-- install_and_check
-{% if var.setup.docker_contexts|length > 0 -%}
-- docker
-{% endif %}
+variables:
+  PIP3: "./bin/pip3.sh"
 
-make_debian_package:
+stages:
+  {% if var.setup.angular_app_dir -%}
+  - build_angular
+  {% endif -%}
+  - build
+  - install_and_check
+  {% if var.setup.analyze -%}
+  - analyze
+  {% endif -%}
+  {% if var.setup.owasp -%}
+  - owasp_check
+  - owasp_upload
+  {% endif -%}
+  {% if var.setup.publish_pypi_package|length > 0 -%}
+  - publish
+  {% endif -%}
+  {% if var.setup.docker_contexts|length > 0 -%}
+  - deploy
+  {% endif -%}
+
+{%- if var.setup.angular_app_dir %}
+build_angular_app:
+  image: {{ var.setup.docker_image_build_angular }}
+  stage: build_angular
+  script:
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_angular_app }} --use-dev-dir=.
+  artifacts:
+    paths:
+      - {{ var.setup.angular_deployment_source_directory }}/**
+  variables:
+    # Activate automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{%- endif -%}
+
+{%- if var.setup.build_debian_package %}
+build_debian:
   image: {{ var.setup.docker_image_make_package }}
   stage: build
   script:
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
   artifacts:
     paths:
-    - {{ var.setup.debian_build_dir }}/*.deb
+      - {{ var.setup.debian_build_dir }}/*.deb
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-check_installation:
-  image: {{ var.setup.docker_image_test }}
+{% for image_info in var.setup.docker_images_test %}
+test_debian_{{ image_info[0] }}:
+  image: "{{ image_info[1] }}"
   stage: install_and_check
   script:
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }}{% if var.setup.run_test_suite %}
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --run-dir=/tmp {% endif %}{% if var.setup.require_teardown %}
-  after_script:
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}{% endif %}
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install }} --use-dev-dir .
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
+  {%- endif %}
+  {%- if var.setup.run_test_suite %}
+    - DELTA_PORT={{ loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }} --use-dev-dir .
+  {%- endif %}
+    - codecov
+  {% if loop.revindex == 1 %}
   artifacts:
-    when: always
     paths:
-    - /var/log/{{ var.setup.name }}/*.log*
-    - ./htmlcov/*
+      - htmlcov
+      - coverage.xml
+  {% endif %}
+  variables:
+    # Activate automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{% endfor %}
+{%- endif %}
+
+{%- if var.setup.build_pypi_package %}
+build_pypi:
+  image: {{ var.setup.docker_image_make_package }}
+  stage: build
+  script:
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_package }} --use-dev-dir=.
+  after_script:
+    - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}
+  artifacts:
+      when: always
+      paths:
+{%- for package in python_packages %}
+        - {{ package[0] }}/dist/{{ package[10] }}-{{ package[11] }}.tar.gz
+{%- endfor %}
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive
 
-{% if var.setup.docker_contexts|length > 0 -%}
-build_docker_images:
-  image: {{ var.setup.docker_image_docker }}
-  stage: docker
+{% for image_info in var.setup.docker_images_test %}
+install_pypi_{{ image_info[0] }}:
+  image: "{{ image_info[1] }}"
+  stage: install_and_check
   script:
-  - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }} --use-dev-dir=.
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_install_pypi_package }} --use-dev-dir=.
+  {%- if var.setup.run_test_suite %}
+    - DELTA_PORT={{ (var.setup.docker_images_test | length) + loop.index0 }} PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_test }}
+  {% endif -%}
+  after_script:
+    - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}
+  {% if loop.revindex == 1 %}
+  artifacts:
+      when: always
+      paths:
+        - htmlcov
+        - coverage.xml
+  {% endif %}
+  variables:
+    # Suppress automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{% endfor %}
+{%- endif %}
+
+{%- if var.setup.analyze %}
+analyze:
+  image: {{ var.setup.docker_image_analyze }}
+  stage: analyze
+  script:
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+  {%- if var.setup.angular_app_dir %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_deploy_angular_app }} --use-dev-dir .
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_analyze }} --use-dev-dir=.
+  after_script:
+    - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_teardown }}
+  variables:
+    # Suppress automatic checkout for all sub modules
+    GIT_SUBMODULE_STRATEGY: recursive
+{% endif %}
+
+{% if var.setup.owasp %}
+owasp_check:
+  image:
+    name: {{ var.setup.docker_image_owasp }}
+    entrypoint: [""]
+  stage: owasp_check
+  script:
+    # Job will scan the project root folder and fail if any vulnerabilities with CVSS > 0 are found
+    - /usr/share/dependency-check/bin/dependency-check.sh {{ var.setup.owasp_additional_params }} --scan "./" --format JSON --project "$CI_PROJECT_NAME"
+    # Dependency Check will only fail the job based on CVSS scores, and in some cases vulnerabilities do not
+    # have CVSS scores (e.g. those from NPM audit), so they don't cause failure.  To fail for any vulnerabilities
+    # grep the resulting report for any "vulnerabilities" sections and exit if any are found (count > 0).
+  allow_failure: false
+  artifacts:
+    when: always
+    paths:
+        # Save the HTML and JSON report artifacts
+      - "./dependency-check-report.json"
+
+owasp_upload:
+  image:
+    name: "$SECURECHECKPLUS_ADAPTER_IMAGE"
+    entrypoint: ["python", "run.py"]
+  stage: owasp_upload
+  allow_failure: false
+  variables:
+    SERVER_URL: "$SECURECHECKPLUS_SERVER_URL"
+    SKIP: "$SECURECHECKPLUS_SKIP"
+    REPORT_FILE_NAME: dependency-check-report.json
+    FILE_FORMAT: json
+    TOOL_NAME: owasp
+    PROJECT_ID: "{{ var.setup.scan_id or var.setup.name }}"
+    PROJECT_NAME: "{{ var.setup.name }}"
+  {%- if var.setup.owasp_check_branch_map %}
+  rules:
+  {%- for branch_name, (project_id_env_name, api_key_env_name) in var.setup.owasp_check_branch_map.items() %}
+    - if: '$CI_COMMIT_REF_NAME == "{{ branch_name }}"'
+      variables:
+        PROJECT_ID: "${{ project_id_env_name }}"
+        API_KEY: "${{ api_key_env_name }}"
+  {%- endfor %}
+  {% endif %}
+  script:
+    - echo "Analysis successful."
+{%- endif %}
+
+{%- if var.setup.publish_pypi_package|length > 0 %}
+publish_pypi:
+  image: {{ var.setup.docker_image_publish_pypi }}
+  stage: publish
+  script:
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir }}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_publish_pypi_package }} --use-dev-dir=.
+  only:
+  {%- for branch in var.setup.publish_pypi_package.keys() %}
+    - {{ branch }}
+  {%- endfor %}
+{%- endif %}
+
+{%- if var.setup.build_debian_package and var.setup.docker_contexts|length > 0 %}
+docker:
+  image: {{ var.setup.docker_image_docker }}
+  stage: deploy
+  script:
+  {%- if var.setup.ci_pip_dependencies|length > 0 %}
+    - ${PIP3} install  {%- for package in var.setup.ci_pip_dependencies %} {{package}}{% endfor %}
+  {%- endif %}
+    - PYTHONPATH={{ var.setup.contrib_dir}}/python_base_app python3 {{ var.setup.ci_toolbox_script }} --execute-stage {{ var.setup.ci_stage_build_docker_images }} --use-dev-dir=.
   variables:
     # Activate automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive

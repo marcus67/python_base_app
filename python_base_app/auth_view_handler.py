@@ -19,11 +19,11 @@ import flask
 import flask.wrappers
 import flask_login
 
-import flask_helpers
 import python_base_app
+import some_flask_helpers
 
 AUTH_BLUEPRINT_NAME = 'auth'
-AUTH_BLUEPRINT_ADAPTER = flask_helpers.BlueprintAdapter()
+AUTH_BLUEPRINT_ADAPTER = some_flask_helpers.BlueprintAdapter()
 
 LOGIN_ENDPOINT_NAME = "login"
 LOGOUT_ENDPOINT_NAME = "logout"
@@ -61,6 +61,9 @@ class AuthViewHandler(object):
         self._login_manager.init_app(app=p_app)
         self._login_manager.login_view = AUTH_BLUEPRINT_NAME + '.' + LOGIN_ENDPOINT_NAME
         self._login_manager.user_loader(self.load_user)
+
+        # See https://flask-login.readthedocs.io/en/latest/#how-it-works
+        self._login_manager.session_protection = "strong"
 
         self._blueprint = flask.Blueprint(AUTH_BLUEPRINT_NAME, python_base_app.__name__)
         AUTH_BLUEPRINT_ADAPTER.assign_view_handler_instance(p_blueprint=self._blueprint, p_view_handler_instance=self)

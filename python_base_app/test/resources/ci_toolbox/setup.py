@@ -18,8 +18,9 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from setuptools import setup
 from os import path
+
+from setuptools import setup
 
 from python_base_app.test.resources.ci_toolbox import settings
 
@@ -52,7 +53,8 @@ extended_setup_params = {
     "id": "a_package",
     "build_debian_package": False,
     "build_pypi_package": True,
-    "publish_pypi_package": ['release'],
+    "publish_pypi_package": {'release': ('PYPI_API_URL', 'PYPI_API_TOKEN', 'TEST_PYPI_API_USER'),
+                             'master': ('TEST_PYPI_API_URL', 'TEST_PYPI_API_TOKEN', 'TEST_PYPI_API_USER')},
     "git_metadata_file": None,
 }
 extended_setup_params.update(setup_params)

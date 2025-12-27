@@ -1,9 +1,14 @@
+![PythonBaseApp-Logo](python_base_app/static/icons/icon-python-base-app-128x128.png)
+
 # Python Application Framework `python_base_app`
 
 ## Overview
 
 `python_base_app` is a simple framework for Python applications with a web frontend using 
-[Flask](https://palletsprojects.com/p/flask/). It is used by [LitleBrother](https://github.com/marcus67/little_brother).
+[Flask](https://palletsprojects.com/p/flask/). It is used by 
+[LittleBrother](https://github.com/marcus67/little_brother),
+[LittleBrotherTaskbar](https://github.com/marcus67/little_brother_taskbar), and 
+[ProxyPing](https://github.com/marcus67/proxy_ping).
 
 ## Change History 
 
@@ -29,6 +34,7 @@ See [here](https://github.com/marcus67/python_base_app/blob/master/CHANGES.md)
 | CircleCI            | <A HREF="https://circleci.com/gh/marcus67/python_base_app/tree/master"><IMG SRC="https://img.shields.io/circleci/project/github/marcus67/python_base_app/master.svg?label=master"></A>                                                                                                                                                                          | <A HREF="https://circleci.com/gh/marcus67/python_base_app/tree/release"><IMG SRC="https://img.shields.io/circleci/project/github/marcus67/python_base_app/release.svg?label=release"></A> |
 | Test Coverage       | <A HREF="https://codecov.io/gh/marcus67/python_base_app/branch/master"><IMG SRC="https://img.shields.io/codecov/c/github/marcus67/python_base_app.svg?label=master"></A>                                                                                                                                                                                        | <A HREF="https://codecov.io/gh/marcus67/python_base_app/branch/release"><IMG SRC="https://img.shields.io/codecov/c/github/marcus67/python_base_app/release.svg?label=release"></A>        | 
 | Snyk Vulnerability  | <a href="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt"><img src="https://snyk.io/test/github/marcus67/python_base_app/badge.svg?targetFile=requirements.txt" alt="Known Vulnerabilities" data-canonical-src="https://snyk.io/test/github/marcus67/python_base_app?targetFile=requirements.txt" style="max-width:100%;"></a> | not available                                                                                                                                                                             |
+| Snyk Package Health | not available                                                                                                                                                                                                                                                                                                                                                   | [![python-base-app](https://snyk.io/advisor/python/python-base-app/badge.svg)](https://snyk.io/advisor/python/python-base-app)                                                            |
 | Codacy Code Quality | <a href="https://www.codacy.com/app/marcus67/python_base_app?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=marcus67/python_base_app&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/3e3130c1c450404db9b16e10ab8af7fd"/></a>                                                                                  | not available                                                                                                                                                                             |
 
 Note: The vulnerability status is derived from the Python PIP packages found in `requirements.txt`.
@@ -39,14 +45,20 @@ Note: The vulnerability status is derived from the Python PIP packages found in 
 
 *   (Base) classes for handling
     *   configuration,
-    *   HTTP server (Flask with optional authentication),
+    *   HTTP server (Flask with optional authentication (simple configured admin password and LDAP)),
+    *   helper classes for Flask WTF,
+    *   actuator providing a health endpoint,
+    *   helpers for notification using popups or audio messages,
     *   REST access,
     *   logging,
-    *   daemon processes,
-*   Templates and generator (JInja2) for creating
+    *   daemon processes
+    *   wrapper for pinging other servers with integration of [ProxyPing](https://github.com/marcus67/proxy_ping)
+
+*   Templates and generator (Jinja2) for creating
     *   Debian packages for Python applications,
     *   PIP packages (build, test, publish),
-    *   control files for CircleCI
+    *   control files for continuous integration platforms CircleCI and GitLab,
+    *   control file analyzing test coverage using Python module `coverage`
      
 ## Caveats
 

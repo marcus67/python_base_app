@@ -21,17 +21,19 @@ import locale
 import os.path
 import shlex
 import subprocess
+import tempfile
 
-from python_base_app import configuration
+from python_base_app import configuration, afplay_audio_player
 from python_base_app import mpg123_audio_player
 from python_base_app import notification_handler
 from python_base_app import pyglet_audio_player
+from python_base_app.tools import is_mac_os
 
 DEFAULT_SPEECH_GENERATOR_CMD_LINE = '/usr/bin/festival --tts --language american_english {{{pattern}}}'.format(
     pattern=notification_handler.REPLACE_PATTERN_AUDIO_TEXT_FILENAME)
 DEFAULT_AUDIO_MIXER_BIN = '/usr/bin/amixer'
 DEFAULT_AUDIO_FILE_PREFIX = "python-base-app-speech-"
-DEFAULT_SPOOL_DIRECTORY = "/tmp"
+DEFAULT_SPOOL_DIRECTORY = tempfile.gettempdir()
 DEFAULT_SPEECH_WORDS_PER_MINUTE = 100
 
 SECTION_NAME = "AudioHandler"
@@ -43,10 +45,16 @@ AUDIO_TEXT_FILE = "audio.txt"
 
 AUDIO_PLAYER_PYGLET = "pyglet"
 AUDIO_PLAYER_MPG123 = "mpg123"
+AUDIO_PLAYER_AFPLAY = "afplay"
 
-DEFAULT_MPG123_binary = "/usr/bin/mpg123"
+DEFAULT_MPG123_BINARY = "/usr/bin/mpg123"
+DEFAULT_AFPLAY_BINARY = "/usr/bin/afplay"
 
-DEFAULT_AUDIO_PLAYER = AUDIO_PLAYER_MPG123
+if is_mac_os():
+    DEFAULT_AUDIO_PLAYER = AUDIO_PLAYER_AFPLAY
+
+else:
+    DEFAULT_AUDIO_PLAYER = AUDIO_PLAYER_MPG123
 
 
 class AudioHandlerConfigModel(notification_handler.NotificationHandlerConfigModel):
@@ -63,7 +71,9 @@ class AudioHandlerConfigModel(notification_handler.NotificationHandlerConfigMode
         self.audio_mixer_volume = configuration.NONE_INTEGER  # in percent
         self.speech_generator_cmd_line = DEFAULT_SPEECH_GENERATOR_CMD_LINE
         self.audio_player = DEFAULT_AUDIO_PLAYER
-        self.mpg123_binary = DEFAULT_MPG123_binary
+        self.mpg123_binary = DEFAULT_MPG123_BINARY
+        self.afplay_binary = DEFAULT_AFPLAY_BINARY
+        self.play_command_pattern = mpg123_audio_player.DEFAULT_PLAY_COMMAND_PATTERN
 
     def is_active(self):
         return self.speech_engine is not None
@@ -93,17 +103,22 @@ class AudioHandler(notification_handler.NotificationHandler):
                 self._audio_player = pyglet_audio_player.PygletAudioPlayer()
 
             elif self._config.audio_player == AUDIO_PLAYER_MPG123:
-                self._audio_player = mpg123_audio_player.Mpg123AudioPlayer(self._config.mpg123_binary)
+                self._audio_player = mpg123_audio_player.Mpg123AudioPlayer(
+                    self._config.mpg123_binary, self._config.play_command_pattern)
+
+            elif self._config.audio_player == AUDIO_PLAYER_AFPLAY:
+
+                self._audio_player = afplay_audio_player.AfplayAudioPlayer(
+                    self._config.afplay_binary, self._config.play_command_pattern)
 
             else:
-                fmt = "Invalid audio player '{player}'"
-                self._logger.error(fmt.format(player=self._config.audio_player))
-                raise configuration.ConfigurationException(fmt)
+                msg = f"Invalid audio player '{self._config.audio_player}'"
+                raise configuration.ConfigurationException(msg)
 
-        except Exception:
-            fmt = "Cannot load audio player '{player}'"
-            self._logger.error(fmt.format(player=self._config.audio_player))
-            raise configuration.ConfigurationException(fmt)
+        except Exception as e:
+            msg = f"Cannot load audio player '{self._config.audio_player}': {str(e)}"
+            self._logger.error(msg)
+            raise configuration.ConfigurationException(msg)
 
     def init_engine_google(self):
 

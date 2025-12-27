@@ -20,7 +20,7 @@
 
 import flask
 
-from flask_helpers import blueprint_adapter
+from some_flask_helpers import blueprint_adapter
 
 import python_base_app
 
@@ -39,7 +39,7 @@ class ActuatorViewHandler(object):
     @ACTUATOR_BLUEPRINT_ADAPTER.route_method(p_rule="/health")
     def health(self):
 
-        return flask.Response("ok")
+        return flask.Response("ok", mimetype='application/txt')
 
     def destroy(self):
         ACTUATOR_BLUEPRINT_ADAPTER.unassign_view_handler_instances()

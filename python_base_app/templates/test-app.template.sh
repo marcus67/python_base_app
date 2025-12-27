@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2021  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -26,12 +26,18 @@
 set -e
 SCRIPT_DIR=`dirname $0`
 BASE_DIR=`realpath ${SCRIPT_DIR}/..`
-VIRTUAL_ENV_DIR=/{{ var.setup.rel_virtual_env_dir }}
+VIRTUAL_ENV_BIN_DIR=/{{ var.setup.rel_virtual_env_dir }}/bin
+LOCAL_ENV_FILE=${BASE_DIR}/.dev-env-settings.sh
 
+if [ -f ${LOCAL_ENV_FILE} ] ; then
+  echo "Reading local environment settings from ${LOCAL_ENV_FILE}..."
+  . ${LOCAL_ENV_FILE}
+fi
 
 set +e
-#PYCOVERAGE_BIN=$(which coverage)
-PYCOVERAGE=${VIRTUAL_ENV_DIR}/bin/coverage
+# Prepend virtual environment to PATH so that it will be searched first (before globally installed Python directories)
+export PATH=${VIRTUAL_ENV_BIN_DIR}:${PATH}
+PYCOVERAGE_BIN=$(which coverage)
 set -e
 
 if [ -x ${PYCOVERAGE_BIN} ] ; then
@@ -40,6 +46,7 @@ else
     echo "WARNING: No Python coverage tool found in path. No coverage stats will be collected..."
 fi
 
+pip3 freeze
 
 {%- if arguments.use_dev_dir %}
 export PATH={{ arguments.use_dev_dir }}:${PATH}
@@ -74,21 +81,52 @@ fi
 
 set +e
 RUN_TEST_BIN=`which {{ var.setup.run_test_suite }}`
+RUN_TEST_BIN_NO_VENV=`which {{ var.setup.run_test_suite_no_venv }}`
+
+echo "Chrome test environment..."
+chrome -version
+chromedriver -version
 set -e
 
+{% if var.setup.activate_xvfb_for_tests %}
+XVFB_DISPLAY=:99
+echo "Activate xvfb support for X11 testing on DISPLAY ${XVFB_DISPLAY}..."
+Xvfb ${XVFB_DISPLAY} &
+XVFB_PID=$!
+echo "Server Xvfb started with process ID ${XVFB_PID}..."
+OLD_DISPLAY="$DISPLAY"
+export DISPLAY=${XVFB_DISPLAY}
+{% endif %}
 
 if [ "${RUN_TEST_BIN}" == "" ] ; then
     echo "ERROR: Cannot find executable {{ var.setup.run_test_suite }} in PATH=${PATH}"
     exit 1
-elif [ "${PYCOVERAGE_BIN}" == "" ] ; then
-    echo "Running test script ${RUN_TEST_BIN}..."
-    ${RUN_TEST_BIN}
-else
+elif [ -x ${PYCOVERAGE_BIN} ] ; then
     echo "Calling pycoverage 'erase'..."
     ${PYCOVERAGE_BIN} erase
-    echo "Calling pycoverage 'run' for test script ${RUN_TEST_BIN}..."
-    ${PYCOVERAGE_BIN} run ${RUN_TEST_BIN}
+
+    if [ -d $VIRTUAL_ENV_BIN_DIR ] ; then
+        echo "Virtual Python environment detected in $VIRTUAL_ENV_BIN_DIR..."
+        echo "Calling pycoverage 'run' for test script ${RUN_TEST_BIN} in virtual environment..."
+        ${PYCOVERAGE_BIN} run ${RUN_TEST_BIN}
+    else
+        echo "No virtual Python environment detected..."
+        echo "Calling pycoverage 'run' for test script ${RUN_TEST_BIN_NO_VENV}..."
+        ${PYCOVERAGE_BIN} run ${RUN_TEST_BIN_NO_VENV}
+    fi
+
     echo "Calling pycoverage 'report'..."
     ${PYCOVERAGE_BIN} report
     ${PYCOVERAGE_BIN} html
+    ${PYCOVERAGE_BIN} xml
+else
+    echo "Running test script ${RUN_TEST_BIN}..."
+    ${RUN_TEST_BIN}
 fi
+
+{% if var.setup.activate_xvfb_for_tests %}
+echo "Stopping server Xvfb..."
+kill ${XVFB_PID}
+echo "Restoring DISPLAY variable to '${OLD_DISPLAY}'..."
+export DISPLAY=${OLD_DISPLAY}
+{% endif %}

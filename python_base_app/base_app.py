@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-2024  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -35,6 +35,9 @@ from python_base_app import locale_helper
 from python_base_app import log_handling
 from python_base_app import settings
 from python_base_app import tools
+from some_flask_helpers.blueprint_adapter import LOG_NAME as BLUEPRINT_ADAPTER_LOG_NAME
+
+PACKAGE_NAME = "python_base_app"
 
 DEFAULT_DEBUG_MODE = False
 
@@ -44,6 +47,7 @@ DEFAULT_USER_CONFIG_DIR = ".config"
 DEFAULT_CONF_EXTENSION = ".conf"
 DEFAULT_LANGUAGES = ['en']
 DEFAULT_NO_LOG_FILTER = False
+DEFAULT_LOCALE = "en_US"
 
 TIME_SLACK = 0.1  # seconds
 ETERNITY = 24 * 3600  # seconds
@@ -52,7 +56,8 @@ DEFAULT_MAXIMUM_TIMER_SLACK = 5  # second
 DEFAULT_MINIMUM_DOWNTIME_DURATION = 20  # seconds
 
 CONTRIB_LOG_PATHS = [
-    "alembic.runtime.migration"
+    "alembic.runtime.migration",
+    BLUEPRINT_ADAPTER_LOG_NAME
 ]
 
 class BaseAppConfigModel(configuration.ConfigModel):
@@ -72,13 +77,15 @@ class BaseAppConfigModel(configuration.ConfigModel):
 
 class RecurringTask(object):
 
-    def __init__(self, p_name, p_handler_method, p_interval=DEFAULT_TASK_INTERVAL, p_fixed_schedule=False):
+    def __init__(self, p_name, p_handler_method, p_interval=DEFAULT_TASK_INTERVAL, p_fixed_schedule=False,
+                 p_ignore_exceptions=False):
 
         self.name = p_name
         self.handler_method = p_handler_method
         self.interval = p_interval
         self.next_execution = None
         self.fixed_schedule = p_fixed_schedule
+        self.ignore_exceptions = p_ignore_exceptions
 
     def __lt__(self, p_other):
         return self.next_execution < p_other
@@ -145,6 +152,11 @@ class BaseApp(daemon.Daemon):
         self._latest_request = None
         self._partial_basic_init_executed = False
         self._full_basic_init_executed = False
+        self._active_signals = [signal.SIGTERM, signal.SIGINT]
+        self._done = False
+
+        if not tools.is_windows():
+            self._active_signals.append(signal.SIGHUP)
 
         if self._languages is None:
             self._languages = DEFAULT_LANGUAGES
@@ -160,12 +172,13 @@ class BaseApp(daemon.Daemon):
         return self._locale_helper
 
     def get_request_locale(self):
-        locale = flask.request.accept_languages.best_match(self._languages)
+        locale = flask.request.accept_languages.best_match(self._languages) or DEFAULT_LOCALE
 
         if self._latest_request is None or not self._latest_request is flask.request.stream:
             msg = "Best matching locale = {locale}"
             self._logger.debug(msg.format(locale=locale))
             self._latest_request = flask.request.stream
+
         return locale
 
     def add_locale_helper(self, p_locale_helper):
@@ -227,6 +240,8 @@ class BaseApp(daemon.Daemon):
 
     def add_recurring_task(self, p_recurring_task):
 
+        self._logger.info(f"Adding recurring task '{p_recurring_task.name}' every {p_recurring_task.interval} seconds.")
+
         p_recurring_task.compute_next_execution_time()
         heapq.heappush(self._recurring_tasks, p_recurring_task.get_heap_entry())
 
@@ -278,20 +293,22 @@ class BaseApp(daemon.Daemon):
     def reevaluate_configuration(self):
         pass
 
-    def handle_sighup(self, p_signum, p_stackframe):
+    def handle_signal(self, p_signum, p_stackframe):
 
         fmt = "Received signal %d" % p_signum
         _ = p_stackframe
         self._logger.info(fmt)
+        self._done = True
 
         raise exceptions.SignalHangUp()
 
     def install_handlers(self):
 
-        signal.signal(signal.SIGTERM, self.handle_sighup)
-        signal.signal(signal.SIGHUP, self.handle_sighup)
-        signal.signal(signal.SIGINT, self.handle_sighup)  # CTRL-C
-        signal.pthread_sigmask(signal.SIG_UNBLOCK, [signal.SIGTERM, signal.SIGHUP, signal.SIGINT])
+        for signal_id in self._active_signals:
+            signal.signal(signal_id, self.handle_signal)
+
+        if not tools.is_windows():
+            signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
 
     def prepare_services(self, p_full_startup=True):
 
@@ -319,6 +336,7 @@ class BaseApp(daemon.Daemon):
     def event_queue(self):
 
         self._done = False
+        self._logger.info("Entering event queue...")
 
         while not self._done:
             try:
@@ -337,7 +355,9 @@ class BaseApp(daemon.Daemon):
                         fmt = "Sleeping for {seconds} seconds (or until next signal)"
                         self._logger.debug(fmt.format(seconds=wait_in_seconds))
 
-                        signal.pthread_sigmask(signal.SIG_UNBLOCK, [signal.SIGTERM, signal.SIGHUP])
+                        if not tools.is_windows():
+                            signal.pthread_sigmask(signal.SIG_UNBLOCK, self._active_signals)
+
                         time.sleep(wait_in_seconds)
 
                     except exceptions.SignalHangUp as e:
@@ -366,7 +386,7 @@ class BaseApp(daemon.Daemon):
                     task_executed = True
 
                     while task_executed:
-                        task = self._recurring_tasks[0]
+                        task : RecurringTask = self._recurring_tasks[0]
                         now = datetime.datetime.utcnow()
 
                         if now > task:
@@ -377,7 +397,16 @@ class BaseApp(daemon.Daemon):
 
                             fmt = "Executing task {task} {secs:.3f} [s] behind schedule... *** START ***"
                             self._logger.debug(fmt.format(task=task.name, secs=delay))
-                            task.handler_method()
+
+                            try:
+                                task.handler_method()
+
+                            except Exception as e:
+                                self._logger.error(f"Exception {str(e)}  while executing task {task.name}")
+
+                                if not task.ignore_exceptions:
+                                    raise e
+
                             fmt = "Executing task {task} {secs:.3f} [s] behind schedule... *** END ***"
                             self._logger.debug(fmt.format(task=task.name, secs=delay))
 
@@ -409,6 +438,8 @@ class BaseApp(daemon.Daemon):
 
             if self._arguments.single_run:
                 self._done = True
+
+        self._logger.info("Leaving event queue...")
 
     def track_downtime(self, p_downtime):
 
@@ -450,8 +481,15 @@ class BaseApp(daemon.Daemon):
 
         previous_exception = None
 
+        if tools.running_in_docker():
+            self._logger.info("Detected Docker run time.")
+
+        elif tools.running_in_snap():
+            self._logger.info("Detected Snapcraft run time")
+
         fmt = "Starting app '%s'" % self._app_name
         self._logger.info(fmt)
+
 
         try:
             self.basic_init()

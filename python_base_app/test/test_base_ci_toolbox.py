@@ -17,9 +17,10 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import os
+import sys
 import tempfile
 
-import sys
+import setuptools
 
 from python_base_app import base_ci_toolbox
 from python_base_app.test import base_test
@@ -32,22 +33,25 @@ STAGE_PREPARE_FILES = [
     '.circleci/config.yml',
     '.gitlab-ci.yml',
     '.codacy.yml',
-    'a_package/git.py'
+    'a_package/git.py',
+    'bin/pip3.sh'
 ]
 
 STAGE_PREPARE_DIRS = [
     '.circleci',
+    'bin'
 ]
 
 STAGE_BUILD_FILES = [
-    'bin/make-debian-package.sh',
     'a_package/translations/de/LC_MESSAGES/messages.mo',
     'a_package.egg-info/dependency_links.txt',
     'a_package.egg-info/PKG-INFO',
     'a_package.egg-info/requires.txt',
     'a_package.egg-info/SOURCES.txt',
     'a_package.egg-info/top_level.txt',
-    'dist/a_package-0.0.1.tar.gz'
+    'dist/a_package-0.0.1.tar.gz',
+    'bin/make-debian-package.sh',
+    'bin/pip3.sh'
 ]
 
 STAGE_BUILD_DIRS = [
@@ -106,8 +110,11 @@ class TestBaseCiToolbox(base_test.BaseTestCase):
         self.remove_files(p_rel_paths=STAGE_PREPARE_FILES, p_rel_dirs=STAGE_PREPARE_DIRS)
         main_module_dir = os.path.join(os.path.dirname(__file__), self.get_resource_base_path())
 
-        sys.argv.extend(['--execute-stage', 'PREPARE'])
-        base_ci_toolbox.main(p_main_module_dir=main_module_dir)
+        self._logger.info(f"Testing stage prepare in main module directory {main_module_dir}.")
+
+        argv = ['--execute-stage', 'PREPARE']
+
+        base_ci_toolbox.main(p_main_module_dir=main_module_dir, p_argv=argv)
 
         self.rel_test_files(p_rel_paths=STAGE_PREPARE_FILES)
 
@@ -115,11 +122,16 @@ class TestBaseCiToolbox(base_test.BaseTestCase):
 
     def test_stage_build(self):
 
+        print("setuptools.version", setuptools.version.__version__)
+
         self.remove_files(p_rel_paths=STAGE_BUILD_FILES, p_rel_dirs=STAGE_BUILD_DIRS)
         main_module_dir = os.path.join(os.path.dirname(__file__), self.get_resource_base_path())
 
-        sys.argv.extend(['--execute-stage', 'BUILD', '--use-dev-dir', self.get_resource_base_path()])
-        base_ci_toolbox.main(p_main_module_dir=main_module_dir)
+        self._logger.info(f"Testing stage build in main module directory {main_module_dir}.")
+
+        argv = ['--execute-stage', 'BUILD', '--use-dev-dir', self.get_resource_base_path()]
+
+        base_ci_toolbox.main(p_main_module_dir=main_module_dir, p_argv=argv)
 
         self.rel_test_files(p_rel_paths=STAGE_BUILD_FILES)
 

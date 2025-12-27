@@ -23,8 +23,9 @@ import logging
 import os
 import sys
 import unittest
-import pytest
 from os.path import join, dirname
+
+import pytest
 
 from python_base_app import configuration
 from python_base_app import log_handling
@@ -108,7 +109,8 @@ class must_be_available(object):
 def add_tests_in_test_unit(
         p_test_suite, p_test_unit_class,
         p_config_filename=DEFAULT_CONFIG_FILENAME, p_test_data_base_dir=DEFAULT_RESOURCE_REL_PATH):
-    for test_name in unittest.getTestCaseNames(p_test_unit_class, prefix="test"):
+    loader = unittest.TestLoader()
+    for test_name in loader.getTestCaseNames(p_test_unit_class):
         test = p_test_unit_class(
             test_name,
             p_config_filename=p_config_filename,
@@ -204,11 +206,28 @@ class BaseTestCase(unittest.TestCase):
 
         return join(self._test_data_base_dir, p_rel_path)
 
-    def execute_pytest(self, p_rel_path="pytest"):
+    def execute_pytest(self, p_base_dir=None, p_rel_path="pytests"):
 
-        pytest_dir = os.path.join(os.path.dirname(__file__), p_rel_path)
+        if p_base_dir is None:
+            p_base_dir = os.path.dirname(__file__)
+
+        pytest_dir = os.path.join(p_base_dir, p_rel_path)
 
         fmt = "Executing pytest tests in directory {dirname}"
         self._logger.info(fmt.format(dirname=pytest_dir))
 
-        self.assertEqual(pytest.cmdline.main([pytest_dir]), 0)
+        pytest_result = pytest.cmdline.main([pytest_dir])
+
+        self.assertEqual(pytest_result, 0)
+
+    def check_list_length(self, p_list, p_length):
+
+        self.assertIsNotNone(p_list)
+        self.assertEqual(len(p_list), p_length)
+
+    @staticmethod
+    def get_status_server_port() -> int:
+        port = int(os.getenv("STATUS_SERVER_PORT", "5555"))
+        delta_port = int(os.getenv("DELTA_PORT", "0"))
+
+        return port + delta_port

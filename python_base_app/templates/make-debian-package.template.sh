@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#    Copyright (C) 2019  Marcus Rickert
+#    Copyright (C) 2019-20  Marcus Rickert
 #
 #    See https://github.com/marcus67/python_base_app
 #
@@ -43,6 +43,7 @@ if [ -d ${ROOT_DIR}/DEBIAN ] ; then
 fi
 
 TMP_DIR=${ROOT_DIR}/{{ var.setup.rel_tmp_dir }}
+LIB_DIR=${ROOT_DIR}/{{ var.setup.rel_lib_dir }}
 ETC_DIR=${ROOT_DIR}/{{ var.setup.rel_etc_dir }}
 SYSTEMD_DIR=${ROOT_DIR}/{{ var.setup.rel_systemd_dir }}
 TMPFILE_DIR=${ROOT_DIR}/{{ var.setup.rel_tmpfile_dir }}
@@ -51,7 +52,17 @@ APPARMOR_DIR=${ROOT_DIR}/{{ var.setup.rel_apparmor_dir }}
 
 mkdir -p ${TMP_DIR}
 mkdir -p ${ETC_DIR}
+mkdir -p ${LIB_DIR}
+
+echo "Copying pip3.sh helper script..."
+cp ${BASE_DIR}/bin/pip3.sh ${LIB_DIR}
 {% endif %}
+
+echo "Installing PIP packages required for building..."
+{%- if var.setup.ci_stage_build_pip_dependencies|length > 0 %}
+pip3 install {%- for package in var.setup.ci_stage_build_pip_dependencies %} {{package}}{% endfor %}
+{%- endif %}
+
 
 {% for package in python_packages %}
 # Build PIP package {{ package[1] }}...
@@ -82,7 +93,7 @@ pybabel compile -d {{ package[2] }}/{{ package[3].setup.babel_rel_directory }}
 python3 ./setup.py sdist
 
 {% if var.setup.build_debian_package -%}
-cp dist/{{ package[1] }} ${TMP_DIR}
+cp dist/{{ package[1] }} ${LIB_DIR}
 {% endif %}
 popd
 {% endfor %}
@@ -92,22 +103,22 @@ cp -a ${BASE_DIR}/{{ var.setup.debian_build_dir}}/DEBIAN ${ROOT_DIR}
 
 {% if var.setup.deploy_systemd_service %}
 mkdir -p ${SYSTEMD_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.service ${SYSTEMD_DIR}/{{ var.setup.name }}.service
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.service ${SYSTEMD_DIR}/{{ var.setup.id }}.service
 {% endif %}
 
 {% if var.setup.deploy_tmpfile_conf %}
 mkdir -p ${TMPFILE_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.name }}.conf
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.tmpfile ${TMPFILE_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 
 {% if var.setup.deploy_sudoers_file %}
 mkdir -p ${SUDOERS_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.sudo ${SUDOERS_DIR}/{{ var.setup.name }}
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.sudo ${SUDOERS_DIR}/{{ var.setup.id }}
 {% endif %}
 
 {% if var.setup.deploy_apparmor_file %}
 mkdir -p ${APPARMOR_DIR}
-cp ${BASE_DIR}/etc/{{ var.setup.name }}.apparmor ${APPARMOR_DIR}/{{ var.setup.name }}.conf
+cp ${BASE_DIR}/etc/{{ var.setup.id }}.apparmor ${APPARMOR_DIR}/{{ var.setup.id }}.conf
 {% endif %}
 
 rm -f {{ var.setup.debian_build_dir}}/${DEBIAN_PACKAGE_BASE_NAME}.deb
