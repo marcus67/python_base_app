@@ -25,5 +25,6 @@ settings = {
 }
 
 extended_settings = {
-    "babel_rel_directory": "translations"
+    "babel_rel_directory": "translations",
+    "analyze": False,
 }
