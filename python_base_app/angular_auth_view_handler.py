@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2019-2024  Marcus Rickert
+# Copyright (C) 2019-2025  Marcus Rickert
 #
 # See https://github.com/marcus67/python_base_app
 # This program is free software; you can redistribute it and/or modify
@@ -18,11 +18,12 @@
 
 import datetime
 from json import JSONDecodeError
+from typing import Callable
 
 import flask
 import flask.wrappers
 import some_flask_helpers
-from flask import jsonify, request, make_response
+from flask import jsonify, request, make_response, Request
 
 import python_base_app
 from python_base_app import log_handling
@@ -57,11 +58,14 @@ _('Please log in to access this page.')
 
 class AngularAuthViewHandler:
 
-    def __init__(self, p_user_handler: BaseUserHandler, p_app, p_url_prefix: str, p_token_handler: BaseTokenHandler):
+    def __init__(self, p_user_handler: BaseUserHandler, p_app, p_url_prefix: str,
+                 p_token_handler: BaseTokenHandler,
+                 p_auth_result_processor:Callable[[dict], int|None] = None):
 
         self._user_handler = p_user_handler
         self._token_handler = p_token_handler
         self._url_prefix = p_url_prefix
+        self._auth_result_processor:Callable[[dict], int|None] = p_auth_result_processor
 
         self._logger = log_handling.get_logger(self.__class__.__name__)
 
@@ -80,7 +84,7 @@ class AngularAuthViewHandler:
 
         return self._user_handler.authenticate(p_username=p_username, p_password=p_password)
 
-    def check_authorization(self, p_request, p_admin_required=True) -> tuple[any, int]:
+    def check_authorization(self, p_request: Request, p_admin_required: bool = True) -> tuple[any, int]:
 
         http_status = 200
         error_details = None
@@ -98,18 +102,22 @@ class AngularAuthViewHandler:
 
                 if uid is not None:
                     is_admin = self._user_handler.is_admin(username)
+
                     if is_admin or not p_admin_required:
                         result['authorization'] = {
                             'uid': uid,
                             'username': username,
                             'is_admin': is_admin
                         }
+
+                        if self._auth_result_processor:
+                            self._auth_result_processor(result['authorization'])
                     else:
                         http_status = 401
                         error_details = f"username '{username}' is not in admin group"
                 else:
                     http_status = 401
-                    error_details = f"username '{username} not found"
+                    error_details = f"username '{username}' not found"
 
             except TokenException as e:
                 http_status = 401
@@ -132,7 +140,6 @@ class AngularAuthViewHandler:
     def login(self):
 
         result = {}
-        status = "OK"
         auth_token: str | None = None
         refresh_token: str | None = None
         error_details = None
@@ -158,6 +165,10 @@ class AngularAuthViewHandler:
                     result["username"] = username
                     auth_token = self._token_handler.create_token(p_id=username)
                     refresh_token = self._token_handler.create_token(p_id=username, p_is_refresh=True)
+
+                    if self._auth_result_processor:
+                        self._auth_result_processor(result)
+
                     self._logger.info(f"User {username} logged in successfully.")
 
                 else:

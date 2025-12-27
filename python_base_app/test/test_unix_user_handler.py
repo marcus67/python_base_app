@@ -25,6 +25,7 @@ from python_base_app.test import base_test
 SEARCH_BASE_DN = "dc=mydomain,dc=com"
 
 ADMIN_USER = "admin"
+ADMIN_USER_ID = 4321
 ADMIN_PASSWORD = "hello!"
 
 USER_1_UID_NUMBER = "1000"

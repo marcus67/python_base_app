@@ -2,6 +2,20 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.3.4 (December 25th, 2025)
+* Support Python 3.13
+* Use `unittest.TestLoader()` to enumerate over test cases
+* Bump `Flask-WTF` to 1.2.2
+* Bump `requests` to 2.32.4
+* Bump `setuptools` to 78.1.1
+* Bump `urllib3` to 2.6.2
+* Bump `werkzeug` to 3.1.4
+* Bump `some_flask_helpers` to 0.2.9
+
+
+## Version 0.3.3 (January 12th, 2025)
+* Support processing of authorization results to add additional information (such as user ids) 
+
 ## Version 0.3.2 (December 26th, 2024)
 * Better handling of pip package names (only use underscores)
 * Upgrade `some_flask_helpers` to 0.2.8
