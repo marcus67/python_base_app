@@ -26,7 +26,7 @@ import flask.globals
 import flask.wrappers
 import flask_login
 from flask_wtf import CSRFProtect
-from secure import Secure
+from secure import Secure, XContentTypeOptions, XFrameOptions, ReferrerPolicy, CacheControl
 
 import some_flask_helpers
 from python_base_app import actuator
@@ -50,11 +50,24 @@ DUMMY_SECTION_NAME = "BaseWebServer"
 # see https://improveandrepeat.com/2020/10/python-friday-43-add-security-headers-to-your-flask-application/
 # see https://secure.readthedocs.io/en/latest/frameworks.html#flask
 
-secure_headers = Secure()
+secure_headers = Secure(
+    # Keep only classic, Selenium‑safe headers.
+    xcto=XContentTypeOptions(),  # X-Content-Type-Options: nosniff
+    xfo=XFrameOptions("DENY"),  # X-Frame-Options: DENY
+    referrer=ReferrerPolicy("no-referrer-when-downgrade"),
+    cache=CacheControl().no_cache(),  # Similar to old defaults
 
+    # DO NOT enable CSP, HSTS, COOP, COEP, CORP, PermissionsPolicy, etc.
+    csp=None,
+    hsts=None,
+    coop=None,
+    coep=None,
+    corp=None,
+    permissions=None,
+    custom=None,)
 
 def set_secure_headers(response):
-    secure_headers.framework.flask(response)
+    secure_headers.set_headers(response)
     return response
 
 
