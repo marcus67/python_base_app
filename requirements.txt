@@ -6,6 +6,7 @@ wtforms==3.0.1
 coverage==7.3.2
 flask-login==0.6.3
 psutil==7.2.0
+pyjwt==2.10.1
 pytest==9.0.2
 python-dateutil==2.8.2
 python-google-speak==0.2.2
@@ -15,4 +16,3 @@ setuptools==80.9.0
 some_flask_helpers~=0.2.10
 urllib3==2.6.2
 werkzeug==3.1.4
-pyjwt==2.8.0

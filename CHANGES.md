@@ -8,6 +8,7 @@ This document lists all changes of `python_base_app` with the most recent change
 * Bump `requests` to 2.43.5
 * Bump `setuptools` to 80.9.0
 * Bump `some_flask_helpers` to 0.2.10
+* Bump `pyjwt` to 2.10.1
 * Use only lowercase letters in requirements.txt
 
 ## Version 0.3.5 (December 28th, 2025)
