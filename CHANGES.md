@@ -2,8 +2,15 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.3.6 (December 28th, 2025)
+* Bump `psutil` to 7.2.0
+* Bump `pytest` to 9.0.2
+* Bump `requests` to 2.43.5
+* Bump `setuptools` to 80.9.0
+* Use only lowercase letters in requirements.txt
+
 ## Version 0.3.5 (December 28th, 2025)
-* Bump `support` to 2.0.0
+* Bump `secure` to 2.0.0
 * Handle updated Secure() class
 
 ## Version 0.3.4 (December 25th, 2025)
