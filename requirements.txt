@@ -10,7 +10,7 @@ pytest==7.4.2
 python-dateutil==2.8.2
 python-google-speak==0.2.2
 requests==2.32.4
-secure==0.3.0
+secure==2.0.0
 setuptools==78.1.1
 some_flask_helpers==0.2.9
 urllib3==2.6.2

@@ -2,6 +2,10 @@
 
 This document lists all changes of `python_base_app` with the most recent changes at the top.
 
+## Version 0.3.5 (December 28th, 2025)
+* Bump `support` to 2.0.0
+* Handle updated Secure() class
+
 ## Version 0.3.4 (December 25th, 2025)
 * Support Python 3.13
 * Use `unittest.TestLoader()` to enumerate over test cases
