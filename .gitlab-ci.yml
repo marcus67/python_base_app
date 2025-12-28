@@ -41,7 +41,7 @@ build_pypi:
   artifacts:
       when: always
       paths:
-        - ./dist/python_base_app-0.3.4.tar.gz
+        - ./dist/python_base_app-0.3.5.tar.gz
   variables:
     # Suppress automatic checkout for all sub modules
     GIT_SUBMODULE_STRATEGY: recursive

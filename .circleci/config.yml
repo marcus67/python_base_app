@@ -38,14 +38,14 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python_base_app-0.3.4.tar.gz"
+          path: "dist/python_base_app-0.3.5.tar.gz"
       # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
       # with each other in common downstream jobs.
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz ./dist/python_base_app-0.3.4.tar.gz_3_10
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz ./dist/python_base_app-0.3.5.tar.gz_3_10
       - persist_to_workspace:
           root: "."
           paths:
-            - ./dist/python_base_app-0.3.4.tar.gz_3_10
+            - ./dist/python_base_app-0.3.5.tar.gz_3_10
   
   build_pypi_3_11:
     #working_directory: ~
@@ -60,14 +60,14 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python_base_app-0.3.4.tar.gz"
+          path: "dist/python_base_app-0.3.5.tar.gz"
       # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
       # with each other in common downstream jobs.
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz ./dist/python_base_app-0.3.4.tar.gz_3_11
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz ./dist/python_base_app-0.3.5.tar.gz_3_11
       - persist_to_workspace:
           root: "."
           paths:
-            - ./dist/python_base_app-0.3.4.tar.gz_3_11
+            - ./dist/python_base_app-0.3.5.tar.gz_3_11
   
   build_pypi_3_12:
     #working_directory: ~
@@ -82,14 +82,14 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python_base_app-0.3.4.tar.gz"
+          path: "dist/python_base_app-0.3.5.tar.gz"
       # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
       # with each other in common downstream jobs.
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz ./dist/python_base_app-0.3.4.tar.gz_3_12
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz ./dist/python_base_app-0.3.5.tar.gz_3_12
       - persist_to_workspace:
           root: "."
           paths:
-            - ./dist/python_base_app-0.3.4.tar.gz_3_12
+            - ./dist/python_base_app-0.3.5.tar.gz_3_12
   
   build_pypi_3_13:
     #working_directory: ~
@@ -104,14 +104,14 @@ jobs:
       - run: git submodule update --init
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage BUILD --use-dev-dir=.
       - store_artifacts:
-          path: "dist/python_base_app-0.3.4.tar.gz"
+          path: "dist/python_base_app-0.3.5.tar.gz"
       # Rename the artifact to a specific name, so that the artifacts uploaded by parallel jobs do not collide
       # with each other in common downstream jobs.
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz ./dist/python_base_app-0.3.4.tar.gz_3_13
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz ./dist/python_base_app-0.3.5.tar.gz_3_13
       - persist_to_workspace:
           root: "."
           paths:
-            - ./dist/python_base_app-0.3.4.tar.gz_3_13
+            - ./dist/python_base_app-0.3.5.tar.gz_3_13
   
   
   install_pypi_3_10:
@@ -128,7 +128,7 @@ jobs:
 
       - attach_workspace:
           at: "."
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz_3_10 ./dist/python_base_app-0.3.4.tar.gz
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz_3_10 ./dist/python_base_app-0.3.5.tar.gz
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
       - run: DELTA_PORT=4 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
       - run: codecov
@@ -148,7 +148,7 @@ jobs:
 
       - attach_workspace:
           at: "."
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz_3_11 ./dist/python_base_app-0.3.4.tar.gz
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz_3_11 ./dist/python_base_app-0.3.5.tar.gz
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
       - run: DELTA_PORT=5 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
       - run: codecov
@@ -168,7 +168,7 @@ jobs:
 
       - attach_workspace:
           at: "."
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz_3_12 ./dist/python_base_app-0.3.4.tar.gz
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz_3_12 ./dist/python_base_app-0.3.5.tar.gz
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
       - run: DELTA_PORT=6 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
       - run: codecov
@@ -188,7 +188,7 @@ jobs:
 
       - attach_workspace:
           at: "."
-      - run: mv ./dist/python_base_app-0.3.4.tar.gz_3_13 ./dist/python_base_app-0.3.4.tar.gz
+      - run: mv ./dist/python_base_app-0.3.5.tar.gz_3_13 ./dist/python_base_app-0.3.5.tar.gz
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage INSTALL-PYPI-PACKAGE --use-dev-dir=.
       - run: DELTA_PORT=7 PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage TEST
       - run: codecov
@@ -211,7 +211,7 @@ jobs:
       - attach_workspace:
           at: "."
       # Choose the artifact of the last Python image (having the most up-to-date Python version)...
-      - run: mv dist/python_base_app-0.3.4.tar.gz_3_13 dist/python_base_app-0.3.4.tar.gz
+      - run: mv dist/python_base_app-0.3.5.tar.gz_3_13 dist/python_base_app-0.3.5.tar.gz
       - run: PYTHONPATH=contrib/python_base_app python3 ci_toolbox.py --execute-stage PUBLISH-PYPI-PACKAGE --use-dev-dir=.
 
 workflows:
